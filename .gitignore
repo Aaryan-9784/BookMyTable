@@ -5,3 +5,7 @@ server/.env
 client/.env
 *.log
 .DS_Store
+
+# Private keys — never commit these
+*.pem
+*.key
