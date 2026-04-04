@@ -1,208 +1,343 @@
-# BookMyTable
+# 🍽️ BookMyTable
 
-Production-oriented **MERN** stack app for restaurant table reservations: **React (Vite) + Tailwind**, **Express + Mongoose**, **Amazon Cognito** (JWT auth), **Amazon S3** (images), and **Amazon SES** (booking confirmation email).
+A **full-stack luxury restaurant reservation platform** built with the MERN stack. Users can browse curated restaurants, make table reservations, and receive email confirmations — all wrapped in a premium dark-gold UI.
 
-## Root file structure
-
-```
-BookMyTable/
-├── .env.example
-├── .gitignore
-├── README.md
-├── client/
-│   ├── index.html
-│   ├── package.json
-│   ├── postcss.config.js
-│   ├── public/
-│   │   └── favicon.svg
-│   ├── tailwind.config.js
-│   ├── vite.config.js
-│   └── src/
-│       ├── App.jsx
-│       ├── main.jsx
-│       ├── index.css
-│       ├── components/
-│       │   ├── BookingForm.jsx
-│       │   ├── Footer.jsx
-│       │   ├── Loader.jsx
-│       │   ├── Navbar.jsx
-│       │   ├── PrivateRoute.jsx
-│       │   └── RestaurantCard.jsx
-│       ├── context/
-│       │   └── AuthContext.jsx
-│       ├── hooks/
-│       │   └── useAuth.js
-│       ├── pages/
-│       │   ├── BookTable.jsx
-│       │   ├── Home.jsx
-│       │   ├── Login.jsx
-│       │   ├── MyBookings.jsx
-│       │   ├── RestaurantDetails.jsx
-│       │   ├── Restaurants.jsx
-│       │   └── Signup.jsx
-│       ├── services/
-│       │   └── api.js
-│       └── utils/
-│           ├── constants.js
-│           └── formatDate.js
-└── server/
-    ├── app.js
-    ├── loadEnv.js
-    ├── package.json
-    ├── server.js
-    ├── config/
-    │   ├── awsClients.js
-    │   └── db.js
-    ├── controllers/
-    │   ├── bookingController.js
-    │   ├── restaurantController.js
-    │   └── uploadController.js
-    ├── middleware/
-    │   ├── errorHandler.js
-    │   ├── requireAdmin.js
-    │   ├── uploadImage.js
-    │   └── verifyCognitoToken.js
-    ├── models/
-    │   ├── Booking.js
-    │   ├── Restaurant.js
-    │   └── User.js
-    ├── routes/
-    │   ├── bookingRoutes.js
-    │   ├── restaurantRoutes.js
-    │   └── uploadRoutes.js
-    └── utils/
-        ├── fetchJwks.js
-        ├── s3Upload.js
-        ├── sesEmail.js
-        └── verifyCognitoJwt.js
-```
-
-## API routes
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/api/restaurants` | Public | List restaurants |
-| GET | `/api/restaurants/:id` | Public | Get one restaurant |
-| POST | `/api/restaurants` | Cognito JWT + admin | Create restaurant |
-| POST | `/api/bookings` | Cognito JWT | Create booking (triggers SES email) |
-| GET | `/api/bookings/my` | Cognito JWT | Current user’s bookings |
-| POST | `/api/upload` | Cognito JWT + admin | Multipart `image` → S3, returns `{ url }` |
-
-Admin access: user’s email must appear in `ADMIN_EMAILS` (comma-separated) in `server/.env`, or MongoDB `User.role` must be `admin`.
-
-## Environment variables
-
-See **`.env.example`** at the repository root. Create:
-
-- **`server/.env`** — copy server-related keys from `.env.example`.
-- **`client/.env`** — set `VITE_API_URL`, `VITE_AWS_REGION`, `VITE_COGNITO_USER_POOL_ID`, `VITE_COGNITO_CLIENT_ID`.
-
-**Critical:** `COGNITO_APP_CLIENT_ID` on the server must match `VITE_COGNITO_CLIENT_ID` on the client (same Cognito app client). The backend verifies the **ID token** audience against this value.
+**Live tech stack:** React + Vite + Tailwind CSS · Express.js + Mongoose · Amazon Cognito (auth) · Amazon S3 (images) · Amazon SES (emails)
 
 ---
 
-## Setup guide
+## 📸 Preview
 
-### 1. MongoDB
+> Homepage hero with full-screen background, glassmorphism search bar, and luxury card grid.
 
-- Install [MongoDB Community](https://www.mongodb.com/try/download/community) or use [MongoDB Atlas](https://www.mongodb.com/atlas).
-- Local example URI: `mongodb://127.0.0.1:27017/bookmytable`
-- Set `MONGODB_URI` in `server/.env`.
+---
 
-### 2. AWS Cognito (User Pool + app client)
+## ✨ Features
 
-1. In **AWS Console** → **Cognito** → **User pools** → **Create user pool**.
-2. Sign-in options: enable **Email**.
-3. Password policy: per your security needs.
-4. **Self-registration** enabled if you want open signup from the app.
-5. **Required attributes**: ensure **email** is available (standard attribute).
-6. Create **App integration** → **App client** (public client, no secret). Note **Client ID** and **User Pool ID**.
-7. Set **Hosted UI** only if you use it; this app uses **amazon-cognito-identity-js** against the pool directly.
-8. Put in **`server/.env`**: `AWS_REGION`, `COGNITO_USER_POOL_ID`, `COGNITO_APP_CLIENT_ID`.
-9. Put in **`client/.env`**: `VITE_AWS_REGION`, `VITE_COGNITO_USER_POOL_ID`, `VITE_COGNITO_CLIENT_ID` (same client ID).
+- 🔐 **Authentication** — Sign up, log in, email verification via Amazon Cognito
+- 🍴 **Restaurant browsing** — Search, filter by cuisine / price / rating / location, sort
+- 📅 **Table booking** — Pick date, time slot, and guest count; instant confirmation
+- 📧 **Email confirmation** — Booking confirmation sent via Amazon SES
+- 👤 **User profile** — View stats, recent reservations, manage account
+- 🛡️ **Admin panel** — Add/edit/delete restaurants, manage bookings and users
+- 🖼️ **Image uploads** — Restaurant photos stored on Amazon S3
+- 💎 **Luxury UI** — Dark obsidian + gold design system, glassmorphism, smooth animations
 
-JWKS URL used by the server (for reference):
+---
 
-`https://cognito-idp.<region>.amazonaws.com/<userPoolId>/.well-known/jwks.json`
+## 🗂️ Project Structure
 
-### 3. AWS S3 (restaurant images)
+```
+BookMyTable/
+├── client/                     # React frontend (Vite)
+│   ├── public/
+│   ├── src/
+│   │   ├── admin/              # Admin-only pages & components
+│   │   ├── components/         # Shared UI components
+│   │   ├── context/            # Auth context (Cognito)
+│   │   ├── hooks/              # Custom React hooks
+│   │   ├── pages/              # Route-level pages
+│   │   ├── services/           # Axios API client
+│   │   └── utils/              # Helpers (date, time slots, etc.)
+│   ├── .env                    # Client env vars (VITE_*)
+│   └── package.json
+│
+├── server/                     # Express backend
+│   ├── config/                 # DB + AWS SDK clients
+│   ├── controllers/            # Route handlers
+│   ├── middleware/             # Auth, error handling, upload
+│   ├── models/                 # Mongoose schemas
+│   ├── routes/                 # Express routers
+│   ├── utils/                  # S3, SES, JWT helpers
+│   ├── .env                    # Server env vars
+│   └── package.json
+│
+├── .gitignore
+└── README.md
+```
 
-1. Create an S3 bucket in the same region as the app (or your chosen region).
-2. **Block Public Access**: many teams keep buckets private and use CloudFront; this template builds a **virtual-hosted–style URL** `https://<bucket>.s3.<region>.amazonaws.com/<key>`. For objects to be readable in the browser, add a **bucket policy** allowing `s3:GetObject` for the prefix you use (e.g. `restaurants/*`) or front the bucket with CloudFront.
-3. Example bucket policy fragment (adjust bucket name and optional prefix):
+---
+
+## 🔧 Prerequisites
+
+Make sure you have these installed before starting:
+
+| Tool | Version | Download |
+|------|---------|----------|
+| Node.js | v18+ | [nodejs.org](https://nodejs.org) |
+| npm | v9+ | Comes with Node |
+| Git | Any | [git-scm.com](https://git-scm.com) |
+| MongoDB | Local or Atlas | [mongodb.com](https://www.mongodb.com) |
+
+You also need **AWS accounts** for:
+- Amazon Cognito (free tier)
+- Amazon S3 (free tier)
+- Amazon SES (free tier)
+
+---
+
+## ⚙️ Environment Variables
+
+You need **two** `.env` files — one for the server, one for the client.
+
+### `server/.env`
+
+```env
+PORT=5000
+NODE_ENV=development
+
+# MongoDB
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/bookmytable
+
+# AWS Region (must match Cognito pool region)
+AWS_REGION=us-east-1
+
+# Amazon Cognito
+COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
+COGNITO_APP_CLIENT_ID=your_app_client_id
+
+# AWS IAM credentials (for S3 + SES)
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+
+# S3 bucket name
+S3_BUCKET_NAME=your-bucket-name
+
+# SES verified sender email
+SES_FROM_EMAIL=you@yourdomain.com
+
+# Comma-separated admin emails
+ADMIN_EMAILS=admin@example.com
+
+# Your frontend URL (for CORS)
+CLIENT_URL=http://localhost:5173
+
+# Set to true to redirect emails to sender in SES sandbox
+SES_SANDBOX_FALLBACK_TO_SENDER=true
+```
+
+### `client/.env`
+
+```env
+VITE_API_URL=http://localhost:5000
+VITE_AWS_REGION=us-east-1
+VITE_COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
+VITE_COGNITO_CLIENT_ID=your_app_client_id
+```
+
+> ⚠️ **Never commit `.env` files.** They are already in `.gitignore`.
+
+---
+
+## 🚀 Local Setup — Step by Step
+
+### Step 1 — Clone the repository
+
+```bash
+git clone https://github.com/your-username/BookMyTable.git
+cd BookMyTable
+```
+
+### Step 2 — Set up MongoDB
+
+**Option A — MongoDB Atlas (recommended for beginners)**
+1. Go to [mongodb.com/atlas](https://www.mongodb.com/atlas) → create a free cluster
+2. Click **Connect** → **Connect your application** → copy the URI
+3. Replace `<user>` and `<password>` in the URI
+4. Paste it as `MONGODB_URI` in `server/.env`
+
+**Option B — Local MongoDB**
+1. Install [MongoDB Community](https://www.mongodb.com/try/download/community)
+2. Start it: `mongod`
+3. Use URI: `mongodb://127.0.0.1:27017/bookmytable`
+
+### Step 3 — Set up Amazon Cognito
+
+1. Go to [AWS Console](https://console.aws.amazon.com) → search **Cognito**
+2. Click **Create user pool**
+3. Sign-in options: select **Email**
+4. Keep defaults for password policy
+5. Enable **Self-registration** (so users can sign up from the app)
+6. Required attributes: make sure **email** and **name** are included
+7. App integration → create an **App client** (type: Public client, no secret)
+8. Note down:
+   - **User Pool ID** → `COGNITO_USER_POOL_ID`
+   - **Client ID** → `COGNITO_APP_CLIENT_ID` and `VITE_COGNITO_CLIENT_ID`
+
+### Step 4 — Set up Amazon S3
+
+1. Go to AWS Console → **S3** → **Create bucket**
+2. Choose a unique name and your region
+3. **Uncheck** "Block all public access" (so images load in the browser)
+4. After creating, go to **Permissions** → **Bucket policy** → paste this:
 
 ```json
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "PublicReadRestaurants",
+      "Sid": "PublicReadGetObject",
       "Effect": "Allow",
       "Principal": "*",
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::YOUR_BUCKET_NAME/restaurants/*"
+      "Resource": "arn:aws:s3:::YOUR_BUCKET_NAME/*"
     }
   ]
 }
 ```
 
-4. IAM user or role used by the API needs **`s3:PutObject`** (and usually **`s3:PutObjectAcl`** only if you use ACLs; this code does **not** set ACLs).
-5. Set `S3_BUCKET_NAME`, `AWS_REGION`, and credentials (`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`) or use an instance role on EC2/ECS/Lambda.
+Replace `YOUR_BUCKET_NAME` with your actual bucket name.
 
-### 4. AWS SES (email)
+5. Set `S3_BUCKET_NAME` in `server/.env`
 
-1. **SES** → **Verified identities** → verify your **domain** or **email** (`SES_FROM_EMAIL`).
-2. New accounts are often in **sandbox**: you can only send **to** verified addresses. Verify a test recipient or request production access.
-3. IAM permissions: **`ses:SendEmail`** (and `ses:SendRawEmail` if you switch to raw API later).
-4. Set `SES_FROM_EMAIL` and optionally `SES_REGION` in `server/.env`.
+### Step 5 — Set up Amazon SES
 
-### 5. Admin user
+1. Go to AWS Console → **SES** → **Verified identities**
+2. Click **Create identity** → choose **Email address**
+3. Enter your email → click the verification link sent to your inbox
+4. Set `SES_FROM_EMAIL` in `server/.env` to that same email
 
-- Add your Cognito user’s **email** to `ADMIN_EMAILS` in `server/.env` so you can:
-  - `POST /api/upload` (image to S3)
-  - `POST /api/restaurants` (create listing; set `imageUrl` from upload response)
+> 📝 New AWS accounts are in **SES sandbox** — you can only send emails to verified addresses. To send to anyone, request production access in the SES console.
 
-### 6. Run the backend
+### Step 6 — Create AWS IAM credentials
 
+1. Go to AWS Console → **IAM** → **Users** → **Create user**
+2. Attach these permissions:
+   - `AmazonS3FullAccess` (or a custom policy with `s3:PutObject`)
+   - `AmazonSESFullAccess` (or `ses:SendEmail`)
+3. Go to the user → **Security credentials** → **Create access key**
+4. Copy `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` into `server/.env`
+
+### Step 7 — Install dependencies and run
+
+**Terminal 1 — Backend:**
 ```bash
 cd server
 npm install
-# Create server/.env from .env.example (root) — server keys only
 npm run dev
 ```
+You should see: `Server running on port 5000` and `MongoDB connected`
 
-API default: `http://localhost:5000` — try `GET http://localhost:5000/health`.
-
-### 7. Run the frontend
-
+**Terminal 2 — Frontend:**
 ```bash
 cd client
 npm install
-# Create client/.env — VITE_* keys
 npm run dev
 ```
-
-Open `http://localhost:5173`. Set `VITE_API_URL=http://localhost:5000` so the SPA calls your API.
-
----
-
-## Run instructions (quick)
-
-1. MongoDB running (or Atlas URI in `server/.env`).
-2. `server/.env` and `client/.env` filled from `.env.example`.
-3. Terminal A: `cd server && npm install && npm run dev`
-4. Terminal B: `cd client && npm install && npm run dev`
-5. Sign up / log in via Cognito → browse restaurants → book a table → confirm email via SES (if configured and not blocked by sandbox).
+Open your browser at: `http://localhost:5173`
 
 ---
 
-## Security notes
+## 🌐 API Reference
 
-- Secrets live only in **`.env`** files (not committed — see `.gitignore`).
-- API validates Cognito **JWT** (RS256, issuer, audience, expiry) and attaches `req.user`.
-- Booking and upload routes use **express-validator** / multer limits where applicable.
-- Use **HTTPS** in production; tighten **CORS** to your real origin.
+| Method | Endpoint | Auth Required | Description |
+|--------|----------|---------------|-------------|
+| GET | `/api/restaurants` | No | List all restaurants (supports filters) |
+| GET | `/api/restaurants/:id` | No | Get single restaurant details |
+| POST | `/api/restaurants` | Admin | Create a new restaurant |
+| PUT | `/api/restaurants/:id` | Admin | Update a restaurant |
+| DELETE | `/api/restaurants/:id` | Admin | Delete a restaurant |
+| POST | `/api/bookings` | User | Create a booking |
+| GET | `/api/bookings/my` | User | Get current user's bookings |
+| PATCH | `/api/bookings/:id/cancel` | User | Cancel a booking |
+| POST | `/api/upload` | Admin | Upload image to S3 |
+| GET | `/api/users/profile` | User | Get user profile + stats |
 
-## License
+**Query params for `GET /api/restaurants`:**
 
-Use and modify freely for your product.
+| Param | Example | Description |
+|-------|---------|-------------|
+| `q` | `?q=pizza` | Search by name/location/category |
+| `category` | `?category=Indian` | Filter by cuisine |
+| `location` | `?location=Mumbai` | Filter by city |
+| `minPrice` | `?minPrice=2` | Min price range (1–4) |
+| `maxPrice` | `?maxPrice=3` | Max price range (1–4) |
+| `minRating` | `?minRating=4` | Minimum rating |
+| `sort` | `?sort=rating` | Sort: `newest`, `rating`, `price_asc`, `price_desc` |
+| `page` | `?page=2` | Pagination |
+| `limit` | `?limit=12` | Results per page |
+
+---
+
+## 👑 Admin Access
+
+To make a user an admin:
+
+1. Sign up normally through the app
+2. Add that user's email to `ADMIN_EMAILS` in `server/.env`:
+   ```
+   ADMIN_EMAILS=admin@example.com,another@example.com
+   ```
+3. Restart the server
+
+Admins can access `/admin` in the app to:
+- Add / edit / delete restaurants
+- Upload restaurant images to S3
+- View and manage all bookings
+- View all users
+
+---
+
+## 🏗️ Tech Stack Details
+
+### Frontend
+| Technology | Purpose |
+|-----------|---------|
+| React 18 | UI framework |
+| Vite | Build tool & dev server |
+| Tailwind CSS | Utility-first styling |
+| React Router v6 | Client-side routing |
+| Axios | HTTP requests |
+| amazon-cognito-identity-js | Cognito auth in browser |
+| react-hot-toast | Toast notifications |
+
+### Backend
+| Technology | Purpose |
+|-----------|---------|
+| Node.js + Express | API server |
+| Mongoose | MongoDB ODM |
+| AWS SDK v3 | S3 + SES integration |
+| express-validator | Input validation |
+| multer | Multipart file uploads |
+| jose / jwks | JWT verification |
+
+---
+
+## 🔒 Security Notes
+
+- All `.env` files are gitignored — never commit secrets
+- Cognito ID tokens are verified server-side (RS256, issuer, audience, expiry)
+- Admin routes require both a valid JWT and admin role check
+- File uploads are limited by multer (type + size)
+- Use HTTPS in production and tighten CORS to your real domain
+
+---
+
+## 🐛 Common Issues
+
+**"MongoDB connection failed"**
+→ Check your `MONGODB_URI` is correct. If using Atlas, whitelist your IP in Network Access.
+
+**"Restaurant images not loading"**
+→ Your S3 bucket is blocking public access. Follow Step 4 above to add the bucket policy.
+
+**"Email not received after booking"**
+→ SES sandbox only sends to verified emails. Verify the recipient's email in SES or set `SES_SANDBOX_FALLBACK_TO_SENDER=true` to redirect to your own inbox.
+
+**"Login fails / token error"**
+→ Make sure `COGNITO_APP_CLIENT_ID` in `server/.env` matches `VITE_COGNITO_CLIENT_ID` in `client/.env`. They must be identical.
+
+**"Admin panel not accessible"**
+→ Add your email to `ADMIN_EMAILS` in `server/.env` and restart the server.
+
+---
+
+## 📄 License
+
+Free to use and modify for personal and commercial projects.
+
+---
+
+## 🙌 Author
+
+Built with ❤️ using React, Express, and AWS services.
