@@ -2,39 +2,149 @@
 @tailwind components;
 @tailwind utilities;
 
-/**
- * Global luxury theme — smooth scrolling, gold focus rings.
- */
 :root {
   --luxury-bg: #0b0b0c;
   --luxury-gold: #d4af37;
 }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
   min-height: 100vh;
-  background-color: var(--luxury-bg);
+  background-color: #0b0b0c;
   background-image:
-    radial-gradient(ellipse 100% 60% at 70% -10%, rgba(212, 175, 55, 0.06), transparent),
-    radial-gradient(ellipse 60% 40% at 10% 80%, rgba(212, 175, 55, 0.03), transparent);
+    radial-gradient(ellipse 90% 55% at 80% -10%, rgba(212,175,55,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 0% 85%,  rgba(212,175,55,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 50% 50%, rgba(212,175,55,0.02) 0%, transparent 70%);
 }
 
-/* Accessible focus */
 *:focus-visible {
   outline: 2px solid var(--luxury-gold);
   outline-offset: 2px;
 }
 
-/* Smooth card hover lift */
-@layer utilities {
-  .card-lift {
-    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  }
-  .card-lift:hover {
-    transform: translateY(-4px);
-  }
+/* ─── Sidebar nav active ─────────────────────────────── */
+.admin-nav-active {
+  background: linear-gradient(100deg, rgba(212,175,55,0.20) 0%, rgba(212,175,55,0.05) 100%);
+  border: 1px solid rgba(212,175,55,0.32);
+  color: #d4af37 !important;
+  box-shadow: inset 0 0 12px rgba(212,175,55,0.06), 0 0 18px rgba(212,175,55,0.08);
+}
+
+/* ─── Sidebar item hover ─────────────────────────────── */
+.sidebar-item {
+  transition: background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
+}
+.sidebar-item:hover {
+  background: rgba(212,175,55,0.08);
+  color: #e8c84a !important;
+}
+
+/* ─── Stats card ─────────────────────────────────────── */
+.stats-card {
+  transition:
+    transform    0.30s cubic-bezier(0.25,0.46,0.45,0.94),
+    box-shadow   0.30s cubic-bezier(0.25,0.46,0.45,0.94),
+    border-color 0.30s ease;
+}
+.stats-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 56px rgba(0,0,0,0.65), 0 0 40px rgba(212,175,55,0.16);
+  border-color: rgba(212,175,55,0.45) !important;
+}
+.stats-card:hover .stats-glow {
+  opacity: 1;
+}
+.stats-glow {
+  opacity: 0;
+  transition: opacity 0.30s ease;
+}
+
+/* ─── Table row ──────────────────────────────────────── */
+.admin-row {
+  transition: background 0.18s ease;
+  cursor: default;
+}
+.admin-row:hover {
+  background: rgba(212,175,55,0.045);
+}
+.admin-row:hover .row-when {
+  color: #e8c84a;
+}
+
+/* ─── Logout button ──────────────────────────────────── */
+.logout-btn {
+  transition: background 0.22s ease, color 0.22s ease, border-color 0.22s ease;
+}
+.logout-btn:hover {
+  background: rgba(212,175,55,0.08);
+  color: #d4af37;
+  border-color: rgba(212,175,55,0.35);
+}
+
+/* ─── View-all link ──────────────────────────────────── */
+.view-all-btn {
+  transition: background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
+}
+.view-all-btn:hover {
+  background: rgba(212,175,55,0.12);
+  color: #f0d060;
+  box-shadow: 0 0 16px rgba(212,175,55,0.12);
+}
+
+/* ─── Staggered fade-up ──────────────────────────────── */
+.anim-fade-up {
+  opacity: 0;
+  animation: fadeUp 0.55s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+.delay-1 { animation-delay: 0.07s; }
+.delay-2 { animation-delay: 0.14s; }
+.delay-3 { animation-delay: 0.21s; }
+.delay-4 { animation-delay: 0.30s; }
+.delay-5 { animation-delay: 0.38s; }
+
+/* ─── Fade-in for layout ─────────────────────────────── */
+.anim-fade-in {
+  opacity: 0;
+  animation: fadeIn 0.4s ease forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── Gold shimmer divider ───────────────────────────── */
+.gold-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,175,55,0.35), transparent);
+}
+
+/* ─── Skeleton shimmer ───────────────────────────────────── */
+.skeleton-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Status pulse (confirmed green dot) ─────────────────── */
+.status-pulse-green {
+  animation: pulseGreen 2.2s ease-in-out infinite;
+}
+@keyframes pulseGreen {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.55); }
+  50%       { box-shadow: 0 0 0 4px rgba(52,211,153,0); }
+}
+
+/* ─── Profile popup slide-in ─────────────────────────────── */
+@keyframes profilePopupIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
 }
