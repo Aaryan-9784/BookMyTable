@@ -41,7 +41,7 @@ export async function getDashboardStats(_req, res, next) {
       Booking.find()
         .sort({ createdAt: -1 })
         .limit(8)
-        .populate('userId', 'email')
+        .populate('userId', 'email fullName')
         .populate('restaurantId', 'name location')
         .lean(),
     ]);
@@ -193,7 +193,7 @@ export async function listBookingsAdmin(req, res, next) {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate('userId', 'email role')
+        .populate('userId', 'email fullName role')
         .populate('restaurantId', 'name location')
         .lean(),
       Booking.countDocuments(),
@@ -238,7 +238,14 @@ export async function listUsersAdmin(req, res, next) {
     const skip = (page - 1) * limit;
     const q = (req.query.q || '').trim();
 
-    const filter = q ? { email: new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') } : {};
+    const filter = q
+      ? {
+          $or: [
+            { email: new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') },
+            { fullName: new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') },
+          ],
+        }
+      : {};
 
     const [items, total] = await Promise.all([
       User.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).select('-__v').lean(),
@@ -246,6 +253,30 @@ export async function listUsersAdmin(req, res, next) {
     ]);
 
     res.json({ items, page, limit, total, totalPages: Math.ceil(total / limit) });
+  } catch (e) {
+    next(e);
+  }
+}
+
+/**
+ * DELETE /api/admin/users/:id
+ */
+export async function deleteUserAdmin(req, res, next) {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid id' });
+    }
+    // Prevent deleting yourself
+    if (req.user._id.toString() === req.params.id) {
+      return res.status(400).json({ message: 'You cannot delete your own account' });
+    }
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    // Also remove all bookings belonging to this user
+    await Booking.deleteMany({ userId: req.params.id });
+    res.json({ message: 'User deleted', id: req.params.id });
   } catch (e) {
     next(e);
   }

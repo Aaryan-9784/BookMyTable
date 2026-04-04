@@ -7,15 +7,20 @@ import Loader from '../../components/Loader.jsx';
 /* ─────────────────────────────────────────────────────────────
    HELPERS
 ───────────────────────────────────────────────────────────── */
-function getInitials(email = '') {
-  const name = email.split('@')[0];
-  return name.slice(0, 2).toUpperCase();
+function getInitials(fullName, email) {
+  if (fullName && fullName.trim()) {
+    const parts = fullName.trim().split(/\s+/);
+    return parts.length >= 2
+      ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+      : parts[0].slice(0, 2).toUpperCase();
+  }
+  return (email || '?').slice(0, 2).toUpperCase();
 }
 
-function getAvatarColor(email = '') {
+function getAvatarColor(seed = '') {
   const hues = [210, 160, 280, 30, 340, 190, 60];
   let hash = 0;
-  for (let i = 0; i < email.length; i++) hash = email.charCodeAt(i) + ((hash << 5) - hash);
+  for (let i = 0; i < seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash);
   return hues[Math.abs(hash) % hues.length];
 }
 
@@ -70,6 +75,153 @@ function ChevronRight() {
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
       <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
+      <path d="M2 4h10M5 4V2.5a.5.5 0 01.5-.5h3a.5.5 0 01.5.5V4M6 7v3M8 7v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M3 4l.7 7.3A1 1 0 004.7 12h4.6a1 1 0 001-.7L11 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   DELETE USER MODAL
+───────────────────────────────────────────────────────────── */
+function DeleteUserModal({ user, onConfirm, onCancel, loading }) {
+  const initials = getInitials(user.fullName, user.email);
+  const hue = getAvatarColor(user.email);
+  const isAdmin = user.role === 'admin';
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)' }}
+      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+    >
+      <div
+        className="w-full max-w-md"
+        style={{
+          background: 'linear-gradient(160deg, rgba(24,22,18,0.98) 0%, rgba(16,15,12,0.99) 100%)',
+          border: '1px solid rgba(212,175,55,0.14)',
+          borderRadius: '20px',
+          boxShadow: '0 32px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(212,175,55,0.06), inset 0 1px 0 rgba(212,175,55,0.06)',
+          animation: 'deleteModalIn 0.22s cubic-bezier(0.22,1,0.36,1) forwards',
+        }}
+      >
+        {/* Header */}
+        <div className="px-7 pt-7 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          {/* Warning icon */}
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl"
+            style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.22)' }}>
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <path d="M11 8v4M11 15h.01" stroke="#f87171" strokeWidth="1.6" strokeLinecap="round" />
+              <path d="M9.26 3.5L2 18h18L12.74 3.5a2 2 0 00-3.48 0z" stroke="#f87171" strokeWidth="1.4" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <h2 className="font-display text-xl text-white mb-1">Delete User Account</h2>
+          <p className="font-sans text-[13px]" style={{ color: 'rgba(255,255,255,0.42)' }}>
+            This action is permanent and cannot be undone.
+          </p>
+        </div>
+
+        {/* User preview */}
+        <div className="px-7 py-5">
+          <div className="flex items-center gap-3.5 rounded-xl p-4"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-sans text-[13px] font-bold"
+              style={{
+                background: isAdmin
+                  ? 'linear-gradient(135deg, rgba(212,175,55,0.28), rgba(212,175,55,0.08))'
+                  : `hsla(${hue}, 55%, 35%, 0.25)`,
+                border: isAdmin ? '1.5px solid rgba(212,175,55,0.45)' : `1px solid hsla(${hue}, 55%, 55%, 0.22)`,
+                color: isAdmin ? '#d4af37' : `hsl(${hue}, 65%, 72%)`,
+              }}
+            >
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <p className="font-sans text-[14px] font-semibold truncate" style={{ color: '#e8e8e8' }}>
+                {user.fullName || user.email}
+              </p>
+              {user.fullName && (
+                <p className="font-sans text-[12px] truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                  {user.email}
+                </p>
+              )}
+              {isAdmin && (
+                <p className="font-sans text-[10px] mt-0.5 tracking-wide" style={{ color: '#d4af37' }}>
+                  Administrator
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Warning */}
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl px-4 py-3"
+            style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.16)' }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="mt-0.5 shrink-0">
+              <circle cx="7" cy="7" r="6" stroke="#f87171" strokeWidth="1.2" />
+              <path d="M7 4.5v3M7 9.5h.01" stroke="#f87171" strokeWidth="1.3" strokeLinecap="round" />
+            </svg>
+            <p className="font-sans text-[12px] leading-relaxed" style={{ color: '#f87171' }}>
+              All bookings associated with this account will also be permanently deleted.
+            </p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3 px-7 pb-7">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={loading}
+            className="flex-1 rounded-xl py-3 font-sans text-[13px] font-medium transition-all duration-200"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.09)',
+              color: '#9a9a9a',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#e8e8e8'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#9a9a9a'; }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={loading}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-sans text-[13px] font-semibold transition-all duration-200 disabled:opacity-60"
+            style={{
+              background: 'linear-gradient(135deg, rgba(220,38,38,0.85), rgba(185,28,28,0.90))',
+              border: '1px solid rgba(239,68,68,0.35)',
+              color: '#fff',
+              boxShadow: '0 4px 20px rgba(220,38,38,0.25)',
+            }}
+            onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.boxShadow = '0 6px 28px rgba(220,38,38,0.45)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+            onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(220,38,38,0.25)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
+            {loading ? (
+              <>
+                <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                Deleting…
+              </>
+            ) : (
+              <>
+                <TrashIcon />
+                Delete Account
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -208,7 +360,7 @@ function CopyId({ fullId, shortId }) {
 function SkeletonRow() {
   return (
     <tr>
-      {[60, 45, 30].map((w, i) => (
+      {[60, 45, 30, 10].map((w, i) => (
         <td key={i} className="px-6 py-4">
           <div className="flex items-center gap-3">
             {i === 0 && <div className="h-9 w-9 rounded-full skeleton-shimmer shrink-0" />}
@@ -226,7 +378,7 @@ function SkeletonRow() {
 function EmptyState() {
   return (
     <tr>
-      <td colSpan={3}>
+      <td colSpan={4}>
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div
             className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl"
@@ -248,9 +400,9 @@ function EmptyState() {
 /* ─────────────────────────────────────────────────────────────
    USER ROW
 ───────────────────────────────────────────────────────────── */
-function UserRow({ user: u, isLast, updatingId, onRoleChange }) {
+function UserRow({ user: u, isLast, updatingId, onRoleChange, onDelete, isSelf }) {
   const [hovered, setHovered] = useState(false);
-  const initials = getInitials(u.email);
+  const initials = getInitials(u.fullName, u.email);
   const hue = getAvatarColor(u.email);
   const isAdmin = u.role === 'admin';
 
@@ -261,40 +413,43 @@ function UserRow({ user: u, isLast, updatingId, onRoleChange }) {
       style={{
         borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.032)',
         background: hovered
-          ? isAdmin
-            ? 'rgba(212,175,55,0.025)'
-            : 'rgba(255,255,255,0.018)'
+          ? isAdmin ? 'rgba(212,175,55,0.028)' : 'rgba(255,255,255,0.018)'
           : 'transparent',
         transition: 'background 0.18s ease',
       }}
     >
       {/* USER CARD */}
       <td className="px-6 py-4">
-        <div className="flex items-center gap-3">
-          {/* Avatar */}
+        <div className="flex items-center gap-3.5">
           <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-sans text-[11px] font-bold"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-sans text-[12px] font-bold transition-all duration-200"
             style={{
               background: isAdmin
                 ? 'linear-gradient(135deg, rgba(212,175,55,0.28), rgba(212,175,55,0.08))'
                 : `hsla(${hue}, 55%, 35%, 0.25)`,
               border: isAdmin
-                ? '1px solid rgba(212,175,55,0.30)'
+                ? '1.5px solid rgba(212,175,55,0.45)'
                 : `1px solid hsla(${hue}, 55%, 55%, 0.22)`,
               color: isAdmin ? '#d4af37' : `hsl(${hue}, 65%, 72%)`,
+              boxShadow: isAdmin && hovered ? '0 0 14px rgba(212,175,55,0.22)' : 'none',
             }}
           >
             {initials}
           </div>
-          {/* Email */}
-          <div>
-            <p className="font-sans text-[13px] font-medium text-luxury-mutedlt leading-snug truncate max-w-[220px]">
-              {u.email}
+          <div className="min-w-0">
+            <p className="truncate font-sans text-[13px] font-semibold leading-snug"
+              style={{ color: '#e8e8e8', maxWidth: '220px' }} title={u.fullName || u.email}>
+              {u.fullName || u.email}
             </p>
-            {isAdmin && (
-              <p className="font-sans text-[10px] text-luxury-gold mt-0.5 tracking-wide">
-                Administrator
+            {u.fullName && (
+              <p className="truncate font-sans text-[11px] leading-snug"
+                style={{ color: 'rgba(255,255,255,0.32)', maxWidth: '220px', letterSpacing: '0.01em' }}
+                title={u.email}>
+                {u.email}
               </p>
+            )}
+            {isAdmin && (
+              <p className="font-sans text-[10px] text-luxury-gold mt-0.5 tracking-wide">Administrator</p>
             )}
           </div>
         </div>
@@ -316,6 +471,28 @@ function UserRow({ user: u, isLast, updatingId, onRoleChange }) {
           disabled={updatingId === u.id}
           onChange={onRoleChange}
         />
+      </td>
+
+      {/* ACTIONS */}
+      <td className="px-6 py-4">
+        <div style={{ opacity: hovered ? 1 : 0.25, transition: 'opacity 0.18s ease' }}>
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={isSelf}
+            title={isSelf ? "Can't delete your own account" : 'Delete user'}
+            className="flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-30"
+            style={{
+              background: 'rgba(239,68,68,0.07)',
+              border: '1px solid rgba(239,68,68,0.16)',
+              color: '#f87171',
+            }}
+            onMouseEnter={(e) => { if (!isSelf) { e.currentTarget.style.background = 'rgba(239,68,68,0.18)'; e.currentTarget.style.boxShadow = '0 0 14px rgba(239,68,68,0.22)'; e.currentTarget.style.transform = 'scale(1.08)'; } }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.07)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'scale(1)'; }}
+          >
+            <TrashIcon />
+          </button>
+        </div>
       </td>
     </tr>
   );
@@ -395,6 +572,8 @@ export default function UsersAdmin() {
   const [q, setQ]             = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [updatingId, setUpdatingId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null); // user object to delete
+  const [deleting, setDeleting]         = useState(false);
 
   const load = async () => {
     try {
@@ -427,11 +606,27 @@ export default function UsersAdmin() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await adminApi.deleteUser(deleteTarget.id);
+      toast.success('User deleted successfully');
+      setDeleteTarget(null);
+      load();
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading && !data.items.length) return <Loader label="Loading users…" />;
 
   const allRows = (data.items || []).map((u) => ({
     key: u._id,
     id: u._id,
+    fullName: u.fullName || u.name || '',
     email: u.email,
     role: u.role,
     cognitoId: u.cognitoId ? `${u.cognitoId.slice(0, 8)}…` : '—',
@@ -491,7 +686,7 @@ export default function UsersAdmin() {
             autoComplete="off"
             value={q}
             onChange={(e) => { setQ(e.target.value); setPage(1); }}
-            placeholder="Search users by email…"
+            placeholder="Search by name or email…"
             className="w-full rounded-full py-2.5 pl-11 pr-5 font-sans text-sm text-white placeholder:text-luxury-muted focus:outline-none"
             style={{
               background: 'rgba(255,255,255,0.04)',
@@ -542,7 +737,7 @@ export default function UsersAdmin() {
         <table className="w-full min-w-[560px]">
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(212,175,55,0.07)' }}>
-              {['User', 'Cognito ID', 'Role'].map((h) => (
+              {['User', 'Cognito ID', 'Role', ''].map((h) => (
                 <th
                   key={h}
                   className="px-6 py-4 text-left font-sans text-[10px] font-semibold uppercase tracking-[0.18em]"
@@ -566,6 +761,8 @@ export default function UsersAdmin() {
                     isLast={i === rows.length - 1}
                     updatingId={updatingId}
                     onRoleChange={changeRole}
+                    isSelf={profile?._id === u.id}
+                    onDelete={() => setDeleteTarget(u)}
                   />
                 ))
             }
@@ -587,6 +784,16 @@ export default function UsersAdmin() {
         onPrev={() => setPage((p) => Math.max(1, p - 1))}
         onNext={() => setPage((p) => p + 1)}
       />
+
+      {/* Delete confirmation modal */}
+      {deleteTarget && (
+        <DeleteUserModal
+          user={deleteTarget}
+          loading={deleting}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
     </div>
   );
 }

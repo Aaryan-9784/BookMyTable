@@ -17,6 +17,17 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    name: {
+      // Legacy field — kept so Mongoose doesn't strip it; migrated to fullName on read
+      type: String,
+      default: '',
+      trim: true,
+    },
+    fullName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     role: {
       type: String,
       enum: ['user', 'admin'],

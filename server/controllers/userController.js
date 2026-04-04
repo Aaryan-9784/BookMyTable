@@ -29,3 +29,23 @@ export async function getProfile(req, res, next) {
     next(e);
   }
 }
+
+/**
+ * PATCH /api/users/profile — update fullName for the authenticated user.
+ */
+export async function updateProfile(req, res, next) {
+  try {
+    const { fullName } = req.body;
+    if (!fullName || typeof fullName !== 'string' || !fullName.trim()) {
+      return res.status(400).json({ message: 'fullName is required' });
+    }
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { fullName: fullName.trim() } },
+      { new: true }
+    ).select('-__v').lean();
+    res.json(user);
+  } catch (e) {
+    next(e);
+  }
+}

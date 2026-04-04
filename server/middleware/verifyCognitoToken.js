@@ -25,6 +25,13 @@ export async function verifyCognitoToken(req, res, next) {
         : typeof payload['cognito:username'] === 'string'
           ? payload['cognito:username']
           : '';
+    const fullName = typeof payload.name === 'string' && payload.name.trim()
+      ? payload.name.trim()
+      : typeof payload.given_name === 'string' && payload.given_name.trim()
+        ? [payload.given_name, payload.family_name].filter(Boolean).join(' ').trim()
+        : typeof req.headers['x-user-fullname'] === 'string'
+          ? req.headers['x-user-fullname'].trim()
+          : '';
 
     if (!cognitoId) {
       return res.status(401).json({ message: 'Invalid token payload' });
@@ -44,6 +51,8 @@ export async function verifyCognitoToken(req, res, next) {
       email: emailNorm,
       ...(adminList.length ? { role } : {}),
     };
+    // Only update fullName if we actually have one — never blank out an existing name
+    if (fullName) $set.fullName = fullName;
 
     /**
      * Avoid E11000 duplicate key on `email` when the same person gets a new Cognito `sub`

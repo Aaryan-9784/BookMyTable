@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Link } from 'react-router-dom';
 import { adminApi } from '../services/adminApi.js';
 import StatsCard from '../components/StatsCard.jsx';
-import DataTable from '../components/DataTable.jsx';
+import RecentBookings from '../components/RecentBookings.jsx';
 import Loader from '../../components/Loader.jsx';
 
 export default function Dashboard() {
@@ -27,14 +26,7 @@ export default function Dashboard() {
 
   if (loading) return <Loader label="Loading dashboard…" />;
 
-  const recent = (stats?.recentBookings || []).map((b) => ({
-    key: b._id,
-    when: `${b.date} ${b.time}`,
-    user: b.userId?.email || '—',
-    restaurant: b.restaurantId?.name || '—',
-    guests: b.guests,
-    status: b.status,
-  }));
+  const recentBookings = stats?.recentBookings || [];
 
   return (
     <div className="max-w-[1100px] mx-auto">
@@ -74,49 +66,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── Recent bookings ───────────────────────────────── */}
-      <div className="anim-fade-up delay-4">
-
-        {/* Section header */}
-        <div className="mb-6 flex items-end justify-between">
-          <div>
-            <h2
-              className="font-display text-white"
-              style={{ fontSize: '1.65rem', letterSpacing: '0.01em' }}
-            >
-              Recent Bookings
-            </h2>
-            <p className="mt-1 font-sans text-[12px] text-luxury-muted">
-              Latest reservations across all restaurants
-            </p>
-          </div>
-
-          <Link
-            to="/admin/bookings"
-            className="view-all-btn flex items-center gap-1.5 rounded-xl px-4 py-2 font-sans text-[12px] font-medium text-luxury-gold"
-            style={{
-              background: 'rgba(212,175,55,0.07)',
-              border: '1px solid rgba(212,175,55,0.18)',
-            }}
-          >
-            View all
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M2.5 6h7M6.5 3l3 3-3 3" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Link>
-        </div>
-
-        <DataTable
-          columns={[
-            { key: 'when',       label: 'When'       },
-            { key: 'user',       label: 'User'       },
-            { key: 'restaurant', label: 'Restaurant' },
-            { key: 'guests',     label: 'Guests'     },
-            { key: 'status',     label: 'Status'     },
-          ]}
-          rows={recent}
-          emptyMessage="No bookings yet"
-        />
-      </div>
+      <RecentBookings bookings={recentBookings} loading={false} />
 
     </div>
   );

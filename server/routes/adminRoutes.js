@@ -12,6 +12,7 @@ import {
   deleteBookingAdmin,
   listUsersAdmin,
   updateUserRole,
+  deleteUserAdmin,
   restaurantWriteValidators,
   restaurantUpdateValidators,
   updateRoleValidators,
@@ -36,5 +37,6 @@ router.delete('/bookings/:id', asyncHandler(deleteBookingAdmin));
 
 router.get('/users', asyncHandler(listUsersAdmin));
 router.put('/users/:id/role', updateRoleValidators, asyncHandler(updateUserRole));
+router.delete('/users/:id', asyncHandler(deleteUserAdmin));
 
 export default router;

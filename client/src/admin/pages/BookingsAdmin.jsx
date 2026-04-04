@@ -8,8 +8,14 @@ import { formatISODate } from '../../utils/formatDate.js';
 /* ─────────────────────────────────────────────────────────────
    HELPERS
 ───────────────────────────────────────────────────────────── */
-function getInitials(email = '') {
-  return email.split('@')[0].slice(0, 2).toUpperCase();
+function getInitials(fullName, email) {
+  if (fullName && fullName.trim()) {
+    const parts = fullName.trim().split(/\s+/);
+    return parts.length >= 2
+      ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+      : parts[0].slice(0, 2).toUpperCase();
+  }
+  return (email || '?').slice(0, 2).toUpperCase();
 }
 
 function fmtTime(t = '') {
@@ -198,7 +204,7 @@ function EmptyState() {
 ───────────────────────────────────────────────────────────── */
 function BookingRow({ booking: b, isLast, onDelete }) {
   const [hovered, setHovered] = useState(false);
-  const initials = getInitials(b.user);
+  const initials = getInitials(b.fullName, b.user);
   const [date, time] = b.when.split(' · ');
 
   return (
@@ -239,9 +245,18 @@ function BookingRow({ booking: b, isLast, onDelete }) {
           >
             {initials}
           </div>
-          <p className="font-sans text-[12px] text-luxury-muted truncate max-w-[160px]">
-            {b.user}
-          </p>
+          <div className="min-w-0">
+            <p className="font-sans text-[13px] font-semibold leading-snug truncate max-w-[160px]"
+              style={{ color: '#e8e8e8' }}>
+              {b.fullName || b.user}
+            </p>
+            {b.fullName && (
+              <p className="font-sans text-[11px] leading-snug truncate max-w-[160px]"
+                style={{ color: 'rgba(255,255,255,0.32)' }}>
+                {b.user}
+              </p>
+            )}
+          </div>
         </div>
       </td>
 
@@ -442,6 +457,7 @@ export default function BookingsAdmin() {
       key: b._id,
       id: b._id,
       when: `${formatISODate(b.date)} · ${b.time}`,
+      fullName: b.userId?.fullName || b.userId?.name || '',
       user: b.userId?.email || '—',
       restaurant: b.restaurantId?.name || '—',
       guests: b.guests,
@@ -453,6 +469,7 @@ export default function BookingsAdmin() {
       const matchSearch =
         !q ||
         r.user.toLowerCase().includes(q) ||
+        r.fullName.toLowerCase().includes(q) ||
         r.restaurant.toLowerCase().includes(q) ||
         r.when.toLowerCase().includes(q);
       return matchStatus && matchSearch;

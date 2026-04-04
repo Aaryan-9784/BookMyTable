@@ -106,7 +106,11 @@ export function AuthProvider({ children }) {
       user.authenticateUser(auth, {
         onSuccess: async (session) => {
           const token = session.getIdToken().getJwtToken();
+          // Decode JWT payload to extract name claim
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          const nameFromToken = payload.name || payload.given_name || '';
           localStorage.setItem(STORAGE_ID_TOKEN, token);
+          if (nameFromToken) localStorage.setItem('bookmytable_full_name', nameFromToken);
           setIdTokenState(token);
           setEmailState(username);
           setLoading(false);
@@ -114,6 +118,10 @@ export function AuthProvider({ children }) {
             const { data } = await api.get('/api/users/profile');
             setRole(data.role || 'user');
             setProfile(data);
+            // Backfill fullName if token has it but DB doesn't yet
+            if (nameFromToken && !data.fullName) {
+              await api.patch('/api/users/profile', { fullName: nameFromToken }).catch(() => {});
+            }
           } catch {
             setRole(null);
             setProfile(null);
@@ -188,6 +196,7 @@ export function AuthProvider({ children }) {
     setRole(null);
     localStorage.removeItem(STORAGE_ID_TOKEN);
     localStorage.removeItem(STORAGE_EMAIL);
+    localStorage.removeItem('bookmytable_full_name');
   }, []);
 
   useEffect(() => {

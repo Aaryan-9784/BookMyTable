@@ -21,4 +21,5 @@ export const adminApi = {
   deleteBooking: (id) => api.delete(`${base}/bookings/${id}`),
   listUsers: (params) => api.get(`${base}/users`, { params }),
   updateUserRole: (id, role) => api.put(`${base}/users/${id}/role`, { role }),
+  deleteUser: (id) => api.delete(`${base}/users/${id}`),
 };

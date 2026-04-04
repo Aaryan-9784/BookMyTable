@@ -18,6 +18,9 @@ api.interceptors.request.use((config) => {
   const token = localStorage.getItem(STORAGE_ID_TOKEN);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    // Send decoded name so backend can sync fullName even if not in token claims
+    const storedName = localStorage.getItem('bookmytable_full_name');
+    if (storedName) config.headers['x-user-fullname'] = storedName;
   }
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type'];
