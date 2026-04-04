@@ -12,6 +12,23 @@ import { STORAGE_ID_TOKEN, STORAGE_EMAIL } from '../utils/constants.js';
 import { SESSION_INVALID_EVENT } from '../utils/authSession.js';
 
 const AuthContext = createContext(null);
+const STORAGE_PROFILE = 'bookmytable_profile';
+
+function readCachedProfile() {
+  try {
+    const raw = localStorage.getItem(STORAGE_PROFILE);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedProfile(data) {
+  try {
+    if (data) localStorage.setItem(STORAGE_PROFILE, JSON.stringify(data));
+    else localStorage.removeItem(STORAGE_PROFILE);
+  } catch {}
+}
 
 function getPool() {
   const UserPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
@@ -27,9 +44,16 @@ export function AuthProvider({ children }) {
   const [idToken, setIdTokenState] = useState(() => localStorage.getItem(STORAGE_ID_TOKEN));
   const [email, setEmailState] = useState(() => localStorage.getItem(STORAGE_EMAIL) || '');
   const [loading, setLoading] = useState(false);
-  const [profile, setProfile] = useState(null);
-  const [role, setRole] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(false);
+
+  // Hydrate profile + role instantly from cache — eliminates the loading screen on refresh
+  const cachedProfile = readCachedProfile();
+  const [profile, setProfile] = useState(() => cachedProfile);
+  const [role, setRole] = useState(() => cachedProfile?.role || null);
+
+  // profileLoading is only true when we have a token but NO cached profile yet
+  const [profileLoading, setProfileLoading] = useState(
+    () => Boolean(localStorage.getItem(STORAGE_ID_TOKEN)) && !cachedProfile
+  );
 
   useEffect(() => {
     if (idToken) localStorage.setItem(STORAGE_ID_TOKEN, idToken);
@@ -46,16 +70,19 @@ export function AuthProvider({ children }) {
     if (!token) {
       setProfile(null);
       setRole(null);
+      writeCachedProfile(null);
       return null;
     }
     try {
       const { data } = await api.get('/api/users/profile');
       setRole(data.role || 'user');
       setProfile(data);
+      writeCachedProfile(data);
       return data;
     } catch {
       setProfile(null);
       setRole(null);
+      writeCachedProfile(null);
       return null;
     }
   }, []);
@@ -65,29 +92,32 @@ export function AuthProvider({ children }) {
       setProfile(null);
       setRole(null);
       setProfileLoading(false);
+      writeCachedProfile(null);
       return;
     }
     let mounted = true;
-    setProfileLoading(true);
+    // Only show loading spinner if there's no cached profile to show immediately
+    if (!readCachedProfile()) setProfileLoading(true);
+
     (async () => {
       try {
         const { data } = await api.get('/api/users/profile');
         if (mounted) {
           setRole(data.role || 'user');
           setProfile(data);
+          writeCachedProfile(data);
         }
       } catch {
         if (mounted) {
           setProfile(null);
           setRole(null);
+          writeCachedProfile(null);
         }
       } finally {
         if (mounted) setProfileLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [idToken]);
 
   const setIdToken = useCallback((token) => {
@@ -187,9 +217,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     const pool = getPool();
     const user = pool?.getCurrentUser();
-    if (user) {
-      user.signOut();
-    }
+    if (user) user.signOut();
     setIdTokenState(null);
     setEmailState('');
     setProfile(null);
@@ -197,6 +225,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(STORAGE_ID_TOKEN);
     localStorage.removeItem(STORAGE_EMAIL);
     localStorage.removeItem('bookmytable_full_name');
+    writeCachedProfile(null);
   }, []);
 
   useEffect(() => {
