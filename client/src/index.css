@@ -23,6 +23,17 @@ body {
   outline-offset: 2px;
 }
 
+/* ─── Kill browser autofill white/blue background ───── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px #111111 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #d4af37;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 /* ─── Sidebar nav active ─────────────────────────────── */
 .admin-nav-active {
   background: linear-gradient(100deg, rgba(212,175,55,0.20) 0%, rgba(212,175,55,0.05) 100%);

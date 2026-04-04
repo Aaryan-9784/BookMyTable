@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function Signup() {
-  const { signUp, confirmSignUp, loading } = useAuth();
+  const { signUp, confirmSignUp, login, loading } = useAuth();
+  const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +23,10 @@ export default function Signup() {
         setNeedsConfirm(true);
         toast.success('Check your email for the verification code');
       } else {
-        toast.success('Account ready — you can log in');
+        // Auto-confirm case — log in directly
+        await login(email.trim(), password);
+        toast.success(`Welcome, ${fullName.trim()}!`);
+        navigate('/', { replace: true });
       }
     } catch (err) {
       toast.error(err.message || 'Sign up failed');
@@ -37,9 +41,10 @@ export default function Signup() {
     }
     try {
       await confirmSignUp(cognitoUsername, code.trim());
-      toast.success('Email verified — you can log in');
-      setNeedsConfirm(false);
-      setCognitoUsername('');
+      // Auto-login after verification
+      await login(email.trim(), password);
+      toast.success(`Welcome, ${fullName.trim()}!`);
+      navigate('/', { replace: true });
     } catch (err) {
       toast.error(err.message || 'Confirmation failed');
     }

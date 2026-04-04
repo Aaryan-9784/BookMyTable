@@ -30,7 +30,7 @@ function initials(name) {
 }
 
 export default function Navbar() {
-  const { isAuthenticated, email, isAdmin, profile } = useAuth();
+  const { isAuthenticated, email, isAdmin, profile, displayName } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const isHome = location.pathname === '/';
@@ -43,8 +43,7 @@ export default function Navbar() {
   }, []);
 
   const transparent = isHome && !scrolled;
-  const displayName = profile?.name?.trim() || nameFromEmail(email);
-  const userInitials = initials(displayName || 'U');
+  const userInitials = initials(displayName || nameFromEmail(email) || 'U');
 
   return (
     <header
@@ -105,7 +104,7 @@ export default function Navbar() {
                 style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f5e6a3 50%, #c9a84c 100%)', boxShadow: '0 0 12px rgba(212,175,55,0.4)' }}>
                 {userInitials}
               </span>
-              <span className="max-w-[120px] truncate font-sans text-xs font-medium text-white/80 group-hover:text-white">{displayName}</span>
+              <span className="max-w-[120px] truncate font-sans text-xs font-medium text-white/80 group-hover:text-white">{displayName || nameFromEmail(email)}</span>
               <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: '#d4af37', boxShadow: '0 0 6px rgba(212,175,55,0.9)' }} />
             </Link>
           ) : (

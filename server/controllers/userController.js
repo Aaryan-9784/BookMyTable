@@ -31,17 +31,21 @@ export async function getProfile(req, res, next) {
 }
 
 /**
- * PATCH /api/users/profile — update fullName for the authenticated user.
+ * PATCH /api/users/profile — update fullName (and optionally phone) for the authenticated user.
  */
 export async function updateProfile(req, res, next) {
   try {
-    const { fullName } = req.body;
+    const { fullName, phone } = req.body;
     if (!fullName || typeof fullName !== 'string' || !fullName.trim()) {
       return res.status(400).json({ message: 'fullName is required' });
     }
+    const $set = { fullName: fullName.trim() };
+    if (phone && typeof phone === 'string' && phone.trim()) {
+      $set.phone = phone.trim();
+    }
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { $set: { fullName: fullName.trim() } },
+      { $set },
       { new: true }
     ).select('-__v').lean();
     res.json(user);

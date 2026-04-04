@@ -87,6 +87,15 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  /* Instantly patch profile state + cache without a network round-trip */
+  const patchProfile = useCallback((updates) => {
+    setProfile((prev) => {
+      const next = { ...(prev || {}), ...updates };
+      writeCachedProfile(next);
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     if (!idToken) {
       setProfile(null);
@@ -103,6 +112,14 @@ export function AuthProvider({ children }) {
       try {
         const { data } = await api.get('/api/users/profile');
         if (mounted) {
+          // Ensure fullName is always populated from any available source
+          const storedName = localStorage.getItem('bookmytable_full_name')?.trim();
+          if (!data.fullName && (data.name || storedName)) {
+            const fallback = data.name?.trim() || storedName;
+            await api.patch('/api/users/profile', { fullName: fallback }).catch(() => {});
+            data.fullName = fallback;
+          }
+          if (data.fullName) localStorage.setItem('bookmytable_full_name', data.fullName);
           setRole(data.role || 'user');
           setProfile(data);
           writeCachedProfile(data);
@@ -146,12 +163,18 @@ export function AuthProvider({ children }) {
           setLoading(false);
           try {
             const { data } = await api.get('/api/users/profile');
+            // Always ensure fullName is populated — use Cognito name as fallback
+            const resolvedName = data.fullName?.trim() || data.name?.trim() || nameFromToken;
+            if (resolvedName) {
+              localStorage.setItem('bookmytable_full_name', resolvedName);
+              if (!data.fullName && resolvedName) {
+                await api.patch('/api/users/profile', { fullName: resolvedName }).catch(() => {});
+                data.fullName = resolvedName;
+              }
+            }
             setRole(data.role || 'user');
             setProfile(data);
-            // Backfill fullName if token has it but DB doesn't yet
-            if (nameFromToken && !data.fullName) {
-              await api.patch('/api/users/profile', { fullName: nameFromToken }).catch(() => {});
-            }
+            writeCachedProfile(data);
           } catch {
             setRole(null);
             setProfile(null);
@@ -238,6 +261,16 @@ export function AuthProvider({ children }) {
 
   const isAdmin = role === 'admin';
 
+  /* ── Single source of truth for display name ── */
+  const displayName = useMemo(() => {
+    return (
+      profile?.fullName?.trim() ||
+      profile?.name?.trim() ||
+      localStorage.getItem('bookmytable_full_name')?.trim() ||
+      ''
+    );
+  }, [profile]);
+
   const value = useMemo(
     () => ({
       idToken,
@@ -247,6 +280,7 @@ export function AuthProvider({ children }) {
       role,
       profileLoading,
       isAdmin,
+      displayName,
       isAuthenticated: Boolean(idToken),
       login,
       signUp,
@@ -254,6 +288,7 @@ export function AuthProvider({ children }) {
       logout,
       setIdToken,
       refreshProfile,
+      patchProfile,
     }),
     [
       idToken,
@@ -263,12 +298,14 @@ export function AuthProvider({ children }) {
       role,
       profileLoading,
       isAdmin,
+      displayName,
       login,
       signUp,
       confirmSignUp,
       logout,
       setIdToken,
       refreshProfile,
+      patchProfile,
     ]
   );
 

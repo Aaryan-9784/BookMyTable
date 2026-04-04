@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../services/api.js';
 import Loader from '../components/Loader.jsx';
+import EditProfileModal from '../components/EditProfileModal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { formatISODate } from '../utils/formatDate.js';
 
@@ -31,12 +32,18 @@ function IconCalendar() {
     </svg>
   );
 }
-
-export default function Profile() {
-  const { email, role, profile, profileLoading, logout, refreshProfile } = useAuth();
+function IconPencil() {
+  return (
+    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+    </svg>
+  );
+}export default function Profile() {
+  const { email, role, profile, profileLoading, logout, refreshProfile, displayName } = useAuth();
   const navigate = useNavigate();
   const [bookings, setBookings]               = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
+  const [editOpen, setEditOpen]               = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,7 +75,13 @@ export default function Profile() {
     >
       <div className="mx-auto max-w-2xl px-4 py-14 md:px-6 md:py-20">
 
-        {/* ── PAGE HEADER ── */}
+        {/* ── EDIT PROFILE MODAL ── */}
+        <EditProfileModal
+          isOpen={editOpen}
+          onClose={() => setEditOpen(false)}
+          onUpdated={() => { refreshProfile(); }}
+        />
+
         <header className="mb-12">
           <p className="mb-3 font-sans text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-luxury-gold/70">
             Your account
@@ -95,20 +108,39 @@ export default function Profile() {
 
             <div className="flex-1 p-6 md:p-8">
 
-              {/* Email + Role row */}
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p className="mb-1.5 font-sans text-[0.6rem] font-semibold uppercase tracking-[0.22em] text-luxury-gold/50">
-                    Email address
-                  </p>
-                  <p className="break-all font-sans text-base text-white">{displayEmail}</p>
+              {/* ── User identity row ── */}
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                {/* Avatar + Name + Email */}
+                <div className="flex items-center gap-4">
+                  {/* Avatar circle */}
+                  <div
+                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full font-sans text-lg font-bold text-[#0a0a0a]"
+                    style={{
+                      background: 'linear-gradient(135deg, #c9a84c 0%, #f5e6a3 50%, #c9a84c 100%)',
+                      boxShadow: '0 0 20px rgba(212,175,55,0.35)',
+                    }}
+                  >
+                    {(displayName || displayEmail)
+                      .trim()
+                      .split(/\s+/)
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .map((w) => w[0].toUpperCase())
+                      .join('')}
+                  </div>
+
+                  {/* Name + email stack */}
+                  <div>
+                    <p className="font-display text-xl font-light text-white leading-tight">
+                      {displayName || '—'}
+                    </p>
+                    <p className="mt-0.5 break-all font-sans text-sm text-white/40">{displayEmail}</p>
+                  </div>
                 </div>
 
-                {/* Role badge */}
-                <div className="shrink-0">
-                  <p className="mb-1.5 font-sans text-[0.6rem] font-semibold uppercase tracking-[0.22em] text-luxury-gold/50">
-                    Role
-                  </p>
+                {/* Role badge + Edit button */}
+                <div className="flex items-center gap-2 sm:shrink-0">
                   {isAdmin ? (
                     <button
                       type="button"
@@ -146,6 +178,30 @@ export default function Profile() {
                       {role || 'user'}
                     </span>
                   )}
+
+                  {/* Edit pencil button */}
+                  <button
+                    type="button"
+                    title="Edit Profile"
+                    onClick={() => setEditOpen(true)}
+                    className="flex h-7 w-7 items-center justify-center rounded-full text-luxury-gold/50 transition-all duration-200 hover:scale-110 hover:text-luxury-gold active:scale-95"
+                    style={{
+                      border: '1px solid rgba(212,175,55,0.25)',
+                      background: 'rgba(212,175,55,0.06)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(212,175,55,0.6)';
+                      e.currentTarget.style.background = 'rgba(212,175,55,0.14)';
+                      e.currentTarget.style.boxShadow = '0 0 12px rgba(212,175,55,0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(212,175,55,0.25)';
+                      e.currentTarget.style.background = 'rgba(212,175,55,0.06)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <IconPencil />
+                  </button>
                 </div>
               </div>
 

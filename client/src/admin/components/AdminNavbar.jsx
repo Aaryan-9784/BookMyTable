@@ -222,14 +222,14 @@ function BreadcrumbSep() {
    MAIN NAVBAR
 ───────────────────────────────────────────────────────────── */
 export default function AdminNavbar() {
-  const { email, profile, role, logout } = useAuth();
+  const { email, profile, role, logout, displayName } = useAuth();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const [pillHov, setPillHov] = useState(false);
   const ref = useRef(null);
 
-  const name     = getDisplayName(profile?.name, email);
-  const initials = getInitials(profile?.name, email);
+  const name     = displayName || getDisplayName('', email);
+  const initials = getInitials(displayName, email);
 
   const title = Object.entries(PAGE_TITLES).find(([p]) =>
     p === '/admin' ? pathname === '/admin' : pathname.startsWith(p)
