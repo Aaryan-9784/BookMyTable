@@ -17,12 +17,17 @@ if (!process.env.COGNITO_USER_POOL_ID || !process.env.AWS_REGION) {
   );
 }
 
-await connectDB();
+try {
+  await connectDB();
+} catch (err) {
+  console.error('[BookMyTable] DB connection failed — exiting:', err.message);
+  process.exit(1);
+}
 
 logSesEnvironmentStatus();
 
 const server = http.createServer(app);
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`BookMyTable API listening on port ${PORT}`);
 });

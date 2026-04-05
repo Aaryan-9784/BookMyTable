@@ -9,3 +9,4 @@ client/.env
 # Private keys — never commit these
 *.pem
 *.key
+*.zip
