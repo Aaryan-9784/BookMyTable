@@ -41,7 +41,6 @@ app.use(
   })
 );
 
-// handle preflight requests
 app.options("*", cors());
 
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
