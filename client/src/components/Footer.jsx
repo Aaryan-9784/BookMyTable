@@ -20,7 +20,7 @@ export default function Footer() {
         }}
       />
 
-      <div className="mx-auto max-w-6xl px-4 md:px-8">
+      <div className="w-full px-6 md:px-14">
 
         {/* ── Main body ── */}
         <div className="flex flex-col items-center gap-10 py-14 md:flex-row md:items-end md:justify-between">

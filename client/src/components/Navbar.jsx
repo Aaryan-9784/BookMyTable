@@ -65,7 +65,7 @@ export default function Navbar() {
         }}
       />
 
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-4 md:px-8">
+      <nav className="flex w-full items-center justify-between gap-6 px-6 py-4 md:px-14">
         {/* Logo */}
         <Link to="/" className="flex items-center font-display text-[1.6rem] font-semibold tracking-tight text-white transition-all duration-300 hover:opacity-80">
           <span>Book</span>
@@ -120,7 +120,7 @@ export default function Navbar() {
       </nav>
 
       {/* Mobile nav */}
-      <div className="flex border-t px-4 py-3 md:hidden" style={{ borderColor: 'rgba(212,175,55,0.07)' }}>
+      <div className="flex border-t px-6 py-3 md:hidden" style={{ borderColor: 'rgba(212,175,55,0.07)' }}>
         <div className="flex w-full items-center justify-around">
           <NavLink to="/restaurants" className={navLinkClass}>Venues</NavLink>
           {isAuthenticated && (
