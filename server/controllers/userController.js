@@ -31,18 +31,30 @@ export async function getProfile(req, res, next) {
 }
 
 /**
- * PATCH /api/users/profile — update fullName (and optionally phone) for the authenticated user.
+ * PATCH /api/users/profile — update fullName and/or phone for the authenticated user.
+ * Both fields are optional; at least one must be provided.
  */
 export async function updateProfile(req, res, next) {
   try {
     const { fullName, phone } = req.body;
-    if (!fullName || typeof fullName !== 'string' || !fullName.trim()) {
-      return res.status(400).json({ message: 'fullName is required' });
+
+    const $set = {};
+    if (fullName !== undefined) {
+      if (typeof fullName !== 'string' || !fullName.trim()) {
+        return res.status(400).json({ message: 'fullName must be a non-empty string' });
+      }
+      $set.fullName = fullName.trim();
     }
-    const $set = { fullName: fullName.trim() };
-    if (phone && typeof phone === 'string' && phone.trim()) {
-      $set.phone = phone.trim();
+    if (phone !== undefined && phone !== null) {
+      if (typeof phone === 'string' && phone.trim()) {
+        $set.phone = phone.trim();
+      }
     }
+
+    if (Object.keys($set).length === 0) {
+      return res.status(400).json({ message: 'Provide at least fullName or phone to update' });
+    }
+
     const user = await User.findByIdAndUpdate(
       req.user._id,
       { $set },

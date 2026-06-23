@@ -5,6 +5,7 @@ import React, { createContext, useCallback, useContext, useMemo, useState, useEf
 import {
   CognitoUserPool,
   CognitoUser,
+  CognitoUserAttribute,
   AuthenticationDetails,
 } from 'amazon-cognito-identity-js';
 import api from '../services/api.js';
@@ -202,8 +203,8 @@ export function AuthProvider({ children }) {
     const cognitoUsername = crypto.randomUUID();
 
     const attributeList = [
-      { Name: 'email', Value: trimmed },
-      { Name: 'name', Value: nameTrimmed },
+      new CognitoUserAttribute({ Name: 'email', Value: trimmed }),
+      new CognitoUserAttribute({ Name: 'name', Value: nameTrimmed }),
     ];
 
     setLoading(true);

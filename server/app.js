@@ -24,18 +24,18 @@ const allowedOrigins = [
   "https://main.dbiw5toctstwg.amplifyapp.com",
   "https://bookmytable.me",
   "https://www.bookmytable.me",
-  "http://localhost:5173"
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log("Blocked by CORS:", origin);
-        callback(new Error("Not allowed by CORS"));
-      }
+      // Allow requests with no origin (e.g. curl, Postman)
+      if (!origin) return callback(null, true);
+      // Allow any localhost port in development
+      if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      console.log("Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
   })

@@ -223,10 +223,9 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
             id="ep-fullname"
             type="text"
             value={form.fullName}
+            onChange={(v) => setForm((f) => ({ ...f, fullName: v }))}
             placeholder="Your full name"
-            hint="Name cannot be changed"
-            readOnly
-            disabled
+            error={errors.fullName}
             required
           />
 
@@ -241,7 +240,16 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
             hint="Email cannot be changed"
           />
 
-
+          {/* Phone */}
+          <Field
+            label="Phone Number"
+            id="ep-phone"
+            type="tel"
+            value={form.phone}
+            onChange={(v) => setForm((f) => ({ ...f, phone: v }))}
+            error={errors.phone}
+            hint="Indian numbers only (+91). Optional."
+          />
 
           {/* Divider */}
           <div className="h-px" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.12), transparent)' }} />
@@ -262,15 +270,20 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
 
             <button
               type="submit"
-              disabled
-              className="flex flex-1 items-center justify-center gap-2 rounded-full py-2.5 font-sans text-sm font-semibold transition-all duration-200"
+              disabled={saving || !isValid}
+              className="flex flex-1 items-center justify-center gap-2 rounded-full py-2.5 font-sans text-sm font-semibold transition-all duration-200 hover:brightness-110 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
-                background: 'rgba(212,175,55,0.2)',
-                color: 'rgba(212,175,55,0.35)',
-                cursor: 'not-allowed',
+                background: 'linear-gradient(135deg, #c9a84c 0%, #f5e6a3 50%, #c9a84c 100%)',
+                color: '#0a0a0a',
+                boxShadow: saving || !isValid ? 'none' : '0 0 20px rgba(212,175,55,0.25)',
               }}
             >
-              Save Changes
+              {saving ? (
+                <span className="flex items-center gap-2">
+                  <Spinner />
+                  Saving…
+                </span>
+              ) : 'Save Changes'}
             </button>
           </div>
 
