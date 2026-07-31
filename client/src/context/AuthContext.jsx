@@ -142,13 +142,39 @@ export function AuthProvider({ children }) {
     setIdTokenState(token || null);
   }, []);
 
+function formatCognitoError(err) {
+  if (!err) return new Error('Authentication error');
+  const code = err.code || err.name;
+  let message = err.message || 'An error occurred during authentication.';
+
+  if (code === 'NotAuthorizedException') {
+    message = 'Incorrect email or password.';
+  } else if (code === 'UserNotFoundException') {
+    message = 'No account found with this email address.';
+  } else if (code === 'UserNotConfirmedException') {
+    message = 'Account not verified yet. Please check your email for the verification code.';
+  } else if (code === 'UsernameExistsException') {
+    message = 'An account with this email address already exists.';
+  } else if (code === 'InvalidPasswordException') {
+    message = 'Password must be at least 8 characters long with uppercase, lowercase, and numbers.';
+  } else if (code === 'InvalidParameterException') {
+    message = 'Invalid input parameters. Please check your email and password.';
+  }
+
+  const formattedErr = new Error(message);
+  formattedErr.code = code;
+  formattedErr.originalError = err;
+  return formattedErr;
+}
+
   const login = useCallback((username, password) => {
     const pool = getPool();
     if (!pool) return Promise.reject(new Error('Cognito is not configured'));
 
+    const trimmedUser = username.trim();
     setLoading(true);
-    const user = new CognitoUser({ Username: username, Pool: pool });
-    const auth = new AuthenticationDetails({ Username: username, Password: password });
+    const user = new CognitoUser({ Username: trimmedUser, Pool: pool });
+    const auth = new AuthenticationDetails({ Username: trimmedUser, Password: password });
 
     return new Promise((resolve, reject) => {
       user.authenticateUser(auth, {
@@ -160,7 +186,7 @@ export function AuthProvider({ children }) {
           localStorage.setItem(STORAGE_ID_TOKEN, token);
           if (nameFromToken) localStorage.setItem('bookmytable_full_name', nameFromToken);
           setIdTokenState(token);
-          setEmailState(username);
+          setEmailState(trimmedUser);
           setLoading(false);
           try {
             const { data } = await api.get('/api/users/profile');
@@ -184,7 +210,7 @@ export function AuthProvider({ children }) {
         },
         onFailure: (err) => {
           setLoading(false);
-          reject(err);
+          reject(formatCognitoError(err));
         },
       });
     });
@@ -200,8 +226,6 @@ export function AuthProvider({ children }) {
       return Promise.reject(new Error('Full name is required'));
     }
 
-    const cognitoUsername = crypto.randomUUID();
-
     const attributeList = [
       new CognitoUserAttribute({ Name: 'email', Value: trimmed }),
       new CognitoUserAttribute({ Name: 'name', Value: nameTrimmed }),
@@ -210,14 +234,18 @@ export function AuthProvider({ children }) {
     setLoading(true);
     return new Promise((resolve, reject) => {
       pool.signUp(
-        cognitoUsername,
+        trimmed,
         password,
         attributeList,
         null,
         (err, result) => {
           setLoading(false);
-          if (err) reject(err);
-          else resolve({ ...result, cognitoUsername, email: trimmed });
+          if (err) {
+            reject(formatCognitoError(err));
+          } else {
+            const returnedUsername = result?.user?.getUsername() || result?.userSub || trimmed;
+            resolve({ ...result, cognitoUsername: returnedUsername, email: trimmed });
+          }
         }
       );
     });
@@ -227,12 +255,12 @@ export function AuthProvider({ children }) {
     const pool = getPool();
     if (!pool) return Promise.reject(new Error('Cognito is not configured'));
 
-    const user = new CognitoUser({ Username: cognitoUsername, Pool: pool });
+    const user = new CognitoUser({ Username: cognitoUsername.trim(), Pool: pool });
     setLoading(true);
     return new Promise((resolve, reject) => {
-      user.confirmRegistration(code, true, (err, result) => {
+      user.confirmRegistration(code.trim(), true, (err, result) => {
         setLoading(false);
-        if (err) reject(err);
+        if (err) reject(formatCognitoError(err));
         else resolve(result);
       });
     });
