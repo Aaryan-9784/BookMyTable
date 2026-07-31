@@ -32,15 +32,23 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+      enum: ['customer', 'user', 'restaurant', 'admin'],
+      default: 'customer',
+    },
+    restaurantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Restaurant',
+      default: null,
     },
   },
   { timestamps: true }
 );
 
-// Hash password before saving if modified
+// Normalize legacy 'user' role to 'customer' & hash password before saving if modified
 userSchema.pre('save', async function (next) {
+  if (this.role === 'user') {
+    this.role = 'customer';
+  }
   if (!this.isModified('password') || !this.password) return next();
   try {
     const salt = await bcrypt.genSalt(10);

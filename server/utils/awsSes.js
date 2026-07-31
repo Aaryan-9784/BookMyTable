@@ -10,6 +10,12 @@
  */
 import { SendEmailCommand } from '@aws-sdk/client-ses';
 import { sesClient } from '../config/awsClients.js';
+import {
+  generateBookingEmailTemplate,
+  generateCancellationEmailTemplate,
+  generateLoginOtpEmailTemplate,
+  generateWelcomeEmailTemplate,
+} from './emailTemplates.js';
 
 const LOG = '[BookMyTable][SES]';
 
@@ -94,28 +100,18 @@ function buildBodies({ restaurantName, date, time, guests, to, destination, deli
     'Thank you for using BookMyTable.',
   ].join('\n');
 
-  const showCustomer =
-    destination !== to || deliveryNote === 'sender_only' || deliveryNote === 'fallback';
+  const recipientNote =
+    destination !== to || deliveryNote === 'sender_only' || deliveryNote === 'fallback'
+      ? `SES Sandbox Note: Intended recipient: ${to}`
+      : '';
 
-  const htmlBody = `
-    <html><body style="font-family:Georgia,serif;color:#0f0f0f;">
-      <h2 style="color:#d4af37;">Booking confirmed</h2>
-      <p>Your table reservation at <strong>${escapeHtml(restaurantName)}</strong> is saved.</p>
-      <ul>
-        <li><strong>Date:</strong> ${escapeHtml(date)}</li>
-        <li><strong>Time:</strong> ${escapeHtml(time)}</li>
-        <li><strong>Guests:</strong> ${guests}</li>
-      </ul>
-      ${
-        showCustomer
-          ? `<p style="border-top:1px solid #ccc;padding-top:12px;margin-top:16px;font-size:13px;color:#444;">
-          <strong>Customer email:</strong> ${escapeHtml(to)}
-        </p>`
-          : ''
-      }
-      <p>Thank you for using BookMyTable.</p>
-    </body></html>
-  `;
+  const htmlBody = generateBookingEmailTemplate({
+    restaurantName,
+    date,
+    time,
+    guests,
+    recipientNote,
+  });
 
   return { textBody, htmlBody };
 }
@@ -310,17 +306,12 @@ export async function sendCancellationEmail({ toEmail, restaurantName, date, tim
     'Thank you for using BookMyTable.',
   ].join('\n');
 
-  const htmlBody = `
-    <html><body style="font-family:Georgia,serif;color:#0f0f0f;">
-      <h2 style="color:#b8860b;">Booking cancelled</h2>
-      <p>Your reservation at <strong>${escapeHtml(restaurantName)}</strong> was cancelled.</p>
-      <ul>
-        <li><strong>Date:</strong> ${escapeHtml(date)}</li>
-        <li><strong>Time:</strong> ${escapeHtml(time)}</li>
-        <li><strong>Guests:</strong> ${guests}</li>
-      </ul>
-    </body></html>
-  `;
+  const htmlBody = generateCancellationEmailTemplate({
+    restaurantName,
+    date,
+    time,
+    guests,
+  });
 
   try {
     const cmd = new SendEmailCommand({
@@ -362,31 +353,10 @@ export async function sendLoginOtpEmail({ toEmail, otpCode }) {
   const senderEmail = extractEmail(fromAddressRaw);
   const subject = `BookMyTable — Your Login Verification Code: ${otpCode}`;
 
-  const buildHtml = (recipientEmail) => `
-    <html>
-      <body style="font-family: Arial, sans-serif; background-color: #0a0a0c; color: #ffffff; padding: 24px;">
-        <div style="max-width: 500px; margin: 0 auto; background-color: #121218; border: 1px solid rgba(212,175,55,0.3); border-radius: 16px; padding: 32px; text-align: center;">
-          <h1 style="font-family: Georgia, serif; font-size: 24px; margin-bottom: 8px; color: #ffffff;">
-            Book<span style="color: #d4af37;">My</span>Table
-          </h1>
-          <p style="color: #d4af37; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; margin-top: 0;">
-            Security Verification
-          </p>
-          <hr style="border: none; border-top: 1px solid rgba(212,175,55,0.2); margin: 20px 0;" />
-          <p style="font-size: 14px; color: #d0d0d0; margin-bottom: 24px;">
-            Use the following 6-digit verification code to complete your login:
-          </p>
-          <div style="background-color: #07070a; border: 1px solid rgba(212,175,55,0.5); padding: 16px; border-radius: 12px; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #f5e27a; margin-bottom: 24px;">
-            ${escapeHtml(otpCode)}
-          </div>
-          ${recipientEmail !== to ? `<p style="font-size: 11px; color: #aaa; margin-bottom: 16px;">(SES Sandbox Note: Intended recipient: ${escapeHtml(to)})</p>` : ''}
-          <p style="font-size: 12px; color: #888888;">
-            This code will expire in 5 minutes. If you did not request this login code, please secure your account immediately.
-          </p>
-        </div>
-      </body>
-    </html>
-  `;
+  const buildHtml = (recipientEmail) => {
+    const recipientNote = recipientEmail !== to ? `SES Sandbox Note: Intended recipient: ${to}` : '';
+    return generateLoginOtpEmailTemplate({ otpCode, recipientNote });
+  };
 
   const trySend = async (dest) => {
     const cmd = new SendEmailCommand({
@@ -452,50 +422,10 @@ export async function sendWelcomeEmail({ toEmail, fullName }) {
   const senderEmail = extractEmail(fromAddressRaw);
   const subject = `Welcome to BookMyTable, ${name}! 🍽️`;
 
-  const buildHtml = (recipientEmail) => `
-    <html>
-      <body style="font-family: Arial, sans-serif; background-color: #0a0a0c; color: #ffffff; padding: 24px;">
-        <div style="max-width: 560px; margin: 0 auto; background-color: #121218; border: 1px solid rgba(212,175,55,0.35); border-radius: 16px; padding: 36px; text-align: center;">
-          <h1 style="font-family: Georgia, serif; font-size: 28px; margin-bottom: 6px; color: #ffffff;">
-            Book<span style="color: #d4af37;">My</span>Table
-          </h1>
-          <p style="color: #d4af37; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; margin-top: 0;">
-            Luxury Restaurant Reservations
-          </p>
-          <hr style="border: none; border-top: 1px solid rgba(212,175,55,0.2); margin: 24px 0;" />
-          
-          <h2 style="font-family: Georgia, serif; font-size: 22px; color: #f5e27a; font-weight: normal; margin-bottom: 16px;">
-            Welcome to BookMyTable, ${escapeHtml(name)}! 🎉
-          </h2>
-
-          <p style="font-size: 15px; color: #d0d0d0; line-height: 1.6; margin-bottom: 24px; text-align: left;">
-            We're thrilled to have you join our exclusive community of fine dining enthusiasts. With BookMyTable, you can discover curated luxury restaurants, pick your ideal time slot, and reserve your table seamlessly.
-          </p>
-
-          <div style="background-color: #07070a; border: 1px solid rgba(212,175,55,0.25); border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 28px;">
-            <p style="margin: 0 0 10px 0; font-size: 13px; color: #d4af37; font-weight: bold;">✨ What you can do next:</p>
-            <ul style="margin: 0; padding-left: 20px; color: #b0b0b0; font-size: 14px; line-height: 1.8;">
-              <li>Explore top-rated luxury restaurants</li>
-              <li>Filter by cuisine, price range, and guest ratings</li>
-              <li>Instant table reservation with instant confirmation</li>
-              <li>Manage your upcoming bookings anytime</li>
-            </ul>
-          </div>
-
-          <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/restaurants" 
-             style="display: inline-block; background: linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%); color: #0a0a0a; text-decoration: none; font-weight: bold; font-size: 15px; padding: 14px 32px; border-radius: 30px; box-shadow: 0 0 24px rgba(212,175,55,0.3);">
-            Browse Luxury Restaurants
-          </a>
-
-          ${recipientEmail !== to ? `<p style="border-top:1px solid #333;padding-top:12px;margin-top:24px;font-size:12px;color:#aaa;">(SES Sandbox Note: Intended recipient: ${escapeHtml(to)})</p>` : ''}
-
-          <p style="font-size: 12px; color: #666666; margin-top: 24px; margin-bottom: 0;">
-            © ${new Date().getFullYear()} BookMyTable. Fine dining reserved in seconds.
-          </p>
-        </div>
-      </body>
-    </html>
-  `;
+  const buildHtml = (recipientEmail) => {
+    const recipientNote = recipientEmail !== to ? `SES Sandbox Note: Intended recipient: ${to}` : '';
+    return generateWelcomeEmailTemplate({ fullName: name, recipientNote });
+  };
 
   const trySend = async (dest) => {
     const cmd = new SendEmailCommand({

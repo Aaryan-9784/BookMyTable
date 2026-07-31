@@ -30,7 +30,7 @@ function initials(name) {
 }
 
 export default function Navbar() {
-  const { isAuthenticated, email, isAdmin, profile, displayName } = useAuth();
+  const { isAuthenticated, email, isAdmin, isRestaurant, profile, displayName } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const isHome = location.pathname === '/';
@@ -86,13 +86,25 @@ export default function Navbar() {
         </Link>
 
         {/* Center links */}
-        <div className="hidden items-center md:flex" style={{ gap: '2rem' }}>
+        <div className="hidden items-center md:flex" style={{ gap: '1.75rem' }}>
           <span className="h-1 w-1 rounded-full bg-luxury-gold/20" />
           <NavLink to="/restaurants" className={navLinkClass}>Restaurants</NavLink>
           {isAuthenticated && (
             <>
               <span className="h-3 w-px bg-white/10" />
               <NavLink to="/my-bookings" className={navLinkClass}>My bookings</NavLink>
+            </>
+          )}
+          {isRestaurant && (
+            <>
+              <span className="h-3 w-px bg-white/10" />
+              <NavLink to="/restaurant-dashboard" className={navLinkClass}>Partner Console</NavLink>
+            </>
+          )}
+          {isAdmin && (
+            <>
+              <span className="h-3 w-px bg-white/10" />
+              <NavLink to="/admin" className={navLinkClass}>Admin</NavLink>
             </>
           )}
           <span className="h-1 w-1 rounded-full bg-luxury-gold/20" />

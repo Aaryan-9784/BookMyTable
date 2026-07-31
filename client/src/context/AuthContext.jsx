@@ -72,7 +72,7 @@ export function AuthProvider({ children }) {
     }
     try {
       const { data } = await api.get('/api/users/profile');
-      setRole(data.role || 'user');
+      setRole(data.role || 'customer');
       setProfile(data);
       writeCachedProfile(data);
       return data;
@@ -111,7 +111,7 @@ export function AuthProvider({ children }) {
           if (dbName) {
             localStorage.setItem('bookmytable_full_name', dbName);
           }
-          setRole(data.role || 'user');
+          setRole(data.role || 'customer');
           setProfile(data);
           writeCachedProfile(data);
         }
@@ -180,14 +180,16 @@ export function AuthProvider({ children }) {
       setEmailState(trimmedEmail);
       setLoading(false);
 
+      let fetchedProfile = null;
       try {
         const { data: profileData } = await api.get('/api/users/profile');
-        setRole(profileData.role || 'user');
+        setRole(profileData.role || 'customer');
         setProfile(profileData);
         writeCachedProfile(profileData);
+        fetchedProfile = profileData;
       } catch {}
 
-      return { token };
+      return { token, profile: fetchedProfile };
     } catch (err) {
       setLoading(false);
       throw err;
@@ -337,7 +339,10 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener(SESSION_INVALID_EVENT, onSessionInvalid);
   }, [logout]);
 
-  const isAdmin = role === 'admin';
+  const userRole = (role || 'customer').toLowerCase();
+  const isAdmin = userRole === 'admin';
+  const isRestaurant = userRole === 'restaurant';
+  const isCustomer = userRole === 'customer';
 
   const displayName = useMemo(() => {
     return (
@@ -354,9 +359,12 @@ export function AuthProvider({ children }) {
       email,
       loading,
       profile,
-      role,
+      role: userRole,
+      userRole,
       profileLoading,
       isAdmin,
+      isRestaurant,
+      isCustomer,
       displayName,
       isAuthenticated: Boolean(idToken),
       login,

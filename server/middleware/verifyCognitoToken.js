@@ -84,23 +84,36 @@ export async function verifyCognitoToken(req, res, next) {
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean);
 
-    const role = email && adminList.includes(email.toLowerCase()) ? 'admin' : 'user';
+    const restaurantList = (process.env.RESTAURANT_EMAILS || process.env.RESTAURANT_OWNER_EMAILS || '')
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+
     const emailNorm = (email || `user-${userId}@auth.local`).toLowerCase().trim();
+    const isAdminEmail = emailNorm && adminList.includes(emailNorm);
+    const isRestaurantEmail = emailNorm && restaurantList.includes(emailNorm);
 
     let user = await User.findOne({ email: emailNorm });
     if (user) {
-      const updateData = {
-        email: emailNorm,
-        ...(adminList.length ? { role } : {}),
-      };
-      // Only set name if user doesn't already have one
+      const updateData = { email: emailNorm };
       if (!user.name && fullName) {
         updateData.name = fullName;
       }
+      if (isAdminEmail && user.role !== 'admin') {
+        updateData.role = 'admin';
+      } else if (isRestaurantEmail && user.role !== 'restaurant') {
+        updateData.role = 'restaurant';
+      } else if (user.role === 'user') {
+        updateData.role = 'customer';
+      }
       user = await User.findOneAndUpdate({ _id: user._id }, { $set: updateData }, { new: true });
     } else {
-      const doc = { email: emailNorm, name: fullName || emailNorm.split('@')[0] };
-      if (adminList.length) doc.role = role;
+      const initialRole = isAdminEmail ? 'admin' : isRestaurantEmail ? 'restaurant' : 'customer';
+      const doc = {
+        email: emailNorm,
+        name: fullName || emailNorm.split('@')[0],
+        role: initialRole,
+      };
       user = new User(doc);
     }
 

@@ -83,10 +83,18 @@ export default function Login() {
         code: otpCode.trim(),
       });
 
-      // 2. Complete session login & navigate to Landing Page (/)
-      await login(email.trim(), password);
+      // 2. Complete session login & navigate to role-based dashboard
+      const authRes = await login(email.trim(), password);
+      const userRole = (authRes?.profile?.role || '').toLowerCase();
+
       toast.success('Welcome back');
-      navigate('/', { replace: true });
+      if (userRole === 'admin') {
+        navigate('/admin', { replace: true });
+      } else if (userRole === 'restaurant') {
+        navigate('/restaurant-dashboard', { replace: true });
+      } else {
+        navigate(destination, { replace: true });
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || 'Login verification failed');
     } finally {

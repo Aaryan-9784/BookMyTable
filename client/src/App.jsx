@@ -13,6 +13,15 @@ import AddRestaurant from './admin/pages/AddRestaurant.jsx';
 import EditRestaurant from './admin/pages/EditRestaurant.jsx';
 import BookingsAdmin from './admin/pages/BookingsAdmin.jsx';
 import UsersAdmin from './admin/pages/UsersAdmin.jsx';
+
+import RestaurantProtectedRoute from './restaurant/RestaurantProtectedRoute.jsx';
+import RestaurantLayout from './restaurant/RestaurantLayout.jsx';
+import RestaurantDashboard from './restaurant/pages/RestaurantDashboard.jsx';
+import TablesManagement from './restaurant/pages/TablesManagement.jsx';
+import RestaurantBookings from './restaurant/pages/RestaurantBookings.jsx';
+import TokenFeeAnalytics from './restaurant/pages/TokenFeeAnalytics.jsx';
+import RestaurantSettings from './restaurant/pages/RestaurantSettings.jsx';
+
 import Home from './pages/Home.jsx';
 import Restaurants from './pages/Restaurants.jsx';
 import RestaurantDetails from './pages/RestaurantDetails.jsx';
@@ -60,6 +69,21 @@ export default function App() {
         <Route path="restaurants/:id/edit" element={<EditRestaurant />} />
         <Route path="bookings" element={<BookingsAdmin />} />
         <Route path="users" element={<UsersAdmin />} />
+      </Route>
+
+      <Route
+        path="/restaurant-dashboard"
+        element={
+          <RestaurantProtectedRoute>
+            <RestaurantLayout />
+          </RestaurantProtectedRoute>
+        }
+      >
+        <Route index element={<RestaurantDashboard />} />
+        <Route path="tables" element={<TablesManagement />} />
+        <Route path="bookings" element={<RestaurantBookings />} />
+        <Route path="analytics" element={<TokenFeeAnalytics />} />
+        <Route path="settings" element={<RestaurantSettings />} />
       </Route>
 
       <Route

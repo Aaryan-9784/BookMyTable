@@ -38,8 +38,10 @@ function IconPencil() {
       <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
     </svg>
   );
-}export default function Profile() {
-  const { email, role, profile, profileLoading, logout, refreshProfile, displayName } = useAuth();
+}
+
+export default function Profile() {
+  const { email, role, isRestaurant, profile, profileLoading, logout, refreshProfile, displayName } = useAuth();
   const navigate = useNavigate();
   const [bookings, setBookings]               = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
@@ -88,7 +90,7 @@ function IconPencil() {
           </p>
           <h1 className="font-display text-4xl font-light text-white md:text-5xl">Profile</h1>
           <div className="mt-3 h-px w-12" style={{ background: 'linear-gradient(90deg, #d4af37, transparent)' }} />
-          <p className="mt-4 font-sans text-sm text-white/35">Manage your dining identity</p>
+          <p className="mt-4 font-sans text-sm text-white/35">Manage your dining identity & dashboard access</p>
         </header>
 
         {/* ── PROFILE CARD ── */}
@@ -139,44 +141,63 @@ function IconPencil() {
                   </div>
                 </div>
 
-                {/* Role badge + Edit button */}
+                {/* Dashboard Access Button + Edit button */}
                 <div className="flex items-center gap-2 sm:shrink-0">
                   {isAdmin ? (
                     <button
                       type="button"
                       onClick={() => navigate('/admin')}
-                      className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-sans text-xs font-semibold uppercase tracking-widest transition-all duration-200 active:scale-[0.97]"
+                      className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-wider transition-all duration-300 active:scale-95"
                       style={{
-                        background: 'rgba(212,175,55,0.12)',
-                        border: '1px solid rgba(212,175,55,0.35)',
-                        color: '#d4af37',
-                        boxShadow: '0 0 16px rgba(212,175,55,0.1)',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(212,175,55,0.2)';
-                        e.currentTarget.style.border = '1px solid rgba(212,175,55,0.6)';
-                        e.currentTarget.style.boxShadow = '0 0 24px rgba(212,175,55,0.25)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(212,175,55,0.12)';
-                        e.currentTarget.style.border = '1px solid rgba(212,175,55,0.35)';
-                        e.currentTarget.style.boxShadow = '0 0 16px rgba(212,175,55,0.1)';
+                        background: 'linear-gradient(135deg, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.08) 100%)',
+                        border: '1px solid rgba(212,175,55,0.4)',
+                        color: '#f5e27a',
+                        boxShadow: '0 0 16px rgba(212,175,55,0.15)',
                       }}
                     >
-                      <span className="h-1.5 w-1.5 rounded-full bg-luxury-gold" />
-                      Admin
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#f5e27a] animate-pulse" />
+                      Admin Dashboard →
+                    </button>
+                  ) : isRestaurant ? (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/restaurant-dashboard')}
+                      className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-wider transition-all duration-300 active:scale-95"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.08) 100%)',
+                        border: '1px solid rgba(212,175,55,0.4)',
+                        color: '#f5e27a',
+                        boxShadow: '0 0 16px rgba(212,175,55,0.15)',
+                      }}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#f5e27a] animate-pulse" />
+                      Partner Dashboard →
                     </button>
                   ) : (
-                    <span
-                      className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-sans text-xs font-semibold uppercase tracking-widest"
+                    <button
+                      type="button"
+                      onClick={() => navigate('/my-bookings')}
+                      className="group inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 font-sans text-xs font-bold uppercase tracking-wider transition-all duration-300 active:scale-95"
                       style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        color: 'rgba(255,255,255,0.5)',
+                        background: 'linear-gradient(135deg, rgba(212,175,55,0.22) 0%, rgba(255,255,255,0.06) 100%)',
+                        border: '1px solid rgba(212,175,55,0.4)',
+                        color: '#f5e27a',
+                        boxShadow: '0 0 16px rgba(212,175,55,0.15)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(212,175,55,0.35) 0%, rgba(212,175,55,0.15) 100%)';
+                        e.currentTarget.style.borderColor = 'rgba(212,175,55,0.7)';
+                        e.currentTarget.style.boxShadow = '0 0 24px rgba(212,175,55,0.3)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(212,175,55,0.22) 0%, rgba(255,255,255,0.06) 100%)';
+                        e.currentTarget.style.borderColor = 'rgba(212,175,55,0.4)';
+                        e.currentTarget.style.boxShadow = '0 0 16px rgba(212,175,55,0.15)';
                       }}
                     >
-                      {role || 'user'}
-                    </span>
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#f5e27a]" />
+                      Customer Dashboard <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+                    </button>
                   )}
 
                   {/* Edit pencil button */}
@@ -235,8 +256,6 @@ function IconPencil() {
                   </div>
                 </>
               )}
-
-              {/* Actions */}
               <div className="my-6 h-px" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.1), transparent)' }} />
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 {/* Refresh */}

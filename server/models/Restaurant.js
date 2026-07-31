@@ -61,6 +61,20 @@ const restaurantSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    tokenFee: {
+      type: Number,
+      default: 150,
+      min: 0,
+    },
+    totalSeatingCapacity: {
+      type: Number,
+      default: 40,
+      min: 1,
+    },
+    openingHours: {
+      type: String,
+      default: '11:00 AM - 11:00 PM',
+    },
   },
   { timestamps: true }
 );
