@@ -1,7 +1,7 @@
 /**
  * Auth Controller — Login 2FA OTP generation and verification via Amazon SES.
  */
-import { sendLoginOtpEmail } from '../utils/awsSes.js';
+import { sendLoginOtpEmail, sendWelcomeEmail } from '../utils/awsSes.js';
 
 // In-memory store for login OTPs: key = normalized email, value = { code, expiresAt }
 const otpStore = new Map();
@@ -86,6 +86,32 @@ export async function verifyLoginOtp(req, res, next) {
     res.json({
       ok: true,
       message: 'OTP verified successfully',
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/auth/send-welcome-email
+ * Body: { email, fullName }
+ */
+export async function sendWelcome(req, res, next) {
+  try {
+    const { email, fullName } = req.body || {};
+    const normalizedEmail = (email || '').trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      return res.status(400).json({ message: 'Email address is required' });
+    }
+
+    console.log(`[BookMyTable][Auth] Sending welcome email to ${normalizedEmail}`);
+    const delivery = await sendWelcomeEmail({ toEmail: normalizedEmail, fullName });
+
+    res.json({
+      ok: true,
+      message: 'Welcome email sent',
+      delivery,
     });
   } catch (err) {
     next(err);

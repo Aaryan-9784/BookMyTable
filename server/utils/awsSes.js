@@ -345,7 +345,7 @@ export async function sendCancellationEmail({ toEmail, restaurantName, date, tim
 }
 
 /**
- * Send 6-digit Login OTP email via SES
+ * Send 6-digit Login OTP email via SES (with Sandbox Fallback support)
  */
 export async function sendLoginOtpEmail({ toEmail, otpCode }) {
   const fromAddressRaw = getVerifiedSenderAddress();
@@ -359,10 +359,10 @@ export async function sendLoginOtpEmail({ toEmail, otpCode }) {
     return { ok: false, reason: 'Invalid recipient' };
   }
 
+  const senderEmail = extractEmail(fromAddressRaw);
   const subject = `BookMyTable — Your Login Verification Code: ${otpCode}`;
-  const textBody = `Your 6-digit BookMyTable Login Verification Code is: ${otpCode}\n\nThis code expires in 5 minutes.\n\nThank you for using BookMyTable.`;
 
-  const htmlBody = `
+  const buildHtml = (recipientEmail) => `
     <html>
       <body style="font-family: Arial, sans-serif; background-color: #0a0a0c; color: #ffffff; padding: 24px;">
         <div style="max-width: 500px; margin: 0 auto; background-color: #121218; border: 1px solid rgba(212,175,55,0.3); border-radius: 16px; padding: 32px; text-align: center;">
@@ -379,6 +379,7 @@ export async function sendLoginOtpEmail({ toEmail, otpCode }) {
           <div style="background-color: #07070a; border: 1px solid rgba(212,175,55,0.5); padding: 16px; border-radius: 12px; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #f5e27a; margin-bottom: 24px;">
             ${escapeHtml(otpCode)}
           </div>
+          ${recipientEmail !== to ? `<p style="font-size: 11px; color: #aaa; margin-bottom: 16px;">(SES Sandbox Note: Intended recipient: ${escapeHtml(to)})</p>` : ''}
           <p style="font-size: 12px; color: #888888;">
             This code will expire in 5 minutes. If you did not request this login code, please secure your account immediately.
           </p>
@@ -387,24 +388,158 @@ export async function sendLoginOtpEmail({ toEmail, otpCode }) {
     </html>
   `;
 
-  try {
+  const trySend = async (dest) => {
     const cmd = new SendEmailCommand({
       Source: fromAddressRaw,
-      Destination: { ToAddresses: [to] },
+      Destination: { ToAddresses: [dest] },
       Message: {
         Subject: { Data: subject, Charset: 'UTF-8' },
         Body: {
-          Text: { Data: textBody, Charset: 'UTF-8' },
-          Html: { Data: htmlBody, Charset: 'UTF-8' },
+          Text: { Data: `Your 6-digit BookMyTable Login Verification Code is: ${otpCode}`, Charset: 'UTF-8' },
+          Html: { Data: buildHtml(dest), Charset: 'UTF-8' },
         },
       },
     });
-    console.log(`${LOG} sendLoginOtpEmail → To=${to}`);
-    const out = await sesClient.send(cmd);
+    return await sesClient.send(cmd);
+  };
+
+  try {
+    const out = await trySend(to);
+    console.log(`${LOG} sendLoginOtpEmail → Delivered to ${to} (MessageId=${out.MessageId})`);
     return { ok: true, messageId: out.MessageId };
   } catch (err) {
-    console.error(`${LOG} sendLoginOtpEmail failed:`, err.message);
-    return { ok: false, reason: err.message };
+    const msg = err.message || String(err);
+    console.warn(`${LOG} sendLoginOtpEmail direct send to ${to} failed: ${msg}`);
+
+    // If in SES Sandbox and recipient is unverified, fallback to verified sender email
+    if (envFlag('SES_SANDBOX_FALLBACK_TO_SENDER') && senderEmail && senderEmail !== to) {
+      console.log(`${LOG} Fallback: sending OTP email copy to verified sender ${senderEmail}`);
+      try {
+        const out2 = await trySend(senderEmail);
+        return {
+          ok: true,
+          messageId: out2.MessageId,
+          sandboxRedirect: true,
+          deliveredTo: senderEmail,
+          intendedRecipient: to,
+        };
+      } catch (err2) {
+        console.error(`${LOG} Fallback sendLoginOtpEmail failed: ${err2.message}`);
+        return { ok: false, reason: err2.message };
+      }
+    }
+
+    return { ok: false, reason: msg };
   }
 }
+
+/**
+ * Send Welcome email to new user via SES (with Sandbox Fallback support)
+ */
+export async function sendWelcomeEmail({ toEmail, fullName }) {
+  const fromAddressRaw = getVerifiedSenderAddress();
+  if (!fromAddressRaw) {
+    console.warn(`${LOG} sendWelcomeEmail: no sender configured`);
+    return { ok: false, reason: 'SES sender not configured' };
+  }
+
+  const to = (toEmail || '').trim().toLowerCase();
+  if (!to || to.endsWith('@cognito.local')) {
+    return { ok: false, reason: 'Invalid recipient' };
+  }
+
+  const name = (fullName || '').trim() || 'Valued Guest';
+  const senderEmail = extractEmail(fromAddressRaw);
+  const subject = `Welcome to BookMyTable, ${name}! 🍽️`;
+
+  const buildHtml = (recipientEmail) => `
+    <html>
+      <body style="font-family: Arial, sans-serif; background-color: #0a0a0c; color: #ffffff; padding: 24px;">
+        <div style="max-width: 560px; margin: 0 auto; background-color: #121218; border: 1px solid rgba(212,175,55,0.35); border-radius: 16px; padding: 36px; text-align: center;">
+          <h1 style="font-family: Georgia, serif; font-size: 28px; margin-bottom: 6px; color: #ffffff;">
+            Book<span style="color: #d4af37;">My</span>Table
+          </h1>
+          <p style="color: #d4af37; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; margin-top: 0;">
+            Luxury Restaurant Reservations
+          </p>
+          <hr style="border: none; border-top: 1px solid rgba(212,175,55,0.2); margin: 24px 0;" />
+          
+          <h2 style="font-family: Georgia, serif; font-size: 22px; color: #f5e27a; font-weight: normal; margin-bottom: 16px;">
+            Welcome to BookMyTable, ${escapeHtml(name)}! 🎉
+          </h2>
+
+          <p style="font-size: 15px; color: #d0d0d0; line-height: 1.6; margin-bottom: 24px; text-align: left;">
+            We're thrilled to have you join our exclusive community of fine dining enthusiasts. With BookMyTable, you can discover curated luxury restaurants, pick your ideal time slot, and reserve your table seamlessly.
+          </p>
+
+          <div style="background-color: #07070a; border: 1px solid rgba(212,175,55,0.25); border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 28px;">
+            <p style="margin: 0 0 10px 0; font-size: 13px; color: #d4af37; font-weight: bold;">✨ What you can do next:</p>
+            <ul style="margin: 0; padding-left: 20px; color: #b0b0b0; font-size: 14px; line-height: 1.8;">
+              <li>Explore top-rated luxury restaurants</li>
+              <li>Filter by cuisine, price range, and guest ratings</li>
+              <li>Instant table reservation with instant confirmation</li>
+              <li>Manage your upcoming bookings anytime</li>
+            </ul>
+          </div>
+
+          <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/restaurants" 
+             style="display: inline-block; background: linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%); color: #0a0a0a; text-decoration: none; font-weight: bold; font-size: 15px; padding: 14px 32px; border-radius: 30px; box-shadow: 0 0 24px rgba(212,175,55,0.3);">
+            Browse Luxury Restaurants
+          </a>
+
+          ${recipientEmail !== to ? `<p style="border-top:1px solid #333;padding-top:12px;margin-top:24px;font-size:12px;color:#aaa;">(SES Sandbox Note: Intended recipient: ${escapeHtml(to)})</p>` : ''}
+
+          <p style="font-size: 12px; color: #666666; margin-top: 24px; margin-bottom: 0;">
+            © ${new Date().getFullYear()} BookMyTable. Fine dining reserved in seconds.
+          </p>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const trySend = async (dest) => {
+    const cmd = new SendEmailCommand({
+      Source: fromAddressRaw,
+      Destination: { ToAddresses: [dest] },
+      Message: {
+        Subject: { Data: subject, Charset: 'UTF-8' },
+        Body: {
+          Text: { Data: `Welcome to BookMyTable, ${name}! Explore restaurants at ${process.env.CLIENT_URL || 'http://localhost:5173'}/restaurants`, Charset: 'UTF-8' },
+          Html: { Data: buildHtml(dest), Charset: 'UTF-8' },
+        },
+      },
+    });
+    return await sesClient.send(cmd);
+  };
+
+  try {
+    const out = await trySend(to);
+    console.log(`${LOG} sendWelcomeEmail → Delivered to ${to} (MessageId=${out.MessageId})`);
+    return { ok: true, messageId: out.MessageId };
+  } catch (err) {
+    const msg = err.message || String(err);
+    console.warn(`${LOG} sendWelcomeEmail direct send to ${to} failed: ${msg}`);
+
+    // If in SES Sandbox and recipient is unverified, fallback to verified sender email
+    if (envFlag('SES_SANDBOX_FALLBACK_TO_SENDER') && senderEmail && senderEmail !== to) {
+      console.log(`${LOG} Fallback: sending Welcome email copy to verified sender ${senderEmail}`);
+      try {
+        const out2 = await trySend(senderEmail);
+        return {
+          ok: true,
+          messageId: out2.MessageId,
+          sandboxRedirect: true,
+          deliveredTo: senderEmail,
+          intendedRecipient: to,
+        };
+      } catch (err2) {
+        console.error(`${LOG} Fallback sendWelcomeEmail failed: ${err2.message}`);
+        return { ok: false, reason: err2.message };
+      }
+    }
+
+    return { ok: false, reason: msg };
+  }
+}
+
 

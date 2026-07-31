@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext.jsx';
+import api from '../services/api.js';
 
 export default function Signup() {
   const { signUp, confirmSignUp, resendConfirmationCode, login, loading } = useAuth();
@@ -47,30 +48,59 @@ export default function Signup() {
         setNeedsConfirm(true);
         toast.success('Check your email for the verification code');
       } else {
-        // Auto-confirm case — log in directly
+        // Auto-confirm case — log in directly & send welcome mail
         await login(email.trim(), password);
+        api.post('/api/auth/send-welcome-email', {
+          email: email.trim(),
+          fullName: fullName.trim(),
+        }).catch((err) => console.warn('Welcome email failed:', err));
+
         toast.success(`Welcome, ${fullName.trim()}!`);
         navigate('/', { replace: true });
       }
     } catch (err) {
-      toast.error(err.message || 'Sign up failed');
+      if (err.code === 'UsernameExistsException' || err.message?.includes('already exists')) {
+        // User already exists in Cognito — auto-transition to code verification view
+        setCognitoUsername(email.trim());
+        setNeedsConfirm(true);
+        toast.error('An account with this email already exists. Enter your verification code below, or sign in.', {
+          duration: 6000,
+        });
+      } else {
+        toast.error(err.message || 'Sign up failed');
+      }
     }
   };
 
   const handleConfirm = async (e) => {
     e.preventDefault();
-    if (!cognitoUsername) {
-      toast.error('Session expired — please sign up again');
+    const targetUser = cognitoUsername || email.trim();
+    if (!targetUser) {
+      toast.error('Session expired — please enter your email again');
       return;
     }
     try {
-      await confirmSignUp(cognitoUsername, code.trim());
-      // Auto-login after verification
+      try {
+        await confirmSignUp(targetUser, code.trim());
+      } catch (confirmErr) {
+        // If user is already confirmed in Cognito, proceed to sign in directly
+        if (confirmErr.code !== 'NotAuthorizedException' && !confirmErr.message?.includes('Confirmed')) {
+          throw confirmErr;
+        }
+      }
+
+      // Send welcome email upon successful verification
+      api.post('/api/auth/send-welcome-email', {
+        email: email.trim(),
+        fullName: fullName.trim(),
+      }).catch((err) => console.warn('Welcome email failed:', err));
+
+      // Auto-login after verification — syncs user to MongoDB Atlas
       await login(email.trim(), password);
-      toast.success(`Welcome, ${fullName.trim()}!`);
+      toast.success(`Welcome, ${fullName.trim() || 'Guest'}!`);
       navigate('/', { replace: true });
     } catch (err) {
-      toast.error(err.message || 'Confirmation failed');
+      toast.error(err.message || 'Verification failed');
     }
   };
 
