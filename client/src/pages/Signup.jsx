@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function Signup() {
-  const { signUp, confirmSignUp, login, loading } = useAuth();
+  const { signUp, confirmSignUp, resendConfirmationCode, login, loading } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -13,6 +13,30 @@ export default function Signup() {
   const [code, setCode] = useState('');
   const [needsConfirm, setNeedsConfirm] = useState(false);
   const [cognitoUsername, setCognitoUsername] = useState('');
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  const handleResendSignupCode = async () => {
+    if (!cognitoUsername && !email) {
+      toast.error('Session expired — please sign up again');
+      return;
+    }
+    if (cooldown > 0 || loading) return;
+    try {
+      await resendConfirmationCode(cognitoUsername || email.trim());
+      toast.success(`Verification code resent to ${email.trim()}`);
+      setCooldown(30);
+    } catch (err) {
+      toast.error(err.message || 'Failed to resend code');
+    }
+  };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -220,13 +244,24 @@ export default function Signup() {
                 ) : 'Verify & continue'}
               </button>
 
-              <button
-                type="button"
-                onClick={() => { setNeedsConfirm(false); setCognitoUsername(''); }}
-                className="w-full rounded-lg border border-white/8 py-3 font-sans text-sm text-white/35 transition hover:border-[#d4af37]/30 hover:text-[#d4af37]"
-              >
-                ← Back
-              </button>
+              <div className="flex items-center justify-between pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setNeedsConfirm(false); setCognitoUsername(''); }}
+                  className="font-sans text-xs text-white/40 hover:text-white transition underline-offset-4 hover:underline"
+                >
+                  ← Back
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleResendSignupCode}
+                  disabled={cooldown > 0 || loading}
+                  className="font-sans text-xs font-semibold text-[#d4af37] hover:text-[#f0d060] transition disabled:opacity-40"
+                >
+                  {cooldown > 0 ? `Resend code (${cooldown}s)` : 'Resend code'}
+                </button>
+              </div>
             </form>
           )}
         </div>

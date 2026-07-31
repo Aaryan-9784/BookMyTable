@@ -1,21 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext.jsx';
-import api from '../services/api.js';
 
-export default function Login() {
-  const { login, loading: authLoading } = useAuth();
+export default function ForgotPassword() {
+  const { forgotPassword, confirmPassword, loading } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from?.pathname || '/restaurants';
 
-  const [step, setStep] = useState(1); // 1: Email & Password, 2: OTP Verification
+  const [step, setStep] = useState(1); // 1: Request Code, 2: Reset Password
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [otpCode, setOtpCode] = useState('');
+  const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
@@ -26,75 +22,51 @@ export default function Login() {
     return () => clearInterval(timer);
   }, [cooldown]);
 
-  /**
-   * Step 1: Send Login OTP to email
-   */
-  const handleCredentialsSubmit = async (e) => {
+  const handleRequestCode = async (e) => {
     e.preventDefault();
-    if (!email.trim() || !password) {
-      toast.error('Please enter your email and password');
+    if (!email.trim()) {
+      toast.error('Please enter your email address');
       return;
     }
-    setLoading(true);
     try {
-      // Send 6-digit Login OTP via backend SES API
-      await api.post('/api/auth/send-login-otp', { email: email.trim() });
+      await forgotPassword(email.trim());
       toast.success('Verification code sent to your email');
       setStep(2);
       setCooldown(30);
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Failed to send login verification code');
-    } finally {
-      setLoading(false);
+      toast.error(err.message || 'Failed to send verification code');
     }
   };
 
-  /**
-   * Step 2: Resend Login OTP
-   */
-  const handleResendOtp = async () => {
+  const handleResendCode = async () => {
     if (cooldown > 0 || loading) return;
-    setLoading(true);
     try {
-      await api.post('/api/auth/send-login-otp', { email: email.trim() });
+      await forgotPassword(email.trim());
       toast.success(`Fresh verification code sent to ${email.trim()}`);
       setCooldown(30);
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Failed to resend code');
-    } finally {
-      setLoading(false);
+      toast.error(err.message || 'Failed to resend code');
     }
   };
 
-  /**
-   * Step 2: Verify Login OTP & Complete Authentication
-   */
-  const handleOtpSubmit = async (e) => {
+  const handleResetPassword = async (e) => {
     e.preventDefault();
-    if (!otpCode.trim()) {
+    if (!code.trim()) {
       toast.error('Please enter the 6-digit verification code');
       return;
     }
-    setLoading(true);
+    if (!newPassword || newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters');
+      return;
+    }
     try {
-      // 1. Verify 6-digit OTP code against server
-      await api.post('/api/auth/verify-login-otp', {
-        email: email.trim(),
-        code: otpCode.trim(),
-      });
-
-      // 2. Complete Cognito session login
-      await login(email.trim(), password);
-      toast.success('Welcome back');
-      navigate(from, { replace: true });
+      await confirmPassword(email.trim(), code.trim(), newPassword);
+      toast.success('Password reset successfully! Please sign in with your new password.');
+      navigate('/login', { replace: true });
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Login verification failed');
-    } finally {
-      setLoading(false);
+      toast.error(err.message || 'Password reset failed');
     }
   };
-
-  const isBusy = loading || authLoading;
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#0a0a0a]">
@@ -102,27 +74,27 @@ export default function Login() {
       <div className="relative hidden flex-1 lg:block">
         <img
           src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=1400&auto=format&fit=crop&q=85"
-          alt="Fine dining restaurant"
+          alt="Fine dining table setup"
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-l from-[#0a0a0a] via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 bg-black/40" />
         <div className="absolute bottom-12 left-10 right-10">
           <div
             className="rounded-2xl p-6"
             style={{
-              background: 'rgba(10,10,10,0.55)',
+              background: 'rgba(10,10,10,0.6)',
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
               border: '1px solid rgba(255,255,255,0.08)',
             }}
           >
             <p className="font-display text-xl font-light italic text-white leading-relaxed">
-              "The finest dining experiences, reserved in seconds."
+              "Account security restored in seconds."
             </p>
             <div className="mt-3 flex items-center gap-2">
               <div className="h-px w-6 bg-[#d4af37]" />
-              <span className="font-sans text-xs text-white/50">BookMyTable</span>
+              <span className="font-sans text-xs text-white/50">BookMyTable Security</span>
             </div>
           </div>
         </div>
@@ -138,36 +110,28 @@ export default function Login() {
         </div>
 
         {/* Middle — form */}
-        <div className="my-auto py-12">
+        <div className="my-auto py-10">
           <p className="mb-1 font-sans text-xs font-semibold uppercase tracking-[0.2em] text-[#d4af37]">
-            {step === 1 ? 'Welcome back' : 'Security Verification'}
+            {step === 1 ? 'Password Recovery' : 'Verification'}
           </p>
           <h1 className="font-display text-4xl font-light text-white">
-            {step === 1 ? 'Sign in' : 'Enter OTP'}
+            {step === 1 ? 'Reset password' : 'New password'}
           </h1>
           <p className="mt-2 font-sans text-sm text-white/40">
-            {step === 1 ? (
-              <>
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-[#d4af37] hover:underline">
-                  Sign up free
-                </Link>
-              </>
-            ) : (
-              `Enter the 6-digit code sent to ${email} to complete your sign in.`
-            )}
+            {step === 1
+              ? "Enter your account email and we'll send you a verification code."
+              : `Enter the code sent to ${email} along with your new password.`}
           </p>
 
           {step === 1 ? (
-            /* ── STEP 1: Credentials Form ── */
-            <form onSubmit={handleCredentialsSubmit} className="mt-10 space-y-5">
-              {/* Email */}
+            /* ── Step 1: Request Code Form ── */
+            <form onSubmit={handleRequestCode} className="mt-8 space-y-5">
               <div className="space-y-1.5">
-                <label htmlFor="email" className="block font-sans text-xs font-medium uppercase tracking-widest text-white/35">
+                <label htmlFor="fp-email" className="block font-sans text-xs font-medium uppercase tracking-widest text-white/35">
                   Email address
                 </label>
                 <input
-                  id="email"
+                  id="fp-email"
                   type="email"
                   autoComplete="email"
                   required
@@ -178,25 +142,51 @@ export default function Login() {
                 />
               </div>
 
-              {/* Password */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-2 w-full rounded-lg py-3.5 font-sans text-sm font-semibold text-[#0a0a0a] transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
+                style={{
+                  background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)',
+                  boxShadow: '0 0 32px rgba(212,175,55,0.25)',
+                }}
+              >
+                {loading ? 'Sending code...' : 'Send verification code'}
+              </button>
+            </form>
+          ) : (
+            /* ── Step 2: Verify Code & Reset Password Form ── */
+            <form onSubmit={handleResetPassword} className="mt-8 space-y-5">
+              {/* Verification Code */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="block font-sans text-xs font-medium uppercase tracking-widest text-white/35">
-                    Password
-                  </label>
-                  <Link to="/forgot-password" className="font-sans text-xs text-[#d4af37]/80 hover:text-[#d4af37] hover:underline transition">
-                    Forgot password?
-                  </Link>
-                </div>
+                <label htmlFor="fp-code" className="block font-sans text-xs font-medium uppercase tracking-widest text-white/35">
+                  Verification Code
+                </label>
+                <input
+                  id="fp-code"
+                  type="text"
+                  required
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="123456"
+                  className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3.5 font-sans text-sm tracking-widest text-white placeholder:text-white/20 transition focus:border-[#d4af37]/50 focus:bg-white/[0.07] focus:outline-none focus:ring-1 focus:ring-[#d4af37]/20"
+                />
+              </div>
+
+              {/* New Password */}
+              <div className="space-y-1.5">
+                <label htmlFor="fp-new-password" className="block font-sans text-xs font-medium uppercase tracking-widest text-white/35">
+                  New Password
+                </label>
                 <div className="relative">
                   <input
-                    id="password"
+                    id="fp-new-password"
                     type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
                     required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    minLength={8}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Min. 8 characters"
                     className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3.5 pr-12 font-sans text-sm text-white placeholder:text-white/20 transition focus:border-[#d4af37]/50 focus:bg-white/[0.07] focus:outline-none focus:ring-1 focus:ring-[#d4af37]/20"
                   />
                   <button
@@ -219,78 +209,32 @@ export default function Login() {
                 </div>
               </div>
 
-              {/* CTA */}
               <button
                 type="submit"
-                disabled={isBusy}
+                disabled={loading}
                 className="mt-2 w-full rounded-lg py-3.5 font-sans text-sm font-semibold text-[#0a0a0a] transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
                 style={{
                   background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)',
                   boxShadow: '0 0 32px rgba(212,175,55,0.25)',
                 }}
               >
-                {isBusy ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                    </svg>
-                    Sending OTP…
-                  </span>
-                ) : 'Sign in'}
-              </button>
-            </form>
-          ) : (
-            /* ── STEP 2: OTP Verification Form ── */
-            <form onSubmit={handleOtpSubmit} className="mt-10 space-y-5">
-              <div className="space-y-1.5">
-                <label htmlFor="login-otp" className="block font-sans text-xs font-medium uppercase tracking-widest text-white/35">
-                  Verification Code (OTP)
-                </label>
-                <input
-                  id="login-otp"
-                  type="text"
-                  required
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value)}
-                  placeholder="123456"
-                  className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3.5 font-sans text-sm tracking-widest text-white placeholder:text-white/20 transition focus:border-[#d4af37]/50 focus:bg-white/[0.07] focus:outline-none focus:ring-1 focus:ring-[#d4af37]/20"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isBusy}
-                className="mt-2 w-full rounded-lg py-3.5 font-sans text-sm font-semibold text-[#0a0a0a] transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
-                style={{
-                  background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)',
-                  boxShadow: '0 0 32px rgba(212,175,55,0.25)',
-                }}
-              >
-                {isBusy ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                    </svg>
-                    Verifying OTP…
-                  </span>
-                ) : 'Verify & Sign in'}
+                {loading ? 'Resetting password...' : 'Update Password & Sign In'}
               </button>
 
+              {/* Interactive Resend Code and Change Email controls */}
               <div className="flex items-center justify-between pt-2">
                 <button
                   type="button"
-                  onClick={() => { setStep(1); setOtpCode(''); }}
+                  onClick={() => setStep(1)}
                   className="font-sans text-xs text-white/40 hover:text-white transition underline-offset-4 hover:underline"
                 >
-                  ← Back to Sign in
+                  ← Change email
                 </button>
 
                 <button
                   type="button"
-                  onClick={handleResendOtp}
-                  disabled={cooldown > 0 || isBusy}
+                  onClick={handleResendCode}
+                  disabled={cooldown > 0 || loading}
                   className="font-sans text-xs font-semibold text-[#d4af37] hover:text-[#f0d060] transition disabled:opacity-40"
                 >
                   {cooldown > 0 ? `Resend code (${cooldown}s)` : 'Resend code'}
@@ -298,14 +242,19 @@ export default function Login() {
               </div>
             </form>
           )}
+
+          <div className="mt-8 border-t border-white/10 pt-6 text-center">
+            <Link to="/login" className="font-sans text-sm text-white/50 hover:text-white transition">
+              ← Back to Sign in
+            </Link>
+          </div>
         </div>
 
-        {/* Bottom — footer note */}
-        <p className="font-sans text-xs text-white/20 text-center">
+        {/* Bottom footer notice */}
+        <div className="font-sans text-xs text-white/20">
           © {new Date().getFullYear()} BookMyTable. All rights reserved.
-        </p>
+        </div>
       </div>
-
     </div>
   );
 }

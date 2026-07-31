@@ -343,3 +343,68 @@ export async function sendCancellationEmail({ toEmail, restaurantName, date, tim
     return { ok: false, reason: err.message };
   }
 }
+
+/**
+ * Send 6-digit Login OTP email via SES
+ */
+export async function sendLoginOtpEmail({ toEmail, otpCode }) {
+  const fromAddressRaw = getVerifiedSenderAddress();
+  if (!fromAddressRaw) {
+    console.warn(`${LOG} sendLoginOtpEmail: no sender configured`);
+    return { ok: false, reason: 'SES sender not configured' };
+  }
+
+  const to = (toEmail || '').trim().toLowerCase();
+  if (!to || to.endsWith('@cognito.local')) {
+    return { ok: false, reason: 'Invalid recipient' };
+  }
+
+  const subject = `BookMyTable — Your Login Verification Code: ${otpCode}`;
+  const textBody = `Your 6-digit BookMyTable Login Verification Code is: ${otpCode}\n\nThis code expires in 5 minutes.\n\nThank you for using BookMyTable.`;
+
+  const htmlBody = `
+    <html>
+      <body style="font-family: Arial, sans-serif; background-color: #0a0a0c; color: #ffffff; padding: 24px;">
+        <div style="max-width: 500px; margin: 0 auto; background-color: #121218; border: 1px solid rgba(212,175,55,0.3); border-radius: 16px; padding: 32px; text-align: center;">
+          <h1 style="font-family: Georgia, serif; font-size: 24px; margin-bottom: 8px; color: #ffffff;">
+            Book<span style="color: #d4af37;">My</span>Table
+          </h1>
+          <p style="color: #d4af37; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; margin-top: 0;">
+            Security Verification
+          </p>
+          <hr style="border: none; border-top: 1px solid rgba(212,175,55,0.2); margin: 20px 0;" />
+          <p style="font-size: 14px; color: #d0d0d0; margin-bottom: 24px;">
+            Use the following 6-digit verification code to complete your login:
+          </p>
+          <div style="background-color: #07070a; border: 1px solid rgba(212,175,55,0.5); padding: 16px; border-radius: 12px; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #f5e27a; margin-bottom: 24px;">
+            ${escapeHtml(otpCode)}
+          </div>
+          <p style="font-size: 12px; color: #888888;">
+            This code will expire in 5 minutes. If you did not request this login code, please secure your account immediately.
+          </p>
+        </div>
+      </body>
+    </html>
+  `;
+
+  try {
+    const cmd = new SendEmailCommand({
+      Source: fromAddressRaw,
+      Destination: { ToAddresses: [to] },
+      Message: {
+        Subject: { Data: subject, Charset: 'UTF-8' },
+        Body: {
+          Text: { Data: textBody, Charset: 'UTF-8' },
+          Html: { Data: htmlBody, Charset: 'UTF-8' },
+        },
+      },
+    });
+    console.log(`${LOG} sendLoginOtpEmail → To=${to}`);
+    const out = await sesClient.send(cmd);
+    return { ok: true, messageId: out.MessageId };
+  } catch (err) {
+    console.error(`${LOG} sendLoginOtpEmail failed:`, err.message);
+    return { ok: false, reason: err.message };
+  }
+}
+

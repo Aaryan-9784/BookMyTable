@@ -266,6 +266,79 @@ function formatCognitoError(err) {
     });
   }, []);
 
+  const forgotPassword = useCallback((emailStr) => {
+    const pool = getPool();
+    if (!pool) return Promise.reject(new Error('Cognito is not configured'));
+
+    const trimmedEmail = (emailStr || '').trim();
+    if (!trimmedEmail) return Promise.reject(new Error('Email address is required'));
+
+    const user = new CognitoUser({ Username: trimmedEmail, Pool: pool });
+    setLoading(true);
+
+    return new Promise((resolve, reject) => {
+      user.forgotPassword({
+        onSuccess: (data) => {
+          setLoading(false);
+          resolve(data);
+        },
+        onFailure: (err) => {
+          setLoading(false);
+          reject(formatCognitoError(err));
+        },
+        inputVerificationCode: (data) => {
+          setLoading(false);
+          resolve(data);
+        },
+      });
+    });
+  }, []);
+
+  const confirmPassword = useCallback((emailStr, verificationCode, newPassword) => {
+    const pool = getPool();
+    if (!pool) return Promise.reject(new Error('Cognito is not configured'));
+
+    const trimmedEmail = (emailStr || '').trim();
+    const code = (verificationCode || '').trim();
+    if (!trimmedEmail || !code || !newPassword) {
+      return Promise.reject(new Error('Email, verification code, and new password are required'));
+    }
+
+    const user = new CognitoUser({ Username: trimmedEmail, Pool: pool });
+    setLoading(true);
+
+    return new Promise((resolve, reject) => {
+      user.confirmPassword(code, newPassword, {
+        onSuccess: () => {
+          setLoading(false);
+          resolve(true);
+        },
+        onFailure: (err) => {
+          setLoading(false);
+          reject(formatCognitoError(err));
+        },
+      });
+    });
+  }, []);
+
+  const resendConfirmationCode = useCallback((cognitoUsername) => {
+    const pool = getPool();
+    if (!pool) return Promise.reject(new Error('Cognito is not configured'));
+
+    const trimmed = (cognitoUsername || '').trim();
+    if (!trimmed) return Promise.reject(new Error('Username or email is required'));
+
+    const user = new CognitoUser({ Username: trimmed, Pool: pool });
+    setLoading(true);
+    return new Promise((resolve, reject) => {
+      user.resendConfirmationCode((err, result) => {
+        setLoading(false);
+        if (err) reject(formatCognitoError(err));
+        else resolve(result);
+      });
+    });
+  }, []);
+
   const logout = useCallback(() => {
     const pool = getPool();
     const user = pool?.getCurrentUser();
@@ -314,6 +387,9 @@ function formatCognitoError(err) {
       login,
       signUp,
       confirmSignUp,
+      forgotPassword,
+      confirmPassword,
+      resendConfirmationCode,
       logout,
       setIdToken,
       refreshProfile,
@@ -331,6 +407,9 @@ function formatCognitoError(err) {
       login,
       signUp,
       confirmSignUp,
+      forgotPassword,
+      confirmPassword,
+      resendConfirmationCode,
       logout,
       setIdToken,
       refreshProfile,
