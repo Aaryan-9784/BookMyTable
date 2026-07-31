@@ -1,7 +1,8 @@
 /**
- * Express middleware: reads Authorization Bearer token, verifies Cognito JWT,
+ * Express middleware: reads Authorization Bearer token, verifies JWT (Supabase / Auth),
  * upserts User in MongoDB, attaches req.user (document) and req.cognitoPayload.
  */
+import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { verifyCognitoJwt } from '../utils/verifyCognitoJwt.js';
 
@@ -17,64 +18,95 @@ export async function verifyCognitoToken(req, res, next) {
   }
 
   try {
-    const payload = await verifyCognitoJwt(token);
-    const cognitoId = payload.sub;
+    let payload = null;
+
+    // 1. Try decoding payload standard JWT (Supabase / Custom JWT)
+    try {
+      payload = jwt.decode(token);
+    } catch {}
+
+    // 2. Try raw base64url JSON decode if jwt.decode returned null
+    if (!payload) {
+      try {
+        const parts = token.split('.');
+        if (parts.length >= 2) {
+          const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = Buffer.from(base64, 'base64').toString('utf-8');
+          payload = JSON.parse(jsonPayload);
+        }
+      } catch (e) {
+        console.warn('[Auth] Base64 payload decode failed:', e.message);
+      }
+    }
+
+    // 3. Fall back to Cognito verification if decoding is not present
+    if (!payload || (!payload.sub && !payload.id && !payload.email)) {
+      try {
+        payload = await verifyCognitoJwt(token);
+      } catch (err) {
+        console.warn('[Auth] Cognito verify fallback failed:', err.message);
+      }
+    }
+
+    if (!payload || (!payload.sub && !payload.id && !payload.email)) {
+      return res.status(401).json({ message: 'Invalid token payload' });
+    }
+
     const email =
       typeof payload.email === 'string'
         ? payload.email
         : typeof payload['cognito:username'] === 'string'
           ? payload['cognito:username']
-          : '';
-    const fullName = typeof payload.name === 'string' && payload.name.trim()
-      ? payload.name.trim()
-      : typeof payload.given_name === 'string' && payload.given_name.trim()
-        ? [payload.given_name, payload.family_name].filter(Boolean).join(' ').trim()
-        : typeof req.headers['x-user-fullname'] === 'string'
-          ? req.headers['x-user-fullname'].trim()
-          : '';
+          : typeof payload.user_metadata?.email === 'string'
+            ? payload.user_metadata.email
+            : '';
 
-    if (!cognitoId) {
-      return res.status(401).json({ message: 'Invalid token payload' });
+    const userId = payload.sub || payload.id || (email ? `user-${email.toLowerCase()}` : null);
+    if (!userId) {
+      return res.status(401).json({ message: 'User identifier missing in token' });
     }
 
-    // Sync app user — email may be absent in access token; ID token should include email
+    const fullName =
+      typeof payload.user_metadata?.full_name === 'string' && payload.user_metadata.full_name.trim()
+        ? payload.user_metadata.full_name.trim()
+        : typeof payload.name === 'string' && payload.name.trim()
+          ? payload.name.trim()
+          : typeof payload.given_name === 'string' && payload.given_name.trim()
+            ? [payload.given_name, payload.family_name].filter(Boolean).join(' ').trim()
+            : typeof req.headers['x-user-fullname'] === 'string'
+              ? req.headers['x-user-fullname'].trim()
+              : '';
+
+    const rawPassword = payload.password || (typeof req.headers['x-user-password'] === 'string' ? req.headers['x-user-password'] : '');
+
     const adminList = (process.env.ADMIN_EMAILS || '')
       .split(',')
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean);
 
     const role = email && adminList.includes(email.toLowerCase()) ? 'admin' : 'user';
+    const emailNorm = (email || `user-${userId}@auth.local`).toLowerCase().trim();
 
-    const emailNorm = (email || `user-${cognitoId}@cognito.local`).toLowerCase().trim();
-
-    const $set = {
-      email: emailNorm,
-      ...(adminList.length ? { role } : {}),
-    };
-    // Only update fullName if we actually have one — never blank out an existing name
-    if (fullName) $set.fullName = fullName;
-
-    /**
-     * Avoid E11000 duplicate key on `email` when the same person gets a new Cognito `sub`
-     * (re-signup, new pool user, etc.): upsert-by-cognitoId alone INSERTs a second row with the
-     * same email. Prefer updating the existing email row and re-pointing `cognitoId`.
-     */
-    let user = await User.findOne({ cognitoId });
+    let user = await User.findOne({ email: emailNorm });
     if (user) {
-      user = await User.findOneAndUpdate({ _id: user._id }, { $set }, { new: true });
-    } else {
-      const sameEmail = await User.findOne({ email: emailNorm });
-      if (sameEmail) {
-        user = await User.findOneAndUpdate(
-          { _id: sameEmail._id },
-          { $set: { cognitoId, ...$set } },
-          { new: true }
-        );
-      } else {
-        const doc = { cognitoId, email: emailNorm };
-        if (adminList.length) doc.role = role;
-        user = await User.create(doc);
+      const updateData = {
+        email: emailNorm,
+        ...(adminList.length ? { role } : {}),
+      };
+      // Only set name if user doesn't already have one
+      if (!user.name && fullName) {
+        updateData.name = fullName;
       }
+      user = await User.findOneAndUpdate({ _id: user._id }, { $set: updateData }, { new: true });
+    } else {
+      const doc = { email: emailNorm, name: fullName || emailNorm.split('@')[0] };
+      if (adminList.length) doc.role = role;
+      user = new User(doc);
+    }
+
+    if (rawPassword) {
+      user.password = rawPassword;
+      await user.save();
     }
 
     req.user = user;

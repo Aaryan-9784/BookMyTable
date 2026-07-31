@@ -5,7 +5,7 @@ import { validationResult, body, param } from 'express-validator';
 import mongoose from 'mongoose';
 import Booking from '../models/Booking.js';
 import Restaurant from '../models/Restaurant.js';
-import { sendBookingEmail, sendCancellationEmail } from '../utils/awsSes.js';
+import { sendBookingEmail, sendCancellationEmail } from '../utils/resendEmail.js';
 
 export const createBookingValidators = [
   body('restaurantId').notEmpty().withMessage('restaurantId is required'),

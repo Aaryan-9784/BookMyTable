@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "amazon-cognito-identity-js": "^6.3.12",
+    "@supabase/supabase-js": "^2.111.0",
     "axios": "^1.7.9",
     "buffer": "^6.0.3",
     "framer-motion": "^12.38.0",

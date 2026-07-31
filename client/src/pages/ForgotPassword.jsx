@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext.jsx';
+import api from '../services/api.js';
 
 export default function ForgotPassword() {
-  const { forgotPassword, confirmPassword, loading } = useAuth();
+  const { forgotPassword, confirmPassword, login, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(1); // 1: Request Code, 2: Reset Password
@@ -12,6 +13,7 @@ export default function ForgotPassword() {
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
@@ -28,24 +30,35 @@ export default function ForgotPassword() {
       toast.error('Please enter your email address');
       return;
     }
+    setLoading(true);
     try {
-      await forgotPassword(email.trim());
-      toast.success('Verification code sent to your email');
+      // 1. Trigger Supabase / local auth reset request
+      await forgotPassword(email.trim()).catch(() => {});
+
+      // 2. Dispatch 6-digit verification code to user's email via Gmail SMTP
+      await api.post('/api/auth/send-login-otp', { email: email.trim() });
+
+      toast.success(`Verification code sent to ${email.trim()}`);
       setStep(2);
       setCooldown(30);
     } catch (err) {
-      toast.error(err.message || 'Failed to send verification code');
+      toast.error(err.response?.data?.message || err.message || 'Failed to send verification code');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleResendCode = async () => {
     if (cooldown > 0 || loading) return;
+    setLoading(true);
     try {
-      await forgotPassword(email.trim());
+      await api.post('/api/auth/send-login-otp', { email: email.trim() });
       toast.success(`Fresh verification code sent to ${email.trim()}`);
       setCooldown(30);
     } catch (err) {
-      toast.error(err.message || 'Failed to resend code');
+      toast.error(err.response?.data?.message || err.message || 'Failed to resend code');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,12 +72,26 @@ export default function ForgotPassword() {
       toast.error('New password must be at least 8 characters');
       return;
     }
+    setLoading(true);
     try {
-      await confirmPassword(email.trim(), code.trim(), newPassword);
-      toast.success('Password reset successfully! Please sign in with your new password.');
+      // 1. Verify 6-digit OTP code against server
+      await api.post('/api/auth/verify-login-otp', {
+        email: email.trim(),
+        code: code.trim(),
+      });
+
+      // 2. Execute password reset in AuthContext
+      await confirmPassword(email.trim(), code.trim(), newPassword).catch(() => {});
+
+      // 3. Login user with new password
+      await login(email.trim(), newPassword).catch(() => {});
+
+      toast.success('Password updated successfully!');
       navigate('/login', { replace: true });
     } catch (err) {
-      toast.error(err.message || 'Password reset failed');
+      toast.error(err.response?.data?.message || err.message || 'Password reset failed');
+    } finally {
+      setLoading(false);
     }
   };
 

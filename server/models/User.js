@@ -1,29 +1,26 @@
 /**
- * Application user synced from Cognito — stores cognitoId + email for bookings and admin checks.
+ * Clean User Schema — Elegant, minimal MongoDB schema.
+ * Stores email, password (hashed), name, phone, and role.
  */
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema(
   {
-    cognitoId: {
-      type: String,
-      required: true,
-      unique: true,
-      index: true,
-    },
     email: {
       type: String,
       required: true,
+      unique: true,
       lowercase: true,
       trim: true,
+      index: true,
     },
-    name: {
-      // Legacy field — kept so Mongoose doesn't strip it; migrated to fullName on read
+    password: {
       type: String,
       default: '',
-      trim: true,
+      select: false,
     },
-    fullName: {
+    name: {
       type: String,
       default: '',
       trim: true,
@@ -41,5 +38,23 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Hash password before saving if modified
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password') || !this.password) return next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Instance method to compare password
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  if (!this.password) return false;
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 export default mongoose.model('User', userSchema);

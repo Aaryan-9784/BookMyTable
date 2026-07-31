@@ -25,42 +25,39 @@ export default function Signup() {
   }, [cooldown]);
 
   const handleResendSignupCode = async () => {
-    if (!cognitoUsername && !email) {
-      toast.error('Session expired — please sign up again');
+    if (!email.trim()) {
+      toast.error('Session expired — please enter your email again');
       return;
     }
     if (cooldown > 0 || loading) return;
     try {
-      await resendConfirmationCode(cognitoUsername || email.trim());
-      toast.success(`Verification code resent to ${email.trim()}`);
+      await api.post('/api/auth/send-login-otp', { email: email.trim() });
+      toast.success(`Fresh verification code sent to ${email.trim()}`);
       setCooldown(30);
     } catch (err) {
-      toast.error(err.message || 'Failed to resend code');
+      toast.error(err.response?.data?.message || err.message || 'Failed to resend code');
     }
   };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-    try {
-      const result = await signUp(email.trim(), password, fullName.trim());
-      if (result?.cognitoUsername) setCognitoUsername(result.cognitoUsername);
-      if (result?.userConfirmed === false) {
-        setNeedsConfirm(true);
-        toast.success('Check your email for the verification code');
-      } else {
-        // Auto-confirm case — log in directly & send welcome mail
-        await login(email.trim(), password);
-        api.post('/api/auth/send-welcome-email', {
-          email: email.trim(),
-          fullName: fullName.trim(),
-        }).catch((err) => console.warn('Welcome email failed:', err));
+    if (!fullName.trim() || !email.trim() || !password) {
+      toast.error('Please fill in all fields');
+      return;
+    }
 
-        toast.success(`Welcome, ${fullName.trim()}!`);
-        navigate('/', { replace: true });
-      }
+    try {
+      await signUp(email.trim(), password, fullName.trim());
+
+      // Dispatch 6-digit verification OTP code to user's email
+      await api.post('/api/auth/send-login-otp', { email: email.trim() });
+
+      setCognitoUsername(email.trim());
+      setNeedsConfirm(true);
+      setCooldown(30);
+      toast.success(`Verification code sent to ${email.trim()}`);
     } catch (err) {
       if (err.code === 'UsernameExistsException' || err.message?.includes('already exists')) {
-        // User already exists in Cognito — auto-transition to code verification view
         setCognitoUsername(email.trim());
         setNeedsConfirm(true);
         toast.error('An account with this email already exists. Enter your verification code below, or sign in.', {
@@ -74,33 +71,30 @@ export default function Signup() {
 
   const handleConfirm = async (e) => {
     e.preventDefault();
-    const targetUser = cognitoUsername || email.trim();
-    if (!targetUser) {
-      toast.error('Session expired — please enter your email again');
+    if (!code.trim()) {
+      toast.error('Please enter the 6-digit verification code');
       return;
     }
-    try {
-      try {
-        await confirmSignUp(targetUser, code.trim());
-      } catch (confirmErr) {
-        // If user is already confirmed in Cognito, proceed to sign in directly
-        if (confirmErr.code !== 'NotAuthorizedException' && !confirmErr.message?.includes('Confirmed')) {
-          throw confirmErr;
-        }
-      }
 
-      // Send welcome email upon successful verification
+    try {
+      // 1. Verify 6-digit OTP code against server
+      await api.post('/api/auth/verify-login-otp', {
+        email: email.trim(),
+        code: code.trim(),
+      });
+
+      // 2. Dispatch Welcome email upon successful verification
       api.post('/api/auth/send-welcome-email', {
         email: email.trim(),
         fullName: fullName.trim(),
       }).catch((err) => console.warn('Welcome email failed:', err));
 
-      // Auto-login after verification — syncs user to MongoDB Atlas
+      // 3. Auto-login after verification & navigate to Landing Page
       await login(email.trim(), password);
       toast.success(`Welcome, ${fullName.trim() || 'Guest'}!`);
       navigate('/', { replace: true });
     } catch (err) {
-      toast.error(err.message || 'Verification failed');
+      toast.error(err.response?.data?.message || err.message || 'Verification failed');
     }
   };
 

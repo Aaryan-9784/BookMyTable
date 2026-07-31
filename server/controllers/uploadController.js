@@ -1,9 +1,9 @@
 /**
- * Accepts multipart file field "image", uploads to S3, returns { url } for restaurant.imageUrl.
+ * Accepts multipart file field "image", uploads to Cloudinary, returns { url } for restaurant.imageUrl.
  */
 import { randomUUID } from 'crypto';
 import path from 'path';
-import { uploadBufferToS3 } from '../utils/s3Upload.js';
+import { uploadBufferToCloudinary } from '../utils/cloudinaryUpload.js';
 
 const extFromMime = {
   'image/jpeg': '.jpg',
@@ -21,11 +21,11 @@ export async function uploadRestaurantImage(req, res, next) {
       return res.status(400).json({ message: 'File field "image" is required' });
     }
 
-    const ext = extFromMime[req.file.mimetype] || path.extname(req.file.originalname) || '.bin';
-    const key = `restaurants/${randomUUID()}${ext}`;
+    const ext = extFromMime[req.file.mimetype] || path.extname(req.file.originalname) || '.jpg';
+    const filename = `restaurant_${randomUUID()}${ext}`;
 
-    const url = await uploadBufferToS3(req.file.buffer, key, req.file.mimetype);
-    res.status(201).json({ url, key });
+    const url = await uploadBufferToCloudinary(req.file.buffer, filename, 'restaurants');
+    res.status(201).json({ url, key: filename });
   } catch (e) {
     next(e);
   }

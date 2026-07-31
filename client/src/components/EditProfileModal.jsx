@@ -1,24 +1,12 @@
 /**
  * EditProfileModal — luxury glassmorphism edit profile modal.
- * Updates Cognito attributes (name, phone_number) + syncs to backend DB.
+ * Updates profile fields (fullName, phone) + syncs to backend DB.
  */
 import { useEffect, useState, useCallback } from 'react';
-import { CognitoUserPool, CognitoUser } from 'amazon-cognito-identity-js';
 import toast from 'react-hot-toast';
 import api from '../services/api.js';
 import { STORAGE_ID_TOKEN } from '../utils/constants.js';
 import { useAuth } from '../context/AuthContext.jsx';
-
-/* ── Cognito pool helper ── */
-function getPool() {
-  const UserPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
-  const ClientId   = import.meta.env.VITE_COGNITO_CLIENT_ID;
-  if (!UserPoolId || !ClientId) return null;
-  return new CognitoUserPool({ UserPoolId, ClientId });
-}
-
-/* ── Phone validation: +[country code][number], e.g. +91XXXXXXXXXX ── */
-const PHONE_RE = /^\+[1-9]\d{6,14}$/;
 
 /* ── Icon: X close ── */
 function IconX() {
@@ -40,7 +28,7 @@ function Spinner() {
 }
 
 export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
-  const { patchProfile } = useAuth();
+  const { profile, patchProfile } = useAuth();
   const [form, setForm]       = useState({ fullName: '', phone: '' });
   const [email, setEmail]     = useState('');
   const [errors, setErrors]   = useState({});
@@ -50,43 +38,30 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
   /* ── Animate in/out ── */
   useEffect(() => {
     if (isOpen) {
-      // tiny delay so CSS transition fires
       requestAnimationFrame(() => setVisible(true));
     } else {
       setVisible(false);
     }
   }, [isOpen]);
 
-  /* ── Load current Cognito user attributes when modal opens ── */
+  /* ── Load current user attributes when modal opens ── */
   useEffect(() => {
     if (!isOpen) return;
     setErrors({});
 
-    const pool = getPool();
-    if (!pool) return;
+    const initialName = profile?.fullName || profile?.name || localStorage.getItem('bookmytable_full_name') || '';
+    const initialEmail = profile?.email || localStorage.getItem('bookmytable_email') || '';
+    const rawPhone = profile?.phone || '';
+    const phoneDigits = rawPhone.startsWith('+91') ? rawPhone.slice(3) : rawPhone.replace(/^\+\d{1,3}/, '');
 
-    const cognitoUser = pool.getCurrentUser();
-    if (!cognitoUser) return;
-
-    cognitoUser.getSession((err) => {
-      if (err) return;
-      cognitoUser.getUserAttributes((attrErr, attrs) => {
-        if (attrErr || !attrs) return;
-        const get = (name) => attrs.find((a) => a.getName() === name)?.getValue() || '';
-        setEmail(get('email'));
-        const rawPhone = get('phone_number');
-        // strip +91 prefix for the digit-only input
-        const phoneDigits = rawPhone.startsWith('+91') ? rawPhone.slice(3) : rawPhone.replace(/^\+\d{1,3}/, '');
-        setForm({ fullName: get('name'), phone: phoneDigits });
-      });
-    });
-  }, [isOpen]);
+    setEmail(initialEmail);
+    setForm({ fullName: initialName, phone: phoneDigits });
+  }, [isOpen, profile]);
 
   /* ── Validation ── */
   const validate = useCallback(() => {
     const errs = {};
     if (!form.fullName.trim()) errs.fullName = 'Full name is required';
-    // phone field stores just the digits after +91
     if (form.phone && !/^\d{10}$/.test(form.phone.trim()))
       errs.phone = 'Enter a valid 10-digit mobile number';
     return errs;
@@ -102,44 +77,21 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
 
     setSaving(true);
     try {
-      const pool = getPool();
-      if (!pool) throw new Error('Cognito not configured');
-
-      const cognitoUser = pool.getCurrentUser();
-      if (!cognitoUser) throw new Error('No active session');
-
-      /* Refresh session first to ensure token is valid */
-      await new Promise((res, rej) =>
-        cognitoUser.getSession((err, session) => {
-          if (err || !session?.isValid()) rej(new Error('Session expired'));
-          else res(session);
-        })
-      );
-
-      /* Build attribute list — only include phone if provided */
       const phoneE164 = form.phone.trim() ? `+91${form.phone.trim()}` : '';
-      const attrsToUpdate = [{ Name: 'name', Value: form.fullName.trim() }];
-      if (phoneE164) attrsToUpdate.push({ Name: 'phone_number', Value: phoneE164 });
 
-      /* Update Cognito attributes */
-      await new Promise((res, rej) =>
-        cognitoUser.updateAttributes(attrsToUpdate, (err, result) => {
-          if (err) rej(err); else res(result);
-        })
-      );
-
-      /* Sync fullName to MongoDB via backend */
+      /* Sync name to MongoDB via backend API */
       const token = localStorage.getItem(STORAGE_ID_TOKEN);
       if (token) {
         await api.patch('/api/users/profile', {
+          name: form.fullName.trim(),
           fullName: form.fullName.trim(),
           ...(phoneE164 ? { phone: phoneE164 } : {}),
         });
-        /* Instantly update React context state — all components re-render immediately */
+        
         localStorage.setItem('bookmytable_full_name', form.fullName.trim());
         patchProfile({
-          fullName: form.fullName.trim(),
           name: form.fullName.trim(),
+          fullName: form.fullName.trim(),
           ...(phoneE164 ? { phone: phoneE164 } : {}),
         });
       }
@@ -160,228 +112,104 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
     setTimeout(onClose, 200);
   }
 
-  if (!isOpen) return null;
+  if (!isOpen && !visible) return null;
 
   return (
-    /* ── Backdrop ── */
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4"
-      style={{
-        background: 'rgba(0,0,0,0.75)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        opacity: visible ? 1 : 0,
-        transition: 'opacity 0.2s ease',
-      }}
-      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ${
+        visible ? 'bg-black/80 backdrop-blur-md opacity-100' : 'bg-black/0 backdrop-blur-none opacity-0'
+      }`}
+      onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
-      {/* ── Modal panel ── */}
       <div
-        className="relative w-full max-w-md rounded-2xl p-7"
-        style={{
-          background: 'rgba(15,15,15,0.97)',
-          border: '1px solid rgba(212,175,55,0.35)',
-          boxShadow: '0 0 60px rgba(212,175,55,0.12), 0 24px 64px rgba(0,0,0,0.7)',
-          transform: visible ? 'scale(1)' : 'scale(0.95)',
-          transition: 'transform 0.2s ease, opacity 0.2s ease',
-          opacity: visible ? 1 : 0,
-        }}
+        className={`relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-[#121216] p-6 shadow-2xl transition-all duration-300 ${
+          visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}
       >
-        {/* Gold top accent line */}
-        <div
-          className="absolute left-0 right-0 top-0 h-px rounded-t-2xl"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.6), transparent)' }}
-        />
-
         {/* Header */}
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <p className="mb-1 font-sans text-[0.6rem] font-semibold uppercase tracking-[0.25em] text-luxury-gold/50">
-              Account
-            </p>
-            <h2 className="font-display text-2xl font-light text-white">Edit Profile</h2>
-          </div>
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <h2 className="font-display text-xl font-semibold text-white">Edit Profile</h2>
           <button
-            type="button"
             onClick={handleClose}
             disabled={saving}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white/30 transition-all duration-200 hover:text-white/70"
-            style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(212,175,55,0.3)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+            className="rounded-lg p-1 text-white/50 hover:bg-white/10 hover:text-white transition disabled:opacity-50"
           >
             <IconX />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSave} noValidate className="space-y-5">
+        <form onSubmit={handleSave} className="mt-6 space-y-4">
+          {/* Email (Read only) */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-white/40">
+              Email Address (Read Only)
+            </label>
+            <input
+              type="text"
+              disabled
+              value={email}
+              className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/[0.02] px-3.5 py-2.5 text-sm text-white/50 cursor-not-allowed"
+            />
+          </div>
 
           {/* Full Name */}
-          <Field
-            label="Full Name"
-            id="ep-fullname"
-            type="text"
-            value={form.fullName}
-            onChange={(v) => setForm((f) => ({ ...f, fullName: v }))}
-            placeholder="Your full name"
-            error={errors.fullName}
-            required
-          />
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-white/40">
+              Full Name
+            </label>
+            <input
+              type="text"
+              value={form.fullName}
+              onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+              placeholder="Your Full Name"
+              className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/[0.05] px-3.5 py-2.5 text-sm text-white placeholder-white/20 focus:border-[#d4af37] focus:outline-none"
+            />
+            {errors.fullName && <p className="mt-1 text-xs text-red-400">{errors.fullName}</p>}
+          </div>
 
-          {/* Email — read-only */}
-          <Field
-            label="Email Address"
-            id="ep-email"
-            type="email"
-            value={email}
-            readOnly
-            disabled
-            hint="Email cannot be changed"
-          />
+          {/* Phone Number */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-white/40">
+              Mobile Number (10 digits)
+            </label>
+            <div className="mt-1.5 flex rounded-lg border border-white/10 bg-white/[0.05] overflow-hidden focus-within:border-[#d4af37]">
+              <span className="flex items-center px-3 text-sm text-white/40 border-r border-white/10">
+                +91
+              </span>
+              <input
+                type="tel"
+                maxLength={10}
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '') })}
+                placeholder="9876543210"
+                className="w-full bg-transparent px-3.5 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none"
+              />
+            </div>
+            {errors.phone && <p className="mt-1 text-xs text-red-400">{errors.phone}</p>}
+          </div>
 
-          {/* Phone */}
-          <Field
-            label="Phone Number"
-            id="ep-phone"
-            type="tel"
-            value={form.phone}
-            onChange={(v) => setForm((f) => ({ ...f, phone: v }))}
-            error={errors.phone}
-            hint="Indian numbers only (+91). Optional."
-          />
-
-          {/* Divider */}
-          <div className="h-px" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.12), transparent)' }} />
-
-          {/* Actions */}
-          <div className="flex gap-3">
+          {/* Buttons */}
+          <div className="mt-6 flex items-center justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={handleClose}
               disabled={saving}
-              className="flex-1 rounded-full py-2.5 font-sans text-sm text-white/40 transition-all duration-200 hover:text-white/70"
-              style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+              className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white/70 hover:bg-white/5 transition disabled:opacity-50"
             >
               Cancel
             </button>
-
             <button
               type="submit"
-              disabled={saving || !isValid}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full py-2.5 font-sans text-sm font-semibold transition-all duration-200 hover:brightness-110 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                background: 'linear-gradient(135deg, #c9a84c 0%, #f5e6a3 50%, #c9a84c 100%)',
-                color: '#0a0a0a',
-                boxShadow: saving || !isValid ? 'none' : '0 0 20px rgba(212,175,55,0.25)',
-              }}
+              disabled={!isValid || saving}
+              className="flex items-center gap-2 rounded-lg bg-[#d4af37] px-5 py-2 text-sm font-semibold text-black transition hover:bg-[#e0be48] disabled:opacity-40"
             >
-              {saving ? (
-                <span className="flex items-center gap-2">
-                  <Spinner />
-                  Saving…
-                </span>
-              ) : 'Save Changes'}
+              {saving ? <Spinner /> : null}
+              {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
-
         </form>
       </div>
-    </div>
-  );
-}
-
-/* ── Reusable luxury input field ── */
-function Field({ label, id, value, onChange, error, hint, readOnly, disabled, required, type = 'text', placeholder }) {
-  const [focused, setFocused] = useState(false);
-
-  const borderColor = error
-    ? 'rgba(239,68,68,0.5)'
-    : focused
-    ? 'rgba(212,175,55,0.55)'
-    : 'rgba(255,255,255,0.1)';
-
-  const bgColor = readOnly || disabled ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)';
-
-  return (
-    <div>
-      <label htmlFor={id} className="mb-1.5 block font-sans text-[0.6rem] font-semibold uppercase tracking-[0.22em] text-luxury-gold/50">
-        {label}{required && <span className="ml-0.5 text-luxury-gold/40">*</span>}
-      </label>
-
-      {type === 'tel' ? (
-        /* ── Phone field with flag + country code prefix ── */
-        <div
-          className="flex items-center rounded-xl px-4 py-3 gap-2.5"
-          style={{
-            border: `1px solid ${borderColor}`,
-            background: bgColor,
-            boxShadow: focused && !error ? '0 0 0 3px rgba(212,175,55,0.07)' : 'none',
-            transition: 'border-color 0.2s, box-shadow 0.2s',
-          }}
-        >
-          {/* Flag + dial code */}
-          <div className="flex items-center gap-1.5 shrink-0 border-r pr-2.5" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-            <span className="text-base leading-none">🇮🇳</span>
-            <span className="font-sans text-xs text-white/40">+91</span>
-          </div>
-          <input
-            id={id}
-            type="tel"
-            value={value}
-            disabled={disabled}
-            placeholder="XXXXXXXXXX"
-            onChange={(e) => onChange?.(e.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            className="flex-1 bg-transparent font-sans text-sm text-white outline-none placeholder:text-white/20 disabled:cursor-not-allowed"
-            style={{
-              /* Kill browser autofill white background */
-              WebkitBoxShadow: `0 0 0px 1000px transparent inset`,
-              WebkitTextFillColor: disabled ? 'rgba(255,255,255,0.3)' : 'white',
-              caretColor: '#d4af37',
-            }}
-            autoComplete="off"
-          />
-        </div>
-      ) : (
-        <input
-          id={id}
-          type={type}
-          value={value}
-          readOnly={readOnly}
-          disabled={disabled}
-          placeholder={placeholder}
-          onChange={(e) => onChange?.(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          className="w-full rounded-xl px-4 py-3 font-sans text-sm outline-none placeholder:text-white/20 disabled:cursor-not-allowed"
-          style={{
-            border: `1px solid ${borderColor}`,
-            background: bgColor,
-            boxShadow: focused && !error ? '0 0 0 3px rgba(212,175,55,0.07)' : 'none',
-            transition: 'border-color 0.2s, box-shadow 0.2s',
-            color: readOnly || disabled ? 'rgba(255,255,255,0.3)' : 'white',
-            /* Kill browser autofill white background */
-            WebkitBoxShadow: `0 0 0px 1000px ${bgColor} inset`,
-            WebkitTextFillColor: readOnly || disabled ? 'rgba(255,255,255,0.3)' : 'white',
-            caretColor: '#d4af37',
-          }}
-          autoComplete="off"
-        />
-      )}
-
-      {error && <p className="mt-1.5 font-sans text-[0.7rem] text-red-400">{error}</p>}
-      {hint && !error && (
-        <p className="mt-1.5 flex items-center gap-1 font-sans text-[0.7rem] text-white/25">
-          <svg className="h-3 w-3 shrink-0 text-luxury-gold/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {hint}
-        </p>
-      )}
     </div>
   );
 }

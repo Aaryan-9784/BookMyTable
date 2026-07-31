@@ -8,7 +8,7 @@ export default function Login() {
   const { login, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/restaurants';
+  const destination = '/';
 
   const [step, setStep] = useState(1); // 1: Email & Password, 2: OTP Verification
   const [email, setEmail] = useState('');
@@ -37,7 +37,7 @@ export default function Login() {
     }
     setLoading(true);
     try {
-      // Send 6-digit Login OTP via backend SES API
+      // Send 6-digit Login OTP via backend API
       await api.post('/api/auth/send-login-otp', { email: email.trim() });
       toast.success('Verification code sent to your email');
       setStep(2);
@@ -83,10 +83,10 @@ export default function Login() {
         code: otpCode.trim(),
       });
 
-      // 2. Complete Cognito session login
+      // 2. Complete session login & navigate to Landing Page (/)
       await login(email.trim(), password);
       toast.success('Welcome back');
-      navigate(from, { replace: true });
+      navigate('/', { replace: true });
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || 'Login verification failed');
     } finally {

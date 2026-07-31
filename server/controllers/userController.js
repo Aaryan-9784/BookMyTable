@@ -36,14 +36,15 @@ export async function getProfile(req, res, next) {
  */
 export async function updateProfile(req, res, next) {
   try {
-    const { fullName, phone } = req.body;
+    const { name, fullName, phone } = req.body;
 
     const $set = {};
-    if (fullName !== undefined) {
-      if (typeof fullName !== 'string' || !fullName.trim()) {
-        return res.status(400).json({ message: 'fullName must be a non-empty string' });
+    const newName = name || fullName;
+    if (newName !== undefined) {
+      if (typeof newName !== 'string' || !newName.trim()) {
+        return res.status(400).json({ message: 'Name must be a non-empty string' });
       }
-      $set.fullName = fullName.trim();
+      $set.name = newName.trim();
     }
     if (phone !== undefined && phone !== null) {
       if (typeof phone === 'string' && phone.trim()) {
@@ -52,7 +53,7 @@ export async function updateProfile(req, res, next) {
     }
 
     if (Object.keys($set).length === 0) {
-      return res.status(400).json({ message: 'Provide at least fullName or phone to update' });
+      return res.status(400).json({ message: 'Provide at least name or phone to update' });
     }
 
     const user = await User.findByIdAndUpdate(
