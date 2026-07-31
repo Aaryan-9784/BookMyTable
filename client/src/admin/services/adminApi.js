@@ -10,6 +10,8 @@ export const adminApi = {
   listRestaurants: (params) => api.get(`${base}/restaurants`, { params }),
   createRestaurant: (body) => api.post(`${base}/restaurants`, body),
   updateRestaurant: (id, body) => api.put(`${base}/restaurants/${id}`, body),
+  approveRestaurant: (id) => api.put(`${base}/restaurants/${id}/approve`),
+  rejectRestaurant: (id, reason) => api.put(`${base}/restaurants/${id}/reject`, { reason }),
   deleteRestaurant: (id) => api.delete(`${base}/restaurants/${id}`),
   /** Multipart upload — field name `image`; requires admin JWT. */
   uploadImage: (file) => {

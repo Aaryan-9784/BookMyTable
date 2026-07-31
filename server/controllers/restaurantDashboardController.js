@@ -77,8 +77,12 @@ export async function getDashboardStats(req, res) {
       name: restaurant.name,
       location: restaurant.location,
       category: restaurant.category,
+      description: restaurant.description,
+      imageUrl: restaurant.imageUrl,
       tokenFee: tokenFeeRate,
       openingHours: restaurant.openingHours || '11:00 AM - 11:00 PM',
+      approvalStatus: restaurant.approvalStatus || 'approved',
+      rejectionReason: restaurant.rejectionReason || '',
     },
     allRestaurants,
     stats: {
@@ -216,15 +220,48 @@ export async function getAnalytics(req, res) {
 
   const totalGuests = confirmedBookings.reduce((acc, b) => acc + (b.guests || 1), 0);
   const tokenFeeRate = restaurant.tokenFee || 150;
-  const totalTokenRevenue = totalGuests * tokenFeeRate;
+  
+  // Calculate total token fees using table-wise token fee if available
+  const totalTokenRevenue = confirmedBookings.reduce((acc, b) => {
+    const tableFee = b.tokenFee || tokenFeeRate;
+    return acc + (b.guests || 1) * tableFee;
+  }, 0);
 
   const avgTokenFeePerBooking = confirmedBookings.length ? Math.round(totalTokenRevenue / confirmedBookings.length) : 0;
   const avgGuestsPerBooking = confirmedBookings.length ? (totalGuests / confirmedBookings.length).toFixed(1) : '0';
+
+  // Capacity Breakdown (e.g. 2-seater, 4-seater, etc.)
+  const capacityBreakdown = tables.reduce((acc, t) => {
+    const key = `${t.capacity}-Seater`;
+    if (!acc[key]) {
+      acc[key] = { count: 0, totalCapacity: 0, avgTokenFee: 0, totalTokenFee: 0 };
+    }
+    acc[key].count += 1;
+    acc[key].totalCapacity += t.capacity;
+    acc[key].totalTokenFee += (t.tokenFee || tokenFeeRate);
+    return acc;
+  }, {});
+
+  // Compute average token fee for each capacity category
+  Object.keys(capacityBreakdown).forEach((key) => {
+    const item = capacityBreakdown[key];
+    item.avgTokenFee = Math.round(item.totalTokenFee / item.count);
+  });
 
   const zoneBreakdown = tables.reduce((acc, t) => {
     acc[t.zone] = (acc[t.zone] || 0) + 1;
     return acc;
   }, {});
+
+  // Table leaderboard (tables with their seating capacity and token fee)
+  const tableLeaderboard = tables.map((t) => ({
+    id: t._id,
+    tableNumber: t.tableNumber,
+    capacity: t.capacity,
+    zone: t.zone,
+    tokenFee: t.tokenFee || tokenFeeRate,
+    status: t.status,
+  }));
 
   res.json({
     ok: true,
@@ -237,6 +274,9 @@ export async function getAnalytics(req, res) {
       avgTokenFeePerBooking,
       avgGuestsPerBooking,
       zoneBreakdown,
+      capacityBreakdown,
+      tableLeaderboard,
+      totalTables: tables.length,
       totalSeatingCapacity: tables.reduce((acc, t) => acc + (t.capacity || 0), 0),
     },
   });

@@ -8,6 +8,8 @@ import {
   createRestaurantAdmin,
   updateRestaurantAdmin,
   deleteRestaurantAdmin,
+  approveRestaurantAdmin,
+  rejectRestaurantAdmin,
   listBookingsAdmin,
   deleteBookingAdmin,
   listUsersAdmin,
@@ -30,6 +32,8 @@ router.get('/dashboard/stats', asyncHandler(getDashboardStats));
 router.get('/restaurants', asyncHandler(listRestaurantsAdmin));
 router.post('/restaurants', restaurantWriteValidators, asyncHandler(createRestaurantAdmin));
 router.put('/restaurants/:id', restaurantUpdateValidators, asyncHandler(updateRestaurantAdmin));
+router.put('/restaurants/:id/approve', asyncHandler(approveRestaurantAdmin));
+router.put('/restaurants/:id/reject', asyncHandler(rejectRestaurantAdmin));
 router.delete('/restaurants/:id', asyncHandler(deleteRestaurantAdmin));
 
 router.get('/bookings', asyncHandler(listBookingsAdmin));

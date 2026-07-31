@@ -34,21 +34,36 @@ export const restaurantUpdateValidators = [
  */
 export async function getDashboardStats(_req, res, next) {
   try {
-    const [users, bookings, restaurants, recentBookings] = await Promise.all([
+    const [users, bookings, totalRestaurants, pendingCount, approvedCount, rejectedCount, recentBookings] = await Promise.all([
       User.countDocuments(),
-      Booking.countDocuments(),
+      Booking.countDocuments({ status: 'confirmed' }),
       Restaurant.countDocuments(),
+      Restaurant.countDocuments({ approvalStatus: 'pending' }),
+      Restaurant.countDocuments({ approvalStatus: { $ne: 'pending' } }),
+      Restaurant.countDocuments({ approvalStatus: 'rejected' }),
       Booking.find()
         .sort({ createdAt: -1 })
         .limit(8)
-        .populate('userId', 'email fullName')
+        .populate('userId', 'email name fullName')
         .populate('restaurantId', 'name location')
         .lean(),
     ]);
+
+    // Calculate total token fees collected across all confirmed bookings
+    const confirmedBookings = await Booking.find({ status: 'confirmed' }).populate('restaurantId', 'tokenFee');
+    const totalTokenFees = confirmedBookings.reduce((sum, b) => {
+      const fee = b.restaurantId?.tokenFee || 150;
+      return sum + (b.guests || 1) * fee;
+    }, 0);
+
     res.json({
       totalUsers: users,
       totalBookings: bookings,
-      totalRestaurants: restaurants,
+      totalRestaurants,
+      pendingCount,
+      approvedCount,
+      rejectedCount,
+      totalTokenFees,
       recentBookings,
     });
   } catch (e) {
@@ -57,27 +72,82 @@ export async function getDashboardStats(_req, res, next) {
 }
 
 /**
- * GET /api/admin/restaurants — list with optional search
+ * GET /api/admin/restaurants — list with optional search & approvalStatus filter
  */
 export async function listRestaurantsAdmin(req, res, next) {
   try {
     const q = (req.query.q || '').trim();
+    const status = (req.query.status || '').trim();
     const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const filter = q
-      ? {
-          $or: [
-            { name: new RegExp(escaped, 'i') },
-            { location: new RegExp(escaped, 'i') },
-            { category: new RegExp(escaped, 'i') },
-          ],
-        }
-      : {};
-    const items = await Restaurant.find(filter).sort({ createdAt: -1 }).lean();
+
+    const filter = {};
+    if (q) {
+      filter.$or = [
+        { name: new RegExp(escaped, 'i') },
+        { location: new RegExp(escaped, 'i') },
+        { category: new RegExp(escaped, 'i') },
+      ];
+    }
+    if (status && status !== 'all') {
+      filter.approvalStatus = status;
+    }
+
+    const items = await Restaurant.find(filter)
+      .populate('ownerId', 'name email phone')
+      .sort({ createdAt: -1 })
+      .lean();
+
     res.json(items);
   } catch (e) {
     next(e);
   }
 }
+
+/**
+ * PUT /api/admin/restaurants/:id/approve
+ */
+export async function approveRestaurantAdmin(req, res, next) {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid restaurant ID' });
+    }
+    const doc = await Restaurant.findByIdAndUpdate(
+      req.params.id,
+      { $set: { approvalStatus: 'approved', rejectionReason: '' } },
+      { new: true }
+    );
+    if (!doc) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+    res.json({ ok: true, message: 'Restaurant approved successfully', restaurant: doc });
+  } catch (e) {
+    next(e);
+  }
+}
+
+/**
+ * PUT /api/admin/restaurants/:id/reject
+ */
+export async function rejectRestaurantAdmin(req, res, next) {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid restaurant ID' });
+    }
+    const { reason = 'Did not meet submission criteria.' } = req.body;
+    const doc = await Restaurant.findByIdAndUpdate(
+      req.params.id,
+      { $set: { approvalStatus: 'rejected', rejectionReason: reason } },
+      { new: true }
+    );
+    if (!doc) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+    res.json({ ok: true, message: 'Restaurant rejected', restaurant: doc });
+  } catch (e) {
+    next(e);
+  }
+}
+
 
 /**
  * POST /api/admin/restaurants

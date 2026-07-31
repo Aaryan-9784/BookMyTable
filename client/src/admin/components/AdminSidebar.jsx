@@ -5,10 +5,10 @@ import { NavLink, useLocation } from 'react-router-dom';
    NAV CONFIG
 ───────────────────────────────────────────────────────────── */
 const NAV = [
-  { to: '/admin',             label: 'Dashboard',   Icon: DashIcon,       end: true },
-  { to: '/admin/restaurants', label: 'Restaurants', Icon: RestaurantIcon        },
-  { to: '/admin/bookings',    label: 'Bookings',    Icon: BookingIcon           },
-  { to: '/admin/users',       label: 'Users',       Icon: UsersIcon             },
+  { to: '/admin',             label: 'Dashboard',           Icon: DashIcon,       end: true },
+  { to: '/admin/restaurants', label: 'Approve Restaurants', Icon: RestaurantIcon        },
+  { to: '/admin/bookings',    label: 'Bookings Overview',   Icon: BookingIcon           },
+  { to: '/admin/users',       label: 'System Users',        Icon: UsersIcon             },
 ];
 
 /* ─────────────────────────────────────────────────────────────

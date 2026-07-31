@@ -4,7 +4,6 @@ import toast from 'react-hot-toast';
 import { restaurantApi } from '../services/restaurantApi.js';
 import Loader from '../../components/Loader.jsx';
 
-/* ── SVG ICONS (Matching Admin StatsCard) ──────────────────── */
 function TablesIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -36,24 +35,16 @@ function RevenueIcon() {
   );
 }
 
-/* ── STATS CARD COMPONENT (Identical to Admin StatsCard) ───── */
 function RestaurantStatsCard({ label, value, Icon }) {
   return (
     <div
-      className="stats-card relative overflow-hidden rounded-2xl p-7 transition-all duration-300"
+      className="stats-card relative overflow-hidden rounded-2xl p-6 transition-all duration-300"
       style={{
         background: 'linear-gradient(150deg, #1c1c1c 0%, #161616 55%, #131313 100%)',
         border: '1px solid rgba(212,175,55,0.13)',
         boxShadow: '0 4px 40px rgba(0,0,0,0.55)',
       }}
     >
-      {/* Ambient glow */}
-      <div
-        className="stats-glow pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full"
-        style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.14) 0%, transparent 70%)' }}
-      />
-
-      {/* Header row */}
       <div className="flex items-start justify-between">
         <p className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted">
           {label}
@@ -63,63 +54,40 @@ function RestaurantStatsCard({ label, value, Icon }) {
           style={{
             background: 'rgba(212,175,55,0.08)',
             border: '1px solid rgba(212,175,55,0.20)',
-            boxShadow: '0 0 14px rgba(212,175,55,0.08)',
           }}
         >
           <Icon />
         </div>
       </div>
-
-      {/* Value */}
       <p
-        className="mt-5 font-display leading-none"
-        style={{ fontSize: '3.6rem', color: '#f0f0f0', fontWeight: 600 }}
+        className="mt-4 font-display leading-none text-white font-bold"
+        style={{ fontSize: '3rem' }}
       >
         {value}
       </p>
-
-      {/* Bottom gold accent strip */}
       <div
         className="absolute bottom-0 left-0 right-0 h-[2px]"
         style={{
-          background: 'linear-gradient(90deg, rgba(212,175,55,0.55) 0%, rgba(212,175,55,0.10) 50%, transparent 100%)',
+          background: 'linear-gradient(90deg, rgba(212,175,55,0.55) 0%, transparent 100%)',
         }}
       />
     </div>
   );
 }
 
-/* ── STATUS BADGE COMPONENT (Identical to Admin StatusBadge) ─ */
 function StatusBadge({ status }) {
   const v = String(status).toLowerCase();
   if (v === 'confirmed') {
     return (
-      <span
-        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold tracking-wide whitespace-nowrap"
-        style={{
-          background: 'rgba(52,211,153,0.08)',
-          border: '1px solid rgba(52,211,153,0.25)',
-          color: '#34d399',
-          boxShadow: '0 0 12px rgba(52,211,153,0.10)',
-        }}
-      >
-        <span className="h-1.5 w-1.5 rounded-full shrink-0 animate-pulse" style={{ background: '#34d399' }} />
+      <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
         Confirmed
       </span>
     );
   }
   if (v === 'cancelled') {
     return (
-      <span
-        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold tracking-wide whitespace-nowrap"
-        style={{
-          background: 'rgba(220,38,38,0.08)',
-          border: '1px solid rgba(220,38,38,0.22)',
-          color: '#f87171',
-          boxShadow: '0 0 10px rgba(220,38,38,0.06)',
-        }}
-      >
-        <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: '#f87171' }} />
+      <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold text-red-400 bg-red-500/10 border border-red-500/20">
         Cancelled
       </span>
     );
@@ -127,7 +95,6 @@ function StatusBadge({ status }) {
   return <span className="font-sans text-xs capitalize text-white/40">{status}</span>;
 }
 
-/* ── MAIN RESTAURANT DASHBOARD COMPONENT ───────────────────── */
 export default function RestaurantDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -152,194 +119,164 @@ export default function RestaurantDashboard() {
   const stats = data?.stats || {};
   const restaurant = data?.restaurant || {};
   const recentBookings = data?.recentBookings || [];
+  const approvalStatus = restaurant.approvalStatus || 'approved';
 
   return (
     <div className="max-w-[1100px] mx-auto">
-      {/* ── Page Heading (Identical to Admin Dashboard) ──────── */}
-      <div className="mb-12 anim-fade-up">
-        <p className="font-sans text-[10px] uppercase tracking-[0.22em] text-luxury-muted mb-3">
-          Overview
+      {/* ── Page Heading ─────────────────────────────────────── */}
+      <div className="mb-8 anim-fade-up">
+        <p className="font-sans text-[10px] uppercase tracking-[0.22em] text-luxury-muted mb-2">
+          Partner Console
         </p>
         <h1
-          className="font-display leading-none text-luxury-white"
-          style={{ fontSize: 'clamp(2.4rem, 5vw, 3.6rem)', letterSpacing: '0.01em' }}
+          className="font-display leading-none text-luxury-white font-bold"
+          style={{ fontSize: 'clamp(2.4rem, 5vw, 3.6rem)' }}
         >
           Dashboard
         </h1>
-        <p className="mt-2.5 font-sans text-sm text-luxury-muted">
-          BookMyTable — restaurant performance at a glance
+        <p className="mt-2 font-sans text-sm text-luxury-muted">
+          {restaurant.name || 'Restaurant'} — performance & seating metrics
         </p>
-        {/* Gold rule */}
         <div
-          className="mt-5 h-px w-20"
+          className="mt-4 h-px w-20"
           style={{ background: 'linear-gradient(90deg, #d4af37, rgba(212,175,55,0.15), transparent)' }}
         />
       </div>
 
-      {/* ── 3 Stat Cards (Identical Layout to Admin Dashboard) ─ */}
-      <div className="grid gap-6 sm:grid-cols-3 mb-14">
-        <div className="anim-fade-up delay-1">
-          <RestaurantStatsCard
-            label="Total Tables"
-            value={stats.totalTables ?? 0}
-            Icon={TablesIcon}
-          />
+      {/* ── Approval Status Notice Banner ───────────────────── */}
+      {approvalStatus === 'pending' && (
+        <div className="mb-8 rounded-2xl p-5 border border-amber-500/40 bg-amber-500/10 text-amber-200 font-sans flex items-center justify-between gap-4">
+          <div>
+            <h3 className="font-bold text-amber-400">⏳ Submission Pending Admin Approval</h3>
+            <p className="text-xs opacity-90 mt-1">
+              Your restaurant details have been saved and submitted to the platform Admin. Once approved, your restaurant will be visible to public users for table bookings.
+            </p>
+          </div>
+          <Link
+            to="/restaurant-dashboard/tables"
+            className="shrink-0 rounded-xl bg-amber-400 text-black px-4 py-2 text-xs font-semibold hover:bg-amber-300"
+          >
+            Manage Setup
+          </Link>
         </div>
-        <div className="anim-fade-up delay-2">
-          <RestaurantStatsCard
-            label="Total Bookings"
-            value={stats.totalBookings ?? 0}
-            Icon={BookingsIcon}
-          />
+      )}
+
+      {approvalStatus === 'rejected' && (
+        <div className="mb-8 rounded-2xl p-5 border border-red-500/40 bg-red-500/10 text-red-200 font-sans">
+          <h3 className="font-bold text-red-400">❌ Application Requires Attention</h3>
+          <p className="text-xs opacity-90 mt-1">
+            <strong>Feedback from Admin:</strong> {restaurant.rejectionReason || 'Please verify restaurant details and table configurations.'}
+          </p>
+          <Link
+            to="/restaurant-dashboard/tables"
+            className="inline-block mt-3 rounded-xl bg-red-500 text-white px-4 py-1.5 text-xs font-semibold hover:bg-red-400"
+          >
+            Update Details & Resubmit
+          </Link>
         </div>
-        <div className="anim-fade-up delay-3">
-          <RestaurantStatsCard
-            label="Token Fees Collected"
-            value={`₹${(stats.totalTokenFees ?? 0).toLocaleString()}`}
-            Icon={RevenueIcon}
-          />
+      )}
+
+      {approvalStatus === 'approved' && (
+        <div className="mb-8 rounded-2xl p-4 border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 font-sans flex items-center justify-between text-xs">
+          <span className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <strong>Operational Status:</strong> Approved & Live for Customer Table Reservations
+          </span>
+          <span className="text-luxury-muted">Base Token Fee: ₹{restaurant.tokenFee || 150}</span>
         </div>
+      )}
+
+      {/* ── 3 Stat Cards ─────────────────────────────────────── */}
+      <div className="grid gap-6 sm:grid-cols-3 mb-10">
+        <RestaurantStatsCard
+          label="Total Tables"
+          value={stats.totalTables ?? 0}
+          Icon={TablesIcon}
+        />
+        <RestaurantStatsCard
+          label="Seating Capacity"
+          value={`${stats.totalCapacity ?? 0} Seats`}
+          Icon={TablesIcon}
+        />
+        <RestaurantStatsCard
+          label="Token Fees Earned"
+          value={`₹${(stats.totalTokenFees ?? 0).toLocaleString()}`}
+          Icon={RevenueIcon}
+        />
       </div>
 
-      {/* ── Recent Bookings Table (Identical to Admin RecentBookings) ── */}
-      <div className="anim-fade-up delay-4">
-        <div
-          className="overflow-hidden rounded-[20px]"
-          style={{
-            background: 'linear-gradient(160deg, rgba(28,26,22,0.95) 0%, rgba(18,17,14,0.98) 100%)',
-            border: '1px solid transparent',
-            backgroundClip: 'padding-box',
-            boxShadow: '0 8px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,175,55,0.10), inset 0 1px 0 rgba(212,175,55,0.06)',
-          }}
+      {/* ── Quick Action Cards ───────────────────────────────── */}
+      <div className="grid gap-6 sm:grid-cols-3 mb-12">
+        <Link
+          to="/restaurant-dashboard/tables"
+          className="rounded-2xl p-6 bg-[#161616] border border-white/10 hover:border-luxury-gold/50 transition-all group"
         >
-          {/* Card Header */}
-          <div
-            className="flex items-center justify-between px-6 py-5"
-            style={{ borderBottom: '1px solid rgba(212,175,55,0.08)' }}
-          >
-            <div>
-              <h2
-                className="font-display text-white"
-                style={{ fontSize: '1.35rem', letterSpacing: '0.01em' }}
-              >
-                Recent Bookings
-              </h2>
-              <p className="mt-0.5 font-sans text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                Latest reservations for {restaurant.name || 'your restaurant'}
-              </p>
-            </div>
+          <div className="text-2xl mb-2">🪑</div>
+          <h3 className="font-display font-semibold text-white group-hover:text-luxury-gold">Add Restaurant & Tables</h3>
+          <p className="font-sans text-xs text-luxury-muted mt-1">
+            Manage restaurant profile, total tables, different capacities & table-wise token fees.
+          </p>
+        </Link>
 
-            <Link
-              to="/restaurant-dashboard/bookings"
-              className="view-all-btn group flex items-center gap-1.5 rounded-full px-4 py-2 font-sans text-[12px] font-medium transition-all duration-200"
-              style={{
-                background: 'rgba(212,175,55,0.06)',
-                border: '1px solid rgba(212,175,55,0.22)',
-                color: '#d4af37',
-              }}
-            >
-              View All
-              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                <path d="M2.5 6h7M6.5 3l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </Link>
+        <Link
+          to="/restaurant-dashboard/analytics"
+          className="rounded-2xl p-6 bg-[#161616] border border-white/10 hover:border-luxury-gold/50 transition-all group"
+        >
+          <div className="text-2xl mb-2">📊</div>
+          <h3 className="font-display font-semibold text-white group-hover:text-luxury-gold">Token Fee Analysis</h3>
+          <p className="font-sans text-xs text-luxury-muted mt-1">
+            View financial breakdown by seating capacity, zones, and average token earnings.
+          </p>
+        </Link>
+
+        <Link
+          to="/restaurant-dashboard/bookings"
+          className="rounded-2xl p-6 bg-[#161616] border border-white/10 hover:border-luxury-gold/50 transition-all group"
+        >
+          <div className="text-2xl mb-2">📅</div>
+          <h3 className="font-display font-semibold text-white group-hover:text-luxury-gold">Booking Management</h3>
+          <p className="font-sans text-xs text-luxury-muted mt-1">
+            Review customer reservations, guest counts, assigned tables & update statuses.
+          </p>
+        </Link>
+      </div>
+
+      {/* ── Recent Bookings Table ───────────────────────────── */}
+      <div className="overflow-hidden rounded-2xl bg-[#141414] border border-white/10">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
+          <div>
+            <h2 className="font-display text-lg text-white font-semibold">Recent Bookings</h2>
+            <p className="font-sans text-xs text-luxury-muted">Latest table reservations for {restaurant.name}</p>
           </div>
-
-          {/* Column labels */}
-          {recentBookings.length > 0 && (
-            <div
-              className="hidden sm:flex items-center gap-x-4 px-6 py-2.5"
-              style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-            >
-              <div className="flex-1 font-sans text-[10px] font-semibold uppercase tracking-[0.16em]" style={{ color: 'rgba(212,175,55,0.45)', minWidth: '180px' }}>User</div>
-              <div className="hidden sm:block font-sans text-[10px] font-semibold uppercase tracking-[0.16em]" style={{ color: 'rgba(212,175,55,0.45)', minWidth: '160px' }}>When</div>
-              <div className="hidden md:block font-sans text-[10px] font-semibold uppercase tracking-[0.16em]" style={{ color: 'rgba(212,175,55,0.45)', minWidth: '130px' }}>Guests</div>
-              <div className="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-right" style={{ color: 'rgba(212,175,55,0.45)', minWidth: '100px' }}>Status</div>
-            </div>
-          )}
-
-          {/* Table Rows */}
-          {recentBookings.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-              <div
-                className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
-                style={{
-                  background: 'rgba(212,175,55,0.06)',
-                  border: '1px solid rgba(212,175,55,0.12)',
-                }}
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ color: 'rgba(212,175,55,0.45)' }}>
-                  <rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M8 2v3M16 2v3M3 9h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                  <path d="M8 13h4M8 17h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </div>
-              <p className="font-sans text-sm font-medium" style={{ color: 'rgba(255,255,255,0.45)' }}>No bookings yet</p>
-              <p className="mt-1 font-sans text-xs" style={{ color: 'rgba(255,255,255,0.22)' }}>Reservations will appear here once made</p>
-            </div>
-          ) : (
-            recentBookings.map((b, i) => {
-              const name = b.userId?.name || 'Guest User';
-              const email = b.userId?.email || b.userId?.phone || '—';
-              const initials = name.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'GU';
-
-              return (
-                <div
-                  key={b._id || i}
-                  className="booking-row group relative flex flex-wrap items-center gap-x-4 gap-y-3 px-6 py-4 transition-all duration-200"
-                  style={{ borderBottom: i === recentBookings.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.035)' }}
-                >
-                  {/* User */}
-                  <div className="flex min-w-0 flex-1 items-center gap-3" style={{ minWidth: '180px' }}>
-                    <div
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-sans text-[11px] font-bold"
-                      style={{
-                        background: 'linear-gradient(135deg, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.06) 100%)',
-                        border: '1px solid rgba(212,175,55,0.22)',
-                        color: '#d4af37',
-                        boxShadow: '0 0 10px rgba(212,175,55,0.08)',
-                      }}
-                    >
-                      {initials}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate font-sans text-[13px] font-semibold leading-tight" style={{ color: '#e8e8e8' }}>
-                        {name}
-                      </p>
-                      <p className="truncate font-sans text-[11px] leading-tight" style={{ color: 'rgba(255,255,255,0.32)' }}>
-                        {email}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* When */}
-                  <div className="hidden items-center gap-2 sm:flex" style={{ minWidth: '160px' }}>
-                    <div>
-                      <p className="font-sans text-[12px] font-medium leading-tight" style={{ color: 'rgba(255,255,255,0.75)' }}>
-                        {b.date}
-                      </p>
-                      <p className="font-sans text-[11px] leading-tight" style={{ color: 'rgba(255,255,255,0.32)' }}>
-                        {b.time}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Guests */}
-                  <div className="hidden md:block" style={{ minWidth: '130px' }}>
-                    <p className="truncate font-sans text-[13px] font-semibold" style={{ color: '#e8e8e8' }}>
-                      {b.guests || 1} Guest(s)
-                    </p>
-                  </div>
-
-                  {/* Status */}
-                  <div className="flex items-center justify-end" style={{ minWidth: '100px' }}>
-                    <StatusBadge status={b.status} />
-                  </div>
-                </div>
-              );
-            })
-          )}
+          <Link
+            to="/restaurant-dashboard/bookings"
+            className="rounded-full bg-luxury-gold/10 border border-luxury-gold/30 px-4 py-1.5 font-sans text-xs font-semibold text-luxury-gold hover:bg-luxury-gold/20"
+          >
+            View All Bookings
+          </Link>
         </div>
+
+        {recentBookings.length === 0 ? (
+          <div className="p-12 text-center text-luxury-muted font-sans text-sm">
+            No table bookings registered yet.
+          </div>
+        ) : (
+          <div className="divide-y divide-white/5 font-sans text-xs">
+            {recentBookings.map((b, i) => (
+              <div key={b._id || i} className="flex items-center justify-between p-4 px-6 hover:bg-white/5">
+                <div>
+                  <p className="font-semibold text-white text-sm">{b.userId?.name || 'Customer'}</p>
+                  <p className="text-luxury-muted">{b.userId?.email || b.userId?.phone || '—'}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-white">{b.date} at {b.time}</p>
+                  <p className="text-luxury-muted">{b.guests || 1} Guests</p>
+                </div>
+                <StatusBadge status={b.status} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

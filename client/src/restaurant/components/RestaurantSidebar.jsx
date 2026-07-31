@@ -3,11 +3,10 @@ import { NavLink, useLocation } from 'react-router-dom';
 
 /* ── NAV CONFIG ───────────────────────────────────────────── */
 const NAV = [
-  { to: '/restaurant-dashboard',           label: 'Dashboard',         Icon: DashIcon,       end: true },
-  { to: '/restaurant-dashboard/tables',    label: 'Tables & Capacity', Icon: TableIcon },
-  { to: '/restaurant-dashboard/bookings',  label: 'Bookings',          Icon: BookingIcon },
-  { to: '/restaurant-dashboard/analytics', label: 'Token Fee Analysis', Icon: AnalyticsIcon },
-  { to: '/restaurant-dashboard/settings',  label: 'Settings',          Icon: SettingsIcon },
+  { to: '/restaurant-dashboard',           label: 'Dashboard',               Icon: DashIcon,       end: true },
+  { to: '/restaurant-dashboard/tables',    label: 'Add Restaurant & Tables', Icon: TableIcon },
+  { to: '/restaurant-dashboard/analytics', label: 'Token Fee Analysis',      Icon: AnalyticsIcon },
+  { to: '/restaurant-dashboard/bookings',  label: 'Booking',                 Icon: BookingIcon },
 ];
 
 /* ── SVG ICONS (stroke 1.35, matching Admin Sidebar) ─────── */

@@ -112,7 +112,7 @@ export default function RestaurantBookings() {
                       {b.guests} Person(s)
                     </td>
                     <td className="px-6 py-4 font-semibold text-[#f5e27a]">
-                      ₹{(b.guests || 1) * 150}
+                      ₹{(b.guests || 1) * (b.tokenFee || 150)}
                     </td>
                     <td className="px-6 py-4">
                       <span
