@@ -6,10 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js",
-    "db:remove-restaurant": "node scripts/removeRestaurantsByName.js",
-    "db:remove-demo-bookings": "node scripts/removeBookingsByScreenshotSpec.js",
-    "db:clear-except-users-restaurants": "node scripts/clearDatabaseExceptUsersRestaurants.js"
+    "dev": "node --watch server.js"
   },
   "engines": {
     "node": ">=18"

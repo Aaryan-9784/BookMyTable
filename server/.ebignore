@@ -1,7 +1,0 @@
-# Elastic Beanstalk — exclude these from the deployment zip
-node_modules/
-.env
-*.pem
-.git/
-.gitignore
-scripts/
