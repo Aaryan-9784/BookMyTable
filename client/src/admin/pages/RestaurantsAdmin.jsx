@@ -56,6 +56,10 @@ export default function RestaurantsAdmin() {
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
+  const [rejectingId, setRejectingId] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     else setRefreshing(true);
@@ -90,6 +94,22 @@ export default function RestaurantsAdmin() {
       toast.error(e.message);
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!rejectingId) return;
+    setActionLoading(true);
+    try {
+      await adminApi.rejectRestaurant(rejectingId, rejectReason.trim());
+      toast.success('Restaurant rejected');
+      setRejectingId(null);
+      setRejectReason('');
+      load();
+    } catch (e) {
+      toast.error(e.message || 'Failed to reject restaurant');
+    } finally {
+      setActionLoading(false);
     }
   };
 
