@@ -8,7 +8,6 @@ import { useAuth } from '../../context/AuthContext.jsx';
 const PAGE_TITLES = {
   '/admin':             'Dashboard',
   '/admin/restaurants': 'Restaurants',
-  '/admin/bookings':    'Bookings',
   '/admin/users':       'Users',
 };
 

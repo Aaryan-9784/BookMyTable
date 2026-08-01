@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { adminApi } from '../services/adminApi.js';
 import Loader from '../../components/Loader.jsx';
+import { downloadCSV, today } from '../utils/exportCSV.js';
 
 /* ─────────────────────────────────────────────────────────────
    HELPERS
@@ -27,6 +28,42 @@ function getAvatarColor(seed = '') {
 /* ─────────────────────────────────────────────────────────────
    ICONS
 ───────────────────────────────────────────────────────────── */
+function IconTotalUsers() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <circle cx="7" cy="6" r="3.5" stroke="#d4af37" strokeWidth="1.4" />
+      <path d="M1 16c0-3.5 2.7-6 6-6s6 2.5 6 6" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M13.5 9c1.5 0 3 1.2 3 3.5v3.5" stroke="#d4af37" strokeWidth="1.3" strokeLinecap="round" />
+      <circle cx="13.5" cy="6" r="2" stroke="#d4af37" strokeWidth="1.3" />
+    </svg>
+  );
+}
+function IconAdmins() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <circle cx="9" cy="7" r="3.5" stroke="#d4af37" strokeWidth="1.4" />
+      <path d="M2 16.5c0-3.5 3.1-6 7-6s7 2.5 7 6" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M6.5 4.5l1.5-2 1.5 2L11 3l-1 2.5h-4L5 3l1.5 1.5z" stroke="#d4af37" strokeWidth="1" strokeLinejoin="round" fill="rgba(212,175,55,0.15)" />
+    </svg>
+  );
+}
+function IconRestaurantPartners() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path d="M4 1.5v5.5A2.5 2.5 0 006.5 9.5v7" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M6.5 1.5v3.5" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M12 1.5s2.5 2 2.5 4.5S12 9.5 12 9.5v7" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+function IconRegularUsers() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <circle cx="9" cy="6.5" r="3.5" stroke="#d4af37" strokeWidth="1.4" />
+      <path d="M2 16.5c0-3.5 3.1-6 7-6s7 2.5 7 6" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
 function SearchIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
@@ -35,7 +72,6 @@ function SearchIcon() {
     </svg>
   );
 }
-
 function CopyIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
@@ -44,7 +80,6 @@ function CopyIcon() {
     </svg>
   );
 }
-
 function CrownIcon() {
   return (
     <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
@@ -53,7 +88,6 @@ function CrownIcon() {
     </svg>
   );
 }
-
 function ChevronDown() {
   return (
     <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
@@ -61,7 +95,6 @@ function ChevronDown() {
     </svg>
   );
 }
-
 function ChevronLeft() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -69,7 +102,6 @@ function ChevronLeft() {
     </svg>
   );
 }
-
 function ChevronRight() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -77,13 +109,66 @@ function ChevronRight() {
     </svg>
   );
 }
-
 function TrashIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
       <path d="M2 4h10M5 4V2.5a.5.5 0 01.5-.5h3a.5.5 0 01.5.5V4M6 7v3M8 7v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
       <path d="M3 4l.7 7.3A1 1 0 004.7 12h4.6a1 1 0 001-.7L11 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
+  );
+}
+function IconRefresh() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <path d="M13 7.5A5.5 5.5 0 012.02 9M2 7.5A5.5 5.5 0 0112.98 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M12.5 3v3h-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M2.5 12v-3h3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   KPI STAT CARD (matches Partner Console)
+───────────────────────────────────────────────────────────── */
+function StatCard({ label, value, sub, Icon, accent = false }) {
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl p-6 transition-all duration-300 group"
+      style={{
+        background: accent
+          ? 'linear-gradient(150deg, #1e1b0f 0%, #181507 60%, #151300 100%)'
+          : 'linear-gradient(150deg, #1c1c1c 0%, #161616 55%, #131313 100%)',
+        border: accent ? '1px solid rgba(212,175,55,0.28)' : '1px solid rgba(212,175,55,0.13)',
+        boxShadow: accent
+          ? '0 4px 40px rgba(0,0,0,0.55), 0 0 24px rgba(212,175,55,0.08)'
+          : '0 4px 40px rgba(0,0,0,0.55)',
+      }}
+    >
+      {accent && (
+        <div
+          className="pointer-events-none absolute -top-6 -right-6 h-24 w-24 rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%)' }}
+        />
+      )}
+      <div className="flex items-start justify-between mb-4">
+        <p className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted">{label}</p>
+        <div
+          className="flex h-9 w-9 items-center justify-center rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-110"
+          style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.20)' }}
+        >
+          <Icon />
+        </div>
+      </div>
+      <p className="font-display leading-none text-white font-bold" style={{ fontSize: '2.6rem' }}>{value}</p>
+      {sub && <p className="mt-2 font-sans text-xs text-luxury-muted">{sub}</p>}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[2px] transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background: 'linear-gradient(90deg, rgba(212,175,55,0.55) 0%, transparent 100%)',
+          opacity: accent ? 0.8 : 0.5,
+        }}
+      />
+    </div>
   );
 }
 
@@ -113,7 +198,6 @@ function DeleteUserModal({ user, onConfirm, onCancel, loading }) {
       >
         {/* Header */}
         <div className="px-7 pt-7 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-          {/* Warning icon */}
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl"
             style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.22)' }}>
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
@@ -160,7 +244,6 @@ function DeleteUserModal({ user, onConfirm, onCancel, loading }) {
             </div>
           </div>
 
-          {/* Warning */}
           <div className="mt-4 flex items-start gap-2.5 rounded-xl px-4 py-3"
             style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.16)' }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="mt-0.5 shrink-0">
@@ -180,11 +263,7 @@ function DeleteUserModal({ user, onConfirm, onCancel, loading }) {
             onClick={onCancel}
             disabled={loading}
             className="flex-1 rounded-xl py-3 font-sans text-[13px] font-medium transition-all duration-200"
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.09)',
-              color: '#9a9a9a',
-            }}
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: '#9a9a9a' }}
             onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#e8e8e8'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#9a9a9a'; }}
           >
@@ -195,12 +274,7 @@ function DeleteUserModal({ user, onConfirm, onCancel, loading }) {
             onClick={onConfirm}
             disabled={loading}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-sans text-[13px] font-semibold transition-all duration-200 disabled:opacity-60"
-            style={{
-              background: 'linear-gradient(135deg, rgba(220,38,38,0.85), rgba(185,28,28,0.90))',
-              border: '1px solid rgba(239,68,68,0.35)',
-              color: '#fff',
-              boxShadow: '0 4px 20px rgba(220,38,38,0.25)',
-            }}
+            style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.85), rgba(185,28,28,0.90))', border: '1px solid rgba(239,68,68,0.35)', color: '#fff', boxShadow: '0 4px 20px rgba(220,38,38,0.25)' }}
             onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.boxShadow = '0 6px 28px rgba(220,38,38,0.45)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
             onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(220,38,38,0.25)'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
@@ -226,7 +300,7 @@ function DeleteUserModal({ user, onConfirm, onCancel, loading }) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   ROLE SELECT — premium pill dropdown
+   ROLE SELECT
 ───────────────────────────────────────────────────────────── */
 function RoleSelect({ userId, role, disabled, onChange }) {
   const [open, setOpen] = useState(false);
@@ -241,17 +315,8 @@ function RoleSelect({ userId, role, disabled, onChange }) {
   const isAdmin = role === 'admin';
 
   const pillStyle = isAdmin
-    ? {
-        background: 'rgba(212,175,55,0.12)',
-        border: '1px solid rgba(212,175,55,0.32)',
-        color: '#d4af37',
-        boxShadow: '0 0 10px rgba(212,175,55,0.10)',
-      }
-    : {
-        background: 'rgba(255,255,255,0.05)',
-        border: '1px solid rgba(255,255,255,0.10)',
-        color: '#9a9a9a',
-      };
+    ? { background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.32)', color: '#d4af37', boxShadow: '0 0 10px rgba(212,175,55,0.10)' }
+    : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', color: '#9a9a9a' };
 
   return (
     <div ref={ref} className="relative inline-block">
@@ -260,12 +325,7 @@ function RoleSelect({ userId, role, disabled, onChange }) {
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
         className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-sans text-[11px] font-semibold"
-        style={{
-          ...pillStyle,
-          transition: 'all 0.18s ease',
-          opacity: disabled ? 0.5 : 1,
-          cursor: disabled ? 'wait' : 'pointer',
-        }}
+        style={{ ...pillStyle, transition: 'all 0.18s ease', opacity: disabled ? 0.5 : 1, cursor: disabled ? 'wait' : 'pointer' }}
       >
         {isAdmin && <CrownIcon />}
         {role}
@@ -275,30 +335,20 @@ function RoleSelect({ userId, role, disabled, onChange }) {
       {open && (
         <div
           className="absolute left-0 top-full z-50 mt-1.5 w-28 overflow-hidden rounded-xl py-1"
-          style={{
-            background: 'rgba(22,22,22,0.97)',
-            border: '1px solid rgba(212,175,55,0.15)',
-            boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
-            backdropFilter: 'blur(16px)',
-            animation: 'fadeUp 0.15s ease forwards',
-          }}
+          style={{ background: 'rgba(22,22,22,0.97)', border: '1px solid rgba(212,175,55,0.15)', boxShadow: '0 12px 40px rgba(0,0,0,0.6)', backdropFilter: 'blur(16px)', animation: 'fadeUp 0.15s ease forwards' }}
         >
-          {['user', 'admin'].map((r) => (
+          {['user', 'restaurant', 'admin'].map((r) => (
             <button
               key={r}
               type="button"
               onClick={() => { setOpen(false); if (r !== role) onChange(userId, r); }}
               className="flex w-full items-center gap-2 px-3.5 py-2 font-sans text-[12px] font-medium"
-              style={{
-                color: r === role ? '#d4af37' : '#9a9a9a',
-                background: r === role ? 'rgba(212,175,55,0.08)' : 'transparent',
-                transition: 'background 0.15s ease',
-              }}
+              style={{ color: r === role ? '#d4af37' : '#9a9a9a', background: r === role ? 'rgba(212,175,55,0.08)' : 'transparent', transition: 'background 0.15s ease' }}
               onMouseEnter={(e) => { if (r !== role) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
               onMouseLeave={(e) => { if (r !== role) e.currentTarget.style.background = 'transparent'; }}
             >
               {r === 'admin' && <CrownIcon />}
-              {r}
+              <span className="capitalize">{r}</span>
               {r === role && (
                 <svg className="ml-auto" width="10" height="10" viewBox="0 0 10 10" fill="none">
                   <path d="M2 5l2.5 2.5L8 3" stroke="#d4af37" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
@@ -482,11 +532,7 @@ function UserRow({ user: u, isLast, updatingId, onRoleChange, onDelete, isSelf }
             disabled={isSelf}
             title={isSelf ? "Can't delete your own account" : 'Delete user'}
             className="flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-30"
-            style={{
-              background: 'rgba(239,68,68,0.07)',
-              border: '1px solid rgba(239,68,68,0.16)',
-              color: '#f87171',
-            }}
+            style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.16)', color: '#f87171' }}
             onMouseEnter={(e) => { if (!isSelf) { e.currentTarget.style.background = 'rgba(239,68,68,0.18)'; e.currentTarget.style.boxShadow = '0 0 14px rgba(239,68,68,0.22)'; e.currentTarget.style.transform = 'scale(1.08)'; } }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.07)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'scale(1)'; }}
           >
@@ -499,24 +545,27 @@ function UserRow({ user: u, isLast, updatingId, onRoleChange, onDelete, isSelf }
 }
 
 /* ─────────────────────────────────────────────────────────────
-   STAT CHIP
+   PAGINATION
 ───────────────────────────────────────────────────────────── */
-function StatChip({ label, value, color }) {
-  const c = color === 'gold'
-    ? { bg: 'rgba(212,175,55,0.07)', border: 'rgba(212,175,55,0.20)', text: '#d4af37' }
-    : { bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.09)', text: '#b8b8b8' };
+function PagBtn({ children, active, disabled, onClick }) {
   return (
-    <div className="flex items-center gap-2 rounded-xl px-3.5 py-2"
-      style={{ background: c.bg, border: `1px solid ${c.border}` }}>
-      <span className="font-display text-xl font-semibold leading-none" style={{ color: c.text }}>{value}</span>
-      <span className="font-sans text-[10px] uppercase tracking-[0.12em] text-luxury-muted">{label}</span>
-    </div>
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className="flex h-8 min-w-[32px] items-center justify-center rounded-lg px-2 font-sans text-[12px] font-medium disabled:opacity-30"
+      style={active
+        ? { background: 'rgba(212,175,55,0.15)', border: '1px solid rgba(212,175,55,0.35)', color: '#d4af37', boxShadow: '0 0 12px rgba(212,175,55,0.12)' }
+        : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: '#7a7a7a', transition: 'background 0.18s ease' }
+      }
+      onMouseEnter={(e) => { if (!active && !disabled) { e.currentTarget.style.background = 'rgba(212,175,55,0.07)'; e.currentTarget.style.color = '#d4af37'; } }}
+      onMouseLeave={(e) => { if (!active && !disabled) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#7a7a7a'; } }}
+    >
+      {children}
+    </button>
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   PAGINATION
-───────────────────────────────────────────────────────────── */
 function Pagination({ page, totalPages, onPrev, onNext }) {
   if (totalPages <= 1) return null;
   return (
@@ -542,25 +591,6 @@ function Pagination({ page, totalPages, onPrev, onNext }) {
   );
 }
 
-function PagBtn({ children, active, disabled, onClick }) {
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onClick}
-      className="flex h-8 min-w-[32px] items-center justify-center rounded-lg px-2 font-sans text-[12px] font-medium disabled:opacity-30"
-      style={active
-        ? { background: 'rgba(212,175,55,0.15)', border: '1px solid rgba(212,175,55,0.35)', color: '#d4af37', boxShadow: '0 0 12px rgba(212,175,55,0.12)' }
-        : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: '#7a7a7a', transition: 'background 0.18s ease' }
-      }
-      onMouseEnter={(e) => { if (!active && !disabled) { e.currentTarget.style.background = 'rgba(212,175,55,0.07)'; e.currentTarget.style.color = '#d4af37'; } }}
-      onMouseLeave={(e) => { if (!active && !disabled) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#7a7a7a'; } }}
-    >
-      {children}
-    </button>
-  );
-}
-
 /* ─────────────────────────────────────────────────────────────
    MAIN PAGE
 ───────────────────────────────────────────────────────────── */
@@ -568,14 +598,17 @@ export default function UsersAdmin() {
   const { profile, refreshProfile } = useAuth();
   const [data, setData]       = useState({ items: [], total: 0, page: 1, totalPages: 1 });
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [page, setPage]       = useState(1);
   const [q, setQ]             = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [updatingId, setUpdatingId] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null); // user object to delete
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting]         = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    else setRefreshing(true);
     try {
       const { data: body } = await adminApi.listUsers({ page, limit: 25, q: q.trim() || undefined });
       setData(body);
@@ -583,12 +616,13 @@ export default function UsersAdmin() {
       toast.error(e.message);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [page, q]);
 
   useEffect(() => {
     setLoading(true);
-    const t = setTimeout(load, 300);
+    const t = setTimeout(() => load(), 300);
     return () => clearTimeout(t);
   }, [page, q]);
 
@@ -633,45 +667,121 @@ export default function UsersAdmin() {
     fullCognitoId: u.cognitoId || null,
   }));
 
-  const rows = allRows.filter((r) =>
-    roleFilter === 'all' || r.role === roleFilter
-  );
+  const rows = allRows.filter((r) => roleFilter === 'all' || r.role === roleFilter);
 
-  const adminCount = allRows.filter((r) => r.role === 'admin').length;
-  const userCount  = allRows.filter((r) => r.role === 'user').length;
+  const adminCount      = allRows.filter((r) => r.role === 'admin').length;
+  const restaurantCount = allRows.filter((r) => r.role === 'restaurant').length;
+  const userCount       = allRows.filter((r) => r.role === 'user').length;
+
+  /* Export users as CSV */
+  const exportUsers = () => {
+    downloadCSV(
+      `admin_users_${today()}.csv`,
+      [
+        {
+          title: 'User Summary',
+          headers: ['Metric', 'Value'],
+          rows: [
+            ['Total Users',          data.total || allRows.length],
+            ['Administrators',       adminCount],
+            ['Restaurant Partners',  restaurantCount],
+            ['Regular Users',        userCount],
+          ],
+        },
+        {
+          title: 'All Users',
+          headers: ['Name', 'Email', 'Role', 'Cognito ID'],
+          rows: allRows.map((u) => [
+            u.fullName || '—',
+            u.email,
+            u.role,
+            u.fullCognitoId || '—',
+          ]),
+        },
+      ],
+    );
+    toast.success('Users exported as CSV!');
+  };
 
   return (
     <div className="max-w-[1100px] mx-auto">
 
       {/* ── Page header ──────────────────────────────────── */}
-      <div className="mb-10 anim-fade-up">
-        <p className="font-sans text-[10px] uppercase tracking-[0.22em] text-luxury-muted mb-3">
-          Admin / Users
-        </p>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1
-              className="font-display text-white leading-none"
-              style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', letterSpacing: '0.01em' }}
-            >
-              Users
-            </h1>
-            <p className="mt-2 font-sans text-sm text-luxury-muted">
-              Manage platform users and permissions
-            </p>
-            <div
-              className="mt-4 h-px w-16"
-              style={{ background: 'linear-gradient(90deg, #d4af37, rgba(212,175,55,0.15), transparent)' }}
-            />
-          </div>
-
-          {/* Stat chips */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <StatChip label="Total" value={data.total || allRows.length} color="default" />
-            <StatChip label="Admins" value={adminCount} color="gold" />
-            <StatChip label="Users" value={userCount} color="default" />
-          </div>
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between anim-fade-up">
+        <div>
+          <p className="font-sans text-[10px] uppercase tracking-[0.22em] text-luxury-muted mb-2">
+            Admin / Users
+          </p>
+          <h1
+            className="font-display text-white leading-none font-bold"
+            style={{ fontSize: 'clamp(2rem, 4.5vw, 3.2rem)' }}
+          >
+            System Users
+          </h1>
+          <p className="mt-2 font-sans text-sm text-luxury-muted">
+            Manage platform users, roles and permissions
+          </p>
+          <div
+            className="mt-4 h-px w-20"
+            style={{ background: 'linear-gradient(90deg, #d4af37, rgba(212,175,55,0.15), transparent)' }}
+          />
         </div>
+
+        {/* Quick Actions */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            disabled={refreshing}
+            onClick={() => { load(true); toast.success('Users refreshed'); }}
+            className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs text-luxury-muted hover:text-luxury-gold transition-all duration-200 disabled:opacity-50"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+          >
+            <span className={refreshing ? 'animate-spin' : ''}><IconRefresh /></span>
+            Refresh
+          </button>
+
+          <button
+            type="button"
+            onClick={exportUsers}
+            className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-95"
+            style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)', boxShadow: '0 0 18px rgba(212,175,55,0.25)' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 1.5v7M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M1.5 10.5v1a1 1 0 001 1h9a1 1 0 001-1v-1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+            </svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+
+      {/* ── 4-KPI Stat Cards ────────────────────────────── */}
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 mb-8">
+        <StatCard
+          label="Total Users"
+          value={data.total || allRows.length}
+          sub="Registered accounts"
+          Icon={IconTotalUsers}
+        />
+        <StatCard
+          label="Administrators"
+          value={adminCount}
+          sub="Platform admins"
+          Icon={IconAdmins}
+          accent={adminCount > 0}
+        />
+        <StatCard
+          label="Restaurant Partners"
+          value={restaurantCount}
+          sub="Active restaurant owners"
+          Icon={IconRestaurantPartners}
+        />
+        <StatCard
+          label="Regular Users"
+          value={userCount}
+          sub="Customer accounts"
+          Icon={IconRegularUsers}
+        />
       </div>
 
       {/* ── Search + filter bar ───────────────────────────── */}
@@ -705,17 +815,20 @@ export default function UsersAdmin() {
         </div>
 
         {/* Role filter pills */}
-        <div className="flex items-center gap-1.5">
-          {['all', 'admin', 'user'].map((r) => (
+        <div
+          className="flex items-center gap-1 rounded-full p-1.5"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+        >
+          {['all', 'admin', 'restaurant', 'user'].map((r) => (
             <button
               key={r}
               type="button"
               onClick={() => setRoleFilter(r)}
-              className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-sans text-[11px] font-medium capitalize"
+              className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 font-sans text-xs font-bold uppercase tracking-wider transition-all duration-200"
               style={
                 roleFilter === r
-                  ? { background: 'rgba(212,175,55,0.14)', border: '1px solid rgba(212,175,55,0.32)', color: '#d4af37', boxShadow: '0 0 10px rgba(212,175,55,0.10)' }
-                  : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: '#7a7a7a', transition: 'background 0.18s ease' }
+                  ? { background: 'linear-gradient(135deg, #c9a84c, #f0d060)', color: '#0b0b0c', boxShadow: '0 0 12px rgba(212,175,55,0.3)' }
+                  : { background: 'transparent', color: 'rgba(255,255,255,0.4)' }
               }
             >
               {r === 'admin' && <CrownIcon />}

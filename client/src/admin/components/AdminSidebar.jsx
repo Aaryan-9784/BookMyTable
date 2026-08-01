@@ -7,7 +7,6 @@ import { NavLink, useLocation } from 'react-router-dom';
 const NAV = [
   { to: '/admin',             label: 'Dashboard',           Icon: DashIcon,       end: true },
   { to: '/admin/restaurants', label: 'Approve Restaurants', Icon: RestaurantIcon        },
-  { to: '/admin/bookings',    label: 'Bookings Overview',   Icon: BookingIcon           },
   { to: '/admin/users',       label: 'System Users',        Icon: UsersIcon             },
 ];
 
@@ -32,19 +31,6 @@ function RestaurantIcon({ active }) {
       <path d="M4 1.5v5.2A2.3 2.3 0 006.3 9v5.5" stroke={c} strokeWidth="1.35" strokeLinecap="round" />
       <path d="M6.3 1.5v3.2" stroke={c} strokeWidth="1.35" strokeLinecap="round" />
       <path d="M11 1.5s2.5 1.8 2.5 4.3S11 9 11 9v5.5" stroke={c} strokeWidth="1.35" strokeLinecap="round" />
-    </svg>
-  );
-}
-function BookingIcon({ active }) {
-  const c = active ? '#d4af37' : '#505050';
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <rect x="1.5" y="3" width="13" height="11.5" rx="2" stroke={c} strokeWidth="1.35" />
-      <path d="M5.5 1.5v3M10.5 1.5v3" stroke={c} strokeWidth="1.35" strokeLinecap="round" />
-      <path d="M1.5 7h13" stroke={c} strokeWidth="1.35" />
-      <circle cx="5.5" cy="10.5" r="0.9" fill={c} />
-      <circle cx="8"   cy="10.5" r="0.9" fill={c} />
-      <circle cx="10.5" cy="10.5" r="0.9" fill={c} />
     </svg>
   );
 }

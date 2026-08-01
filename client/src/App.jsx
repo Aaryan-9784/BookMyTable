@@ -11,7 +11,6 @@ import Dashboard from './admin/pages/Dashboard.jsx';
 import RestaurantsAdmin from './admin/pages/RestaurantsAdmin.jsx';
 import AddRestaurant from './admin/pages/AddRestaurant.jsx';
 import EditRestaurant from './admin/pages/EditRestaurant.jsx';
-import BookingsAdmin from './admin/pages/BookingsAdmin.jsx';
 import UsersAdmin from './admin/pages/UsersAdmin.jsx';
 
 import RestaurantProtectedRoute from './restaurant/RestaurantProtectedRoute.jsx';
@@ -67,7 +66,6 @@ export default function App() {
         <Route path="restaurants" element={<RestaurantsAdmin />} />
         <Route path="restaurants/new" element={<AddRestaurant />} />
         <Route path="restaurants/:id/edit" element={<EditRestaurant />} />
-        <Route path="bookings" element={<BookingsAdmin />} />
         <Route path="users" element={<UsersAdmin />} />
       </Route>
 
