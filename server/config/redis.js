@@ -59,6 +59,17 @@ export async function connectRedis() {
     return redisClient;
   }
 
+  // Skip Redis connection in development if no Redis URL is configured
+  const redisUrl = process.env.REDIS_URL;
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  
+  if (isDevelopment && !redisUrl) {
+    logger.info('Redis not configured - using in-memory storage for development');
+    redisClient = null;
+    isConnected = false;
+    return null;
+  }
+
   try {
     redisClient = createRedisClient();
 

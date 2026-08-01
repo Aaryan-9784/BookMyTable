@@ -19,11 +19,6 @@ export const generalLimiter = rateLimit({
   legacyHeaders: false, // Disable `X-RateLimit-*` headers
   // Skip rate limiting in test environment
   skip: (req) => process.env.NODE_ENV === 'test',
-  // Use custom key generator to handle proxies correctly
-  keyGenerator: (req) => {
-    // Trust proxy setting should be enabled in app.js
-    return req.ip || req.connection.remoteAddress;
-  },
 });
 
 /**
@@ -43,7 +38,6 @@ export const authLimiter = rateLimit({
   legacyHeaders: false,
   skip: (req) => process.env.NODE_ENV === 'test',
   skipSuccessfulRequests: true, // Don't count successful auth attempts
-  keyGenerator: (req) => req.ip || req.connection.remoteAddress,
 });
 
 /**
@@ -61,12 +55,6 @@ export const otpLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => process.env.NODE_ENV === 'test',
-  keyGenerator: (req) => {
-    // Rate limit by IP + email combination for OTP
-    const email = req.body?.email || 'unknown';
-    const ip = req.ip || req.connection.remoteAddress;
-    return `${ip}:${email.toLowerCase()}`;
-  },
 });
 
 /**
@@ -84,7 +72,6 @@ export const bookingLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => process.env.NODE_ENV === 'test',
-  keyGenerator: (req) => req.ip || req.connection.remoteAddress,
 });
 
 /**
@@ -102,7 +89,6 @@ export const uploadLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => process.env.NODE_ENV === 'test',
-  keyGenerator: (req) => req.ip || req.connection.remoteAddress,
 });
 
 /**
@@ -120,10 +106,6 @@ export const adminLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => process.env.NODE_ENV === 'test',
-  keyGenerator: (req) => {
-    // Rate limit by user ID if authenticated, otherwise by IP
-    return req.user?._id?.toString() || req.ip || req.connection.remoteAddress;
-  },
 });
 
 /**
@@ -136,7 +118,6 @@ export function createRateLimiter(options) {
     standardHeaders: true,
     legacyHeaders: false,
     skip: (req) => process.env.NODE_ENV === 'test',
-    keyGenerator: (req) => req.ip || req.connection.remoteAddress,
     ...options,
   });
 }
