@@ -9,11 +9,14 @@ import RestaurantCard from '../components/RestaurantCard.jsx';
 import SearchInput from '../components/SearchInput.jsx';
 import { useDebounce } from '../hooks/useDebounce.js';
 
-const CATEGORIES = ['Indian', 'Italian', 'Chinese', 'Japanese', 'Cafe', 'Fine dining'];
-const CATEGORY_ICONS = {
-  Indian: '🍛', Italian: '🍝', Chinese: '🥢',
-  Japanese: '🍣', Cafe: '☕', 'Fine dining': '🕯️',
-};
+const DINING_EXPERIENCES = [
+  { label: 'Fine Dining', icon: '🕯️' },
+  { label: 'Outdoor Terrace', icon: '🌿' },
+  { label: 'Rooftop Dining', icon: '🌆' },
+  { label: 'VIP Dining', icon: '👑' },
+  { label: 'Bar & Lounge', icon: '🍸' },
+  { label: 'Gourmet Cuisine', icon: '🍛' },
+];
 
 export default function Home() {
   const navigate = useNavigate();
@@ -146,23 +149,41 @@ export default function Home() {
             )}
           </div>
 
-          {/* Category pills */}
+          {/* Table Reservation Experience Pills */}
           <div className="mt-10">
-            <p className="mb-4 font-sans text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-white/35">
-              Browse by cuisine
+            <p className="mb-4 font-sans text-[0.65rem] font-bold uppercase tracking-[0.28em] text-luxury-gold/80">
+              RESERVE TABLES BY EXPERIENCES & SEATING
             </p>
-            <div className="flex flex-wrap justify-center gap-2.5">
-              {CATEGORIES.map((c) => (
+            <div className="flex flex-wrap justify-center gap-3">
+              {DINING_EXPERIENCES.map(({ label, icon }) => (
                 <Link
-                  key={c}
-                  to={`/restaurants?category=${encodeURIComponent(c)}`}
-                  className="flex items-center gap-2 rounded-full px-4 py-2 font-sans text-sm text-white/65 transition-all duration-200"
-                  style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(212,175,55,0.15)'; e.currentTarget.style.borderColor = 'rgba(212,175,55,0.45)'; e.currentTarget.style.color = '#d4af37'; e.currentTarget.style.transform = 'scale(1.04)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.transform = 'scale(1)'; }}
+                  key={label}
+                  to={`/restaurants?category=${encodeURIComponent(label)}`}
+                  className="group flex items-center gap-2.5 rounded-full px-5 py-2.5 font-sans text-xs font-semibold text-white/80 transition-all duration-300 select-none"
+                  style={{
+                    background: 'rgba(18, 18, 20, 0.65)',
+                    border: '1px solid rgba(212,175,55,0.22)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(212,175,55,0.12)';
+                    e.currentTarget.style.borderColor = 'rgba(212,175,55,0.48)';
+                    e.currentTarget.style.color = '#f5e27a';
+                    e.currentTarget.style.boxShadow = '0 0 24px rgba(212,175,55,0.2)';
+                    e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(18, 18, 20, 0.65)';
+                    e.currentTarget.style.borderColor = 'rgba(212,175,55,0.22)';
+                    e.currentTarget.style.color = 'rgba(255,255,255,0.8)';
+                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
+                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                  }}
                 >
-                  <span>{CATEGORY_ICONS[c]}</span>
-                  {c}
+                  <span className="text-sm transition-transform duration-300 group-hover:scale-125">{icon}</span>
+                  <span>{label}</span>
                 </Link>
               ))}
             </div>
@@ -178,19 +199,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════
-          STATS STRIP
-      ══════════════════════════════════════ */}
-      <div style={{ background: 'linear-gradient(180deg, #0a0a0a 0%, #111111 100%)', borderTop: '1px solid rgba(212,175,55,0.08)' }}>
-        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-0 divide-x divide-white/[0.06] px-4 py-8">
-          {[['500+', 'Curated restaurants'], ['50k+', 'Happy guests'], ['4.9 ★', 'Average rating'], ['Instant', 'Confirmation']].map(([val, label]) => (
-            <div key={label} className="flex flex-col items-center gap-1 px-8 py-2">
-              <span className="font-display text-2xl font-light text-luxury-gold">{val}</span>
-              <span className="font-sans text-xs text-white/30">{label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+
 
       {/* ══════════════════════════════════════
           FEATURED SECTION

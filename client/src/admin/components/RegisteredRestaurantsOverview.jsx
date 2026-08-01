@@ -39,42 +39,16 @@ function IconTrash() {
 }
 
 /* ── STATUS BADGE ───────────────────────────────────────────── */
-function StatusBadge({ status }) {
-  const v = String(status || 'approved').toLowerCase();
-  if (v === 'approved') {
-    return (
-      <span
-        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold tracking-wide whitespace-nowrap"
-        style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.3)', color: '#34d399' }}
-      >
-        <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#34d399' }} />
-        Approved &amp; Live
-      </span>
-    );
-  }
-  if (v === 'pending') {
-    return (
-      <span
-        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold tracking-wide whitespace-nowrap animate-pulse"
-        style={{ background: 'rgba(212,175,55,0.15)', border: '1px solid rgba(212,175,55,0.4)', color: '#f5e27a', boxShadow: '0 0 12px rgba(212,175,55,0.2)' }}
-      >
-        <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#f5e27a' }} />
-        Pending Approval
-      </span>
-    );
-  }
-  if (v === 'rejected') {
-    return (
-      <span
-        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold tracking-wide whitespace-nowrap"
-        style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}
-      >
-        <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#f87171' }} />
-        Rejected
-      </span>
-    );
-  }
-  return <span className="font-sans text-xs capitalize text-white/50">{status}</span>;
+function StatusBadge() {
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold tracking-wide whitespace-nowrap"
+      style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.3)', color: '#34d399' }}
+    >
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#34d399' }} />
+      Live &amp; Active
+    </span>
+  );
 }
 
 /* ── SKELETON ROW ───────────────────────────────────────────── */
@@ -99,12 +73,11 @@ export default function RegisteredRestaurantsOverview() {
   const [loading, setLoading]         = useState(true);
   const [deleteId, setDeleteId]       = useState(null);
   const [deleting, setDeleting]       = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchRestaurants = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await adminApi.listRestaurants({ status: 'all' });
+      const { data } = await adminApi.listRestaurants();
       setRestaurants(Array.isArray(data) ? data.slice(0, 6) : []);
     } catch (e) {
       toast.error(e.message || 'Failed to load restaurant directory');
@@ -115,25 +88,12 @@ export default function RegisteredRestaurantsOverview() {
 
   useEffect(() => { fetchRestaurants(); }, [fetchRestaurants]);
 
-  const handleApprove = async (id) => {
-    setActionLoading(true);
-    try {
-      await adminApi.approveRestaurant(id);
-      toast.success('Restaurant approved & published!');
-      fetchRestaurants();
-    } catch (e) {
-      toast.error(e.message || 'Failed to approve restaurant');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const handleDelete = async () => {
     if (!deleteId) return;
     setDeleting(true);
     try {
       await adminApi.deleteRestaurant(deleteId);
-      toast.success('Restaurant removed');
+      toast.success('Restaurant removed successfully');
       setDeleteId(null);
       fetchRestaurants();
     } catch (e) {
@@ -148,7 +108,7 @@ export default function RegisteredRestaurantsOverview() {
       {/* ── Quick Admin Actions Grid ─────────────────────── */}
       <div className="grid gap-4 sm:grid-cols-3 mb-8">
         <Link
-          to="/admin/restaurants?status=pending"
+          to="/admin/restaurants"
           className="group relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02]"
           style={{
             background: 'linear-gradient(145deg, rgba(212,175,55,0.12) 0%, rgba(24,22,18,0.95) 100%)',
@@ -158,17 +118,17 @@ export default function RegisteredRestaurantsOverview() {
         >
           <div className="flex items-center justify-between mb-2">
             <span className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-gold font-semibold">
-              Approval Queue
+              Venue Directory
             </span>
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-luxury-gold/15 text-luxury-gold text-sm font-bold">
-              ⏳
+              🏛️
             </div>
           </div>
           <p className="font-display text-white font-semibold text-lg group-hover:text-luxury-gold transition-colors">
-            Review Applications
+            Manage All Venues
           </p>
           <p className="mt-1 font-sans text-xs text-luxury-muted">
-            Approve or reject restaurant partner requests
+            View, edit, and update active restaurant venues
           </p>
         </Link>
 
@@ -183,17 +143,17 @@ export default function RegisteredRestaurantsOverview() {
         >
           <div className="flex items-center justify-between mb-2">
             <span className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted font-semibold">
-              Add Partner
+              Admin Exclusive
             </span>
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-white text-sm font-bold">
               ➕
             </div>
           </div>
           <p className="font-display text-white font-semibold text-lg group-hover:text-luxury-gold transition-colors">
-            Register Restaurant
+            + Add Restaurant
           </p>
           <p className="mt-1 font-sans text-xs text-luxury-muted">
-            Directly add a new restaurant partner
+            Directly create a new restaurant venue
           </p>
         </Link>
 
@@ -242,10 +202,10 @@ export default function RegisteredRestaurantsOverview() {
               className="font-display text-white font-semibold"
               style={{ fontSize: '1.35rem', letterSpacing: '0.01em' }}
             >
-              Partner Restaurants Directory
+              Active Restaurants Directory
             </h2>
             <p className="mt-0.5 font-sans text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
-              Overview of all registered restaurant partners across the platform
+              Overview of all active restaurant venues across the platform
             </p>
           </div>
 
@@ -296,7 +256,7 @@ export default function RegisteredRestaurantsOverview() {
               🍽️
             </div>
             <p className="font-sans text-sm font-medium text-white/50">No restaurants registered yet</p>
-            <p className="mt-1 font-sans text-xs text-white/25">New restaurant partner submissions will appear here</p>
+            <p className="mt-1 font-sans text-xs text-white/25">Admin added restaurants will appear here</p>
           </div>
         ) : (
           <div className="divide-y divide-white/[0.035]">
@@ -349,28 +309,16 @@ export default function RegisteredRestaurantsOverview() {
 
                 {/* Status */}
                 <div>
-                  <StatusBadge status={r.approvalStatus} />
+                  <StatusBadge />
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center justify-end gap-2">
-                  {r.approvalStatus === 'pending' && (
-                    <button
-                      type="button"
-                      disabled={actionLoading}
-                      onClick={() => handleApprove(r._id)}
-                      title="Approve & Publish"
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                      style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)' }}
-                    >
-                      <IconCheck />
-                    </button>
-                  )}
                   <Link
                     to={`/admin/restaurants/${r._id}/edit`}
                     title="Edit Restaurant"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-luxury-muted hover:text-white hover:bg-white/10 transition-colors"
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-luxury-gold hover:bg-luxury-gold/10 transition-colors"
+                    style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.22)' }}
                   >
                     <IconEdit />
                   </Link>

@@ -117,45 +117,67 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ${
-        visible ? 'bg-black/80 backdrop-blur-md opacity-100' : 'bg-black/0 backdrop-blur-none opacity-0'
+        visible ? 'bg-black/85 backdrop-blur-md opacity-100' : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none'
       }`}
       onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
       <div
-        className={`relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-[#121216] p-6 shadow-2xl transition-all duration-300 ${
-          visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        className={`relative w-full max-w-md overflow-hidden rounded-2xl p-6 md:p-8 transition-all duration-300 ${
+          visible ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-2'
         }`}
+        style={{
+          background: 'rgba(18, 18, 22, 0.96)',
+          backdropFilter: 'blur(32px)',
+          WebkitBackdropFilter: 'blur(32px)',
+          border: '1px solid rgba(212, 175, 55, 0.22)',
+          boxShadow: '0 24px 80px rgba(0, 0, 0, 0.8), 0 0 32px rgba(212, 175, 55, 0.08)',
+        }}
       >
+        {/* Top gold shimmer bar */}
+        <div
+          className="absolute top-0 left-0 right-0 h-1"
+          style={{ background: 'linear-gradient(90deg, transparent 0%, #d4af37 50%, transparent 100%)' }}
+        />
+
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
-          <h2 className="font-display text-xl font-semibold text-white">Edit Profile</h2>
+        <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: 'rgba(212, 175, 55, 0.15)' }}>
+          <div>
+            <h2 className="font-display text-2xl font-light text-white">Edit Profile</h2>
+            <div className="mt-1 h-0.5 w-8" style={{ background: 'linear-gradient(90deg, #d4af37, transparent)' }} />
+          </div>
           <button
+            type="button"
             onClick={handleClose}
             disabled={saving}
-            className="rounded-lg p-1 text-white/50 hover:bg-white/10 hover:text-white transition disabled:opacity-50"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white/40 transition-all duration-200 hover:scale-110 hover:text-luxury-gold active:scale-95 disabled:opacity-50"
+            style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}
           >
             <IconX />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSave} className="mt-6 space-y-4">
+        <form onSubmit={handleSave} className="mt-6 space-y-5">
           {/* Email (Read only) */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-white/40">
+            <label className="block font-sans text-[0.65rem] font-bold uppercase tracking-[0.20em] text-white/40">
               Email Address (Read Only)
             </label>
             <input
               type="text"
               disabled
               value={email}
-              className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/[0.02] px-3.5 py-2.5 text-sm text-white/50 cursor-not-allowed"
+              className="mt-2 w-full rounded-xl border px-4 py-3 font-sans text-xs text-white/40 cursor-not-allowed select-none"
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                borderColor: 'rgba(255, 255, 255, 0.07)',
+              }}
             />
           </div>
 
           {/* Full Name */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-white/40">
+            <label className="block font-sans text-[0.65rem] font-bold uppercase tracking-[0.20em] text-white/40">
               Full Name
             </label>
             <input
@@ -163,18 +185,52 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
               value={form.fullName}
               onChange={(e) => setForm({ ...form, fullName: e.target.value })}
               placeholder="Your Full Name"
-              className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/[0.05] px-3.5 py-2.5 text-sm text-white placeholder-white/20 focus:border-[#d4af37] focus:outline-none"
+              className="mt-2 w-full rounded-xl border px-4 py-3 font-sans text-xs text-white placeholder-white/20 transition-all duration-200 focus:outline-none"
+              style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                borderColor: errors.fullName ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.10)',
+              }}
+              onFocus={(e) => {
+                if (!errors.fullName) {
+                  e.target.style.borderColor = 'rgba(212, 175, 55, 0.6)';
+                  e.target.style.boxShadow = '0 0 16px rgba(212, 175, 55, 0.2)';
+                }
+              }}
+              onBlur={(e) => {
+                if (!errors.fullName) {
+                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.10)';
+                  e.target.style.boxShadow = 'none';
+                }
+              }}
             />
-            {errors.fullName && <p className="mt-1 text-xs text-red-400">{errors.fullName}</p>}
+            {errors.fullName && <p className="mt-1.5 font-sans text-xs text-red-400">{errors.fullName}</p>}
           </div>
 
           {/* Phone Number */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-white/40">
+            <label className="block font-sans text-[0.65rem] font-bold uppercase tracking-[0.20em] text-white/40">
               Mobile Number (10 digits)
             </label>
-            <div className="mt-1.5 flex rounded-lg border border-white/10 bg-white/[0.05] overflow-hidden focus-within:border-[#d4af37]">
-              <span className="flex items-center px-3 text-sm text-white/40 border-r border-white/10">
+            <div
+              className="mt-2 flex rounded-xl border overflow-hidden transition-all duration-200"
+              style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                borderColor: errors.phone ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.10)',
+              }}
+              onFocusCapture={(e) => {
+                if (!errors.phone) {
+                  e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.6)';
+                  e.currentTarget.style.boxShadow = '0 0 16px rgba(212, 175, 55, 0.2)';
+                }
+              }}
+              onBlurCapture={(e) => {
+                if (!errors.phone) {
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.10)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }
+              }}
+            >
+              <span className="flex items-center px-4 font-sans text-xs font-semibold text-luxury-gold/80 border-r border-white/10">
                 +91
               </span>
               <input
@@ -183,26 +239,31 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '') })}
                 placeholder="9876543210"
-                className="w-full bg-transparent px-3.5 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none"
+                className="w-full bg-transparent px-4 py-3 font-sans text-xs text-white placeholder-white/20 focus:outline-none"
               />
             </div>
-            {errors.phone && <p className="mt-1 text-xs text-red-400">{errors.phone}</p>}
+            {errors.phone && <p className="mt-1.5 font-sans text-xs text-red-400">{errors.phone}</p>}
           </div>
 
           {/* Buttons */}
-          <div className="mt-6 flex items-center justify-end gap-3 pt-2">
+          <div className="mt-8 flex items-center justify-end gap-3 pt-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
             <button
               type="button"
               onClick={handleClose}
               disabled={saving}
-              className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white/70 hover:bg-white/5 transition disabled:opacity-50"
+              className="rounded-full border px-5 py-2.5 font-sans text-xs font-semibold text-white/60 transition-all duration-200 hover:border-white/25 hover:text-white active:scale-95 disabled:opacity-50"
+              style={{ borderColor: 'rgba(255, 255, 255, 0.12)', background: 'rgba(255, 255, 255, 0.03)' }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!isValid || saving}
-              className="flex items-center gap-2 rounded-lg bg-[#d4af37] px-5 py-2 text-sm font-semibold text-black transition hover:bg-[#e0be48] disabled:opacity-40"
+              className="flex items-center gap-2 rounded-full px-6 py-2.5 font-sans text-xs font-bold text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-95 disabled:opacity-40"
+              style={{
+                background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)',
+                boxShadow: '0 0 24px rgba(212,175,55,0.3)',
+              }}
             >
               {saving ? <Spinner /> : null}
               {saving ? 'Saving...' : 'Save Changes'}

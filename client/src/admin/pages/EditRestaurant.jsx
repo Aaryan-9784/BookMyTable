@@ -81,8 +81,7 @@ export default function EditRestaurant() {
     }
   };
 
-  if (loading) return <Loader label="Loading restaurant…" />;
-  if (!initial) {
+  if (!initial && !loading) {
     return (
       <div className="font-sans text-luxury-muted">
         Not found.{' '}

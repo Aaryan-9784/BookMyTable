@@ -8,7 +8,7 @@ import Booking from '../models/Booking.js';
 import User from '../models/User.js';
 
 /**
- * Helper to retrieve active restaurant ID or default to the first available restaurant
+ * Helper to retrieve active restaurant ID or default to user's assigned restaurant
  */
 async function getTargetRestaurant(req) {
   const reqRestaurantId = req.query.restaurantId || req.body.restaurantId;
@@ -16,8 +16,32 @@ async function getTargetRestaurant(req) {
     const found = await Restaurant.findById(reqRestaurantId);
     if (found) return found;
   }
-  const first = await Restaurant.findOne().sort({ createdAt: 1 });
-  return first;
+
+  // 1. Check if authenticated user owns a restaurant
+  if (req.user?._id) {
+    const owned = await Restaurant.findOne({ ownerId: req.user._id });
+    if (owned) return owned;
+  }
+
+  // 2. Fallback to first available restaurant or create default partner restaurant
+  let target = await Restaurant.findOne().sort({ createdAt: 1 });
+  if (!target) {
+    target = await Restaurant.create({
+      name: 'BookMyTable Partner Restaurant',
+      location: 'Downtown Gourmet Hub',
+      category: 'Multi-cuisine',
+      description: 'Welcome to your restaurant partner console. Configure tables, seating capacity, and bookings here.',
+      tokenFee: 150,
+      openingHours: '11:00 AM - 11:00 PM',
+      rating: 4.8,
+      ...(req.user?._id ? { ownerId: req.user._id } : {}),
+    });
+  } else if (req.user?._id && !target.ownerId) {
+    target.ownerId = req.user._id;
+    await target.save();
+  }
+
+  return target;
 }
 
 /**
@@ -81,8 +105,7 @@ export async function getDashboardStats(req, res) {
       imageUrl: restaurant.imageUrl,
       tokenFee: tokenFeeRate,
       openingHours: restaurant.openingHours || '11:00 AM - 11:00 PM',
-      approvalStatus: restaurant.approvalStatus || 'approved',
-      rejectionReason: restaurant.rejectionReason || '',
+      approvalStatus: 'approved',
     },
     allRestaurants,
     stats: {

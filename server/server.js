@@ -11,8 +11,7 @@ const PORT = Number(process.env.PORT) || 5000;
 try {
   await connectDB();
 } catch (err) {
-  console.error('[BookMyTable] DB connection failed — exiting:', err.message);
-  process.exit(1);
+  console.error('[BookMyTable] DB connection warning:', err.message);
 }
 
 console.log('[BookMyTable] Auth Gateway: Supabase & JWT Session active');

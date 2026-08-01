@@ -189,8 +189,6 @@ export default function TokenFeeAnalytics() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  if (loading) return <Loader label="Computing Token Fee Analysis…" />;
-
   const analytics        = data || {};
   const zoneBreakdown    = analytics.zoneBreakdown    || {};
   const capacityBreakdown = analytics.capacityBreakdown || {};

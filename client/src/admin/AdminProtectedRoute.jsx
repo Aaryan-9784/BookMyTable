@@ -9,7 +9,7 @@ export default function AdminProtectedRoute({ children }) {
   const { isAuthenticated, isAdmin, profileLoading } = useAuth();
 
   if (profileLoading) {
-    return <Loader label="Loading account…" />;
+    return null;
   }
 
   if (!isAuthenticated) {

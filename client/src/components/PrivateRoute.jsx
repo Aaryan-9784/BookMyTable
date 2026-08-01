@@ -10,7 +10,7 @@ export default function PrivateRoute({ children }) {
   const location = useLocation();
 
   if (profileLoading) {
-    return <Loader label="Loading account…" />;
+    return null;
   }
 
   if (!isAuthenticated) {

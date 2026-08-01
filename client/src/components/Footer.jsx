@@ -71,48 +71,24 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-2">
               <div className="h-px w-8" style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.3))' }} />
-              <span className="font-sans text-[0.6rem] uppercase tracking-[0.2em] text-white/20">Fine dining</span>
+              <span className="font-sans text-[0.6rem] uppercase tracking-[0.2em] text-white/20">Table Reservations</span>
               <div className="h-px w-8" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.3), transparent)' }} />
             </div>
           </div>
 
-          {/* Right — social / badge */}
-          <div className="flex flex-col items-center gap-4 md:items-end">
-            {/* Luxury badge */}
-            <div
-              className="flex items-center gap-2 rounded-full px-4 py-2"
-              style={{
-                background: 'rgba(212,175,55,0.06)',
-                border: '1px solid rgba(212,175,55,0.18)',
-              }}
-            >
-              <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ background: '#d4af37', boxShadow: '0 0 6px rgba(212,175,55,0.8)' }}
-              />
-              <span
-                className="font-sans text-[0.65rem] font-semibold uppercase tracking-[0.22em]"
-                style={{ color: 'rgba(212,175,55,0.7)' }}
-              >
-                Elite Dining Concierge
-              </span>
-            </div>
-
-            {/* Star rating decoration */}
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <svg
-                  key={i}
-                  className="h-3 w-3"
-                  viewBox="0 0 24 24"
-                  fill={i < 5 ? 'rgba(212,175,55,0.5)' : 'none'}
-                  stroke="rgba(212,175,55,0.3)"
-                  strokeWidth={1}
-                >
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-              ))}
-              <span className="ml-1.5 font-sans text-[0.6rem] text-white/20">4.9 · 50k+ guests</span>
+          {/* Right — Universal Navigation */}
+          <div className="flex flex-col items-center gap-3 md:items-end">
+            <p className="font-sans text-[0.65rem] font-bold uppercase tracking-[0.25em] text-luxury-gold/80">
+              NAVIGATION
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-sans text-white/50 md:justify-end">
+              <Link to="/restaurants" className="transition-colors duration-200 hover:text-luxury-gold">
+                Explore Restaurants
+              </Link>
+              <span className="h-1 w-1 rounded-full bg-luxury-gold/30" />
+              <Link to="/profile" className="transition-colors duration-200 hover:text-luxury-gold">
+                Account
+              </Link>
             </div>
           </div>
         </div>

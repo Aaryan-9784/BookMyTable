@@ -1,20 +1,72 @@
 import api from '../../services/api.js';
 
-const base = '/restaurant-dashboard';
+const base = '/api/restaurant-dashboard';
+
+// In-memory cache for fast fallback
+const cache = new Map();
 
 export const restaurantApi = {
-  getStats: (restaurantId) => api.get(`${base}/stats`, { params: { restaurantId } }),
-  
-  getTables: (restaurantId) => api.get(`${base}/tables`, { params: { restaurantId } }),
-  createTable: (data) => api.post(`${base}/tables`, data),
-  updateTable: (id, data) => api.put(`${base}/tables/${id}`, data),
-  deleteTable: (id) => api.delete(`${base}/tables/${id}`),
+  getCache: (key) => cache.get(key),
+  setCache: (key, data) => cache.set(key, data),
+  clearCache: () => cache.clear(),
 
-  getBookings: (restaurantId) => api.get(`${base}/bookings`, { params: { restaurantId } }),
-  updateBookingStatus: (id, status) => api.put(`${base}/bookings/${id}/status`, { status }),
+  getStats: async (restaurantId) => {
+    const key = `stats_${restaurantId || 'default'}`;
+    const res = await api.get(`${base}/stats`, { params: { restaurantId } });
+    cache.set(key, res);
+    return res;
+  },
 
-  getAnalytics: (restaurantId) => api.get(`${base}/analytics`, { params: { restaurantId } }),
+  getTables: async (restaurantId) => {
+    const key = `tables_${restaurantId || 'default'}`;
+    const res = await api.get(`${base}/tables`, { params: { restaurantId } });
+    cache.set(key, res);
+    return res;
+  },
 
-  getSettings: (restaurantId) => api.get(`${base}/settings`, { params: { restaurantId } }),
-  updateSettings: (data) => api.put(`${base}/settings`, data),
+  createTable: async (data) => {
+    cache.clear();
+    return api.post(`${base}/tables`, data);
+  },
+
+  updateTable: async (id, data) => {
+    cache.clear();
+    return api.put(`${base}/tables/${id}`, data);
+  },
+
+  deleteTable: async (id) => {
+    cache.clear();
+    return api.delete(`${base}/tables/${id}`);
+  },
+
+  getBookings: async (restaurantId) => {
+    const key = `bookings_${restaurantId || 'default'}`;
+    const res = await api.get(`${base}/bookings`, { params: { restaurantId } });
+    cache.set(key, res);
+    return res;
+  },
+
+  updateBookingStatus: async (id, status) => {
+    cache.clear();
+    return api.put(`${base}/bookings/${id}/status`, { status });
+  },
+
+  getAnalytics: async (restaurantId) => {
+    const key = `analytics_${restaurantId || 'default'}`;
+    const res = await api.get(`${base}/analytics`, { params: { restaurantId } });
+    cache.set(key, res);
+    return res;
+  },
+
+  getSettings: async (restaurantId) => {
+    const key = `settings_${restaurantId || 'default'}`;
+    const res = await api.get(`${base}/settings`, { params: { restaurantId } });
+    cache.set(key, res);
+    return res;
+  },
+
+  updateSettings: async (data) => {
+    cache.clear();
+    return api.put(`${base}/settings`, data);
+  },
 };

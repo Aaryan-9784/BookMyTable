@@ -345,8 +345,6 @@ export default function RestaurantDashboard() {
     );
   }, []);
 
-  if (loading) return <Loader label="Loading Partner Console…" />;
-
   const stats        = data?.stats      || {};
   const restaurant   = data?.restaurant || {};
   const approvalStatus = restaurant.approvalStatus || 'approved';
@@ -403,41 +401,6 @@ export default function RestaurantDashboard() {
           </button>
         </div>
       </div>
-
-      {/* ── Approval Status Banners ──────────────────────────── */}
-      {approvalStatus === 'pending' && (
-        <div className="mb-8 rounded-2xl p-5 border border-amber-500/40 bg-amber-500/10 text-amber-200 font-sans flex items-center justify-between gap-4">
-          <div>
-            <h3 className="font-bold text-amber-400">⏳ Submission Pending Admin Approval</h3>
-            <p className="text-xs opacity-90 mt-1">
-              Your restaurant details have been saved and submitted. Once approved, your restaurant will be live for customer table bookings.
-            </p>
-          </div>
-          <Link
-            to="/restaurant-dashboard/tables"
-            className="shrink-0 rounded-xl bg-amber-400 text-black px-4 py-2 text-xs font-semibold hover:bg-amber-300 transition-colors"
-          >
-            Manage Setup
-          </Link>
-        </div>
-      )}
-
-      {approvalStatus === 'rejected' && (
-        <div className="mb-8 rounded-2xl p-5 border border-red-500/40 bg-red-500/10 text-red-200 font-sans">
-          <h3 className="font-bold text-red-400">❌ Application Requires Attention</h3>
-          <p className="text-xs opacity-90 mt-1">
-            <strong>Feedback from Admin:</strong> {restaurant.rejectionReason || 'Please verify restaurant details and table configurations.'}
-          </p>
-          <Link
-            to="/restaurant-dashboard/tables"
-            className="inline-block mt-3 rounded-xl bg-red-500 text-white px-4 py-1.5 text-xs font-semibold hover:bg-red-400 transition-colors"
-          >
-            Update Details & Resubmit
-          </Link>
-        </div>
-      )}
-
-
 
       {/* ── 4-KPI Stat Cards ────────────────────────────────── */}
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 mb-6">

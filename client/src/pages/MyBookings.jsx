@@ -70,8 +70,6 @@ export default function MyBookings() {
     }
   };
 
-  if (loading) return <Loader label="Loading your reservations…" />;
-
   return (
     <div
       className="min-h-screen"

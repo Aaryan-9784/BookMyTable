@@ -50,6 +50,9 @@ export default function Navbar() {
     nameFromEmail(email) ||
     'User';
 
+  const rawRole = profile?.role || (isAdmin ? 'admin' : isRestaurant ? 'restaurant' : 'customer');
+  const displayRole = rawRole === 'admin' ? 'Admin' : rawRole === 'restaurant' ? 'Restaurant' : 'Customer';
+
   const transparent = isHome && !scrolled;
   const userInitials = initials(userName);
 
@@ -89,16 +92,10 @@ export default function Navbar() {
         <div className="hidden items-center md:flex" style={{ gap: '1.75rem' }}>
           <span className="h-1 w-1 rounded-full bg-luxury-gold/20" />
           <NavLink to="/restaurants" className={navLinkClass}>Restaurants</NavLink>
-          {isAuthenticated && (
+          {isAuthenticated && !isRestaurant && (
             <>
               <span className="h-3 w-px bg-white/10" />
               <NavLink to="/my-bookings" className={navLinkClass}>My bookings</NavLink>
-            </>
-          )}
-          {isRestaurant && (
-            <>
-              <span className="h-3 w-px bg-white/10" />
-              <NavLink to="/restaurant-dashboard" className={navLinkClass}>Partner Console</NavLink>
             </>
           )}
           {isAdmin && (
@@ -115,17 +112,59 @@ export default function Navbar() {
           {isAuthenticated ? (
             <Link
               to="/profile"
-              className="group hidden items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-4 transition-all duration-300 lg:flex"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(212,175,55,0.1)'; e.currentTarget.style.border = '1px solid rgba(212,175,55,0.3)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.border = '1px solid rgba(255,255,255,0.1)'; }}
+              className="group hidden items-center gap-2.5 rounded-full py-1 pl-1 pr-3.5 transition-all duration-300 lg:flex select-none"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(212,175,55,0.18)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(212,175,55,0.08)';
+                e.currentTarget.style.borderColor = 'rgba(212,175,55,0.38)';
+                e.currentTarget.style.boxShadow = '0 0 18px rgba(212,175,55,0.12)';
+                e.currentTarget.style.transform = 'scale(1.02)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                e.currentTarget.style.borderColor = 'rgba(212,175,55,0.18)';
+                e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.3)';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-sans text-[0.6rem] font-bold text-[#0a0a0a]"
-                style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f5e6a3 50%, #c9a84c 100%)', boxShadow: '0 0 12px rgba(212,175,55,0.4)' }}>
-                {userInitials}
-              </span>
-              <span className="max-w-[120px] truncate font-sans text-xs font-medium text-white/80 group-hover:text-white">{userName}</span>
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: '#d4af37', boxShadow: '0 0 6px rgba(212,175,55,0.9)' }} />
+              <div
+                className="shrink-0 rounded-full"
+                style={{
+                  width: 30,
+                  height: 30,
+                  padding: '1.5px',
+                  background: 'linear-gradient(135deg, #f5e27a 0%, #d4af37 50%, #a8892a 100%)',
+                  boxShadow: '0 0 10px rgba(212,175,55,0.35)',
+                }}
+              >
+                <div
+                  className="flex h-full w-full items-center justify-center rounded-full font-sans font-bold"
+                  style={{
+                    background: 'linear-gradient(145deg, #242424, #181818)',
+                    color: '#d4af37',
+                    fontSize: '10px',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  {userInitials}
+                </div>
+              </div>
+
+              <div className="flex flex-col text-left leading-none">
+                <span className="max-w-[120px] truncate font-sans text-xs font-semibold text-white group-hover:text-luxury-gold transition-colors duration-200">
+                  {userName}
+                </span>
+                <span
+                  className="font-sans text-[9px] uppercase font-bold tracking-[0.14em] mt-1"
+                  style={{ color: '#d4af37' }}
+                >
+                  {displayRole}
+                </span>
+              </div>
             </Link>
           ) : (
             <div className="flex items-center gap-2">
@@ -145,7 +184,7 @@ export default function Navbar() {
           <NavLink to="/restaurants" className={navLinkClass}>Venues</NavLink>
           {isAuthenticated && (
             <>
-              <NavLink to="/my-bookings" className={navLinkClass}>Bookings</NavLink>
+              {!isRestaurant && <NavLink to="/my-bookings" className={navLinkClass}>Bookings</NavLink>}
               <NavLink to="/profile" className={navLinkClass}>Profile</NavLink>
               {isAdmin && <NavLink to="/admin" className={navLinkClass}>Admin</NavLink>}
             </>

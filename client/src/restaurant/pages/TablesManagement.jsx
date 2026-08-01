@@ -409,8 +409,6 @@ export default function TablesManagement() {
     }
   };
 
-  if (loading) return <Loader label="Loading Restaurant & Tables Setup…" />;
-
   /* ── Derived stats ── */
   const totalCapacity  = tables.reduce((s, t) => s + (t.capacity || 0), 0);
   const capacityCounts = tables.reduce((acc, t) => {
@@ -430,7 +428,7 @@ export default function TablesManagement() {
             className="font-display leading-none text-luxury-white font-bold"
             style={{ fontSize: 'clamp(2rem, 4.5vw, 3.2rem)' }}
           >
-            {restaurant?.name || 'Add Restaurant & Tables'}
+            {restaurant?.name || 'Add Tables'}
           </h1>
           <p className="mt-2 font-sans text-sm text-luxury-muted flex items-center gap-2 flex-wrap">
             <span>📍 {restaurant?.location || 'Set location'}</span>
@@ -442,17 +440,10 @@ export default function TablesManagement() {
               <strong className="text-luxury-gold/80">₹{restaurant?.tokenFee || 150}</strong>
             </span>
             <span className="text-white/20">·</span>
-            {approvalStatus === 'approved' ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-0.5 font-sans text-[10px] font-semibold text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Approved & Operational
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 px-2.5 py-0.5 font-sans text-[10px] font-semibold text-amber-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-                Pending Approval
-              </span>
-            )}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-0.5 font-sans text-[10px] font-semibold text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Active & Operational
+            </span>
           </p>
           <div
             className="mt-4 h-px w-20"

@@ -9,7 +9,7 @@ export default function RestaurantProtectedRoute({ children }) {
   const { isAuthenticated, isRestaurant, isAdmin, profileLoading } = useAuth();
 
   if (profileLoading) {
-    return <Loader label="Verifying partner credentials…" />;
+    return null;
   }
 
   if (!isAuthenticated) {

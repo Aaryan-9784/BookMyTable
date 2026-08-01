@@ -3,10 +3,11 @@ import { NavLink, useLocation } from 'react-router-dom';
 
 /* ── NAV CONFIG ───────────────────────────────────────────── */
 const NAV = [
-  { to: '/restaurant-dashboard',           label: 'Dashboard',               Icon: DashIcon,       end: true },
-  { to: '/restaurant-dashboard/tables',    label: 'Add Restaurant & Tables', Icon: TableIcon },
-  { to: '/restaurant-dashboard/analytics', label: 'Token Fee Analysis',      Icon: AnalyticsIcon },
-  { to: '/restaurant-dashboard/bookings',  label: 'Booking',                 Icon: BookingIcon },
+  { to: '/restaurant-dashboard',           label: 'Dashboard',           Icon: DashIcon,       end: true },
+  { to: '/restaurant-dashboard/bookings',  label: 'Bookings',            Icon: BookingIcon },
+  { to: '/restaurant-dashboard/tables',    label: 'Table Management',    Icon: TableIcon },
+  { to: '/restaurant-dashboard/analytics', label: 'Token Fee Analytics', Icon: AnalyticsIcon },
+  { to: '/restaurant-dashboard/settings',  label: 'Settings',            Icon: SettingsIcon },
 ];
 
 /* ── SVG ICONS (stroke 1.35, matching Admin Sidebar) ─────── */
@@ -15,9 +16,9 @@ function DashIcon({ active }) {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
       <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.4" stroke={c} strokeWidth="1.35" />
-      <rect x="9"   y="1.5" width="5.5" height="5.5" rx="1.4" stroke={c} strokeWidth="1.35" />
-      <rect x="1.5" y="9"   width="5.5" height="5.5" rx="1.4" stroke={c} strokeWidth="1.35" />
-      <rect x="9"   y="9"   width="5.5" height="5.5" rx="1.4" stroke={c} strokeWidth="1.35" />
+      <rect x="9" y="1.5" width="5.5" height="5.5" rx="1.4" stroke={c} strokeWidth="1.35" />
+      <rect x="1.5" y="9" width="5.5" height="5.5" rx="1.4" stroke={c} strokeWidth="1.35" />
+      <rect x="9" y="9" width="5.5" height="5.5" rx="1.4" stroke={c} strokeWidth="1.35" />
     </svg>
   );
 }
@@ -40,7 +41,7 @@ function BookingIcon({ active }) {
       <path d="M5.5 1.5v3M10.5 1.5v3" stroke={c} strokeWidth="1.35" strokeLinecap="round" />
       <path d="M1.5 7h13" stroke={c} strokeWidth="1.35" />
       <circle cx="5.5" cy="10.5" r="0.9" fill={c} />
-      <circle cx="8"   cy="10.5" r="0.9" fill={c} />
+      <circle cx="8" cy="10.5" r="0.9" fill={c} />
       <circle cx="10.5" cy="10.5" r="0.9" fill={c} />
     </svg>
   );
@@ -83,8 +84,8 @@ function NavItem({ to, label, Icon, end }) {
         background: isActive
           ? 'linear-gradient(100deg, rgba(212,175,55,0.16) 0%, rgba(212,175,55,0.05) 100%)'
           : hov
-          ? 'rgba(255,255,255,0.04)'
-          : 'transparent',
+            ? 'rgba(255,255,255,0.04)'
+            : 'transparent',
         border: isActive
           ? '1px solid rgba(212,175,55,0.28)'
           : '1px solid transparent',

@@ -5,9 +5,9 @@ import { useAuth } from '../../context/AuthContext.jsx';
 /* ── PAGE TITLES (Matching Admin Navbar format) ───────────── */
 const PAGE_TITLES = {
   '/restaurant-dashboard':           'Dashboard',
-  '/restaurant-dashboard/tables':    'Tables & Capacity',
   '/restaurant-dashboard/bookings':  'Bookings',
-  '/restaurant-dashboard/analytics': 'Token Fee Analysis',
+  '/restaurant-dashboard/tables':    'Table Management',
+  '/restaurant-dashboard/analytics': 'Token Fee Analytics',
   '/restaurant-dashboard/settings':  'Settings',
 };
 

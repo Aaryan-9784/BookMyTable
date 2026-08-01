@@ -41,7 +41,9 @@ api.interceptors.response.use(
 
     let msg =
       data?.message ||
+      data?.error ||
       data?.errors?.[0]?.msg ||
+      (status === 404 ? 'Requested resource or endpoint not found (404)' : null) ||
       err.message ||
       'Request failed';
     if (data?.detail) {

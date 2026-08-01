@@ -36,9 +36,7 @@ export default function RestaurantDetails() {
     return () => { cancelled = true; };
   }, [id]);
 
-  if (loading) return <Loader label="Loading details…" />;
-
-  if (!r) {
+  if (!r && !loading) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-16 text-center font-sans text-white/40">
         We could not load this restaurant.{' '}

@@ -36,11 +36,11 @@ export async function listRestaurants(req, res, next) {
       (q.sort && q.sort !== '');
 
     if (!hasExtended) {
-      const items = await Restaurant.find({ approvalStatus: { $ne: 'rejected' } }).sort({ createdAt: -1 }).lean();
+      const items = await Restaurant.find().sort({ createdAt: -1 }).lean();
       return res.json(items);
     }
 
-    const filter = { approvalStatus: { $ne: 'rejected' } };
+    const filter = {};
     const searchText = (q.q || q.search || '').trim();
     if (searchText) {
       const rx = new RegExp(escapeRegex(searchText), 'i');

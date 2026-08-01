@@ -34,13 +34,10 @@ export const restaurantUpdateValidators = [
  */
 export async function getDashboardStats(_req, res, next) {
   try {
-    const [users, bookings, totalRestaurants, pendingCount, approvedCount, rejectedCount, recentBookings] = await Promise.all([
+    const [users, bookings, totalRestaurants, recentBookings] = await Promise.all([
       User.countDocuments(),
       Booking.countDocuments({ status: 'confirmed' }),
       Restaurant.countDocuments(),
-      Restaurant.countDocuments({ approvalStatus: 'pending' }),
-      Restaurant.countDocuments({ approvalStatus: { $ne: 'pending' } }),
-      Restaurant.countDocuments({ approvalStatus: 'rejected' }),
       Booking.find()
         .sort({ createdAt: -1 })
         .limit(8)
@@ -60,9 +57,9 @@ export async function getDashboardStats(_req, res, next) {
       totalUsers: users,
       totalBookings: bookings,
       totalRestaurants,
-      pendingCount,
-      approvedCount,
-      rejectedCount,
+      pendingCount: 0,
+      approvedCount: totalRestaurants,
+      rejectedCount: 0,
       totalTokenFees,
       recentBookings,
     });
@@ -72,12 +69,11 @@ export async function getDashboardStats(_req, res, next) {
 }
 
 /**
- * GET /api/admin/restaurants — list with optional search & approvalStatus filter
+ * GET /api/admin/restaurants — list with optional search
  */
 export async function listRestaurantsAdmin(req, res, next) {
   try {
     const q = (req.query.q || '').trim();
-    const status = (req.query.status || '').trim();
     const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
     const filter = {};
@@ -87,9 +83,6 @@ export async function listRestaurantsAdmin(req, res, next) {
         { location: new RegExp(escaped, 'i') },
         { category: new RegExp(escaped, 'i') },
       ];
-    }
-    if (status && status !== 'all') {
-      filter.approvalStatus = status;
     }
 
     const items = await Restaurant.find(filter)

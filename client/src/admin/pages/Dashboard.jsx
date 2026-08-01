@@ -219,9 +219,8 @@ export default function Dashboard() {
           title: 'Platform Metrics',
           headers: ['Metric', 'Value'],
           rows: [
-            ['Total Restaurants',     stats?.totalRestaurants ?? 0],
-            ['Approved & Live',       stats?.approvedCount    ?? 0],
-            ['Pending Approval',      stats?.pendingCount     ?? 0],
+            ['Active Restaurants',    stats?.totalRestaurants ?? 0],
+            ['Total Users',           stats?.totalUsers       ?? 0],
             ['Total Bookings',        stats?.totalBookings    ?? 0],
             ['Token Fees Collected',  fmt(stats?.totalTokenFees ?? 0)],
           ],
@@ -245,13 +244,6 @@ export default function Dashboard() {
     toast.success('Platform analytics exported as CSV!');
   }, [stats]);
 
-  if (loading) return <Loader label="Loading admin dashboard…" />;
-
-  const recentBookings = stats?.recentBookings || [];
-  const pendingCount   = stats?.pendingCount   || 0;
-  const approvedCount  = stats?.approvedCount  || 0;
-  const rejectedCount  = (stats?.totalRestaurants || 0) - approvedCount - pendingCount;
-
   return (
     <div className="max-w-[1100px] mx-auto">
 
@@ -268,7 +260,7 @@ export default function Dashboard() {
             Dashboard
           </h1>
           <p className="mt-2 font-sans text-sm text-luxury-muted">
-            Platform-wide metrics &amp; pending restaurant approval requests
+            Platform-wide metrics &amp; active restaurant venue management
           </p>
           <div
             className="mt-4 h-px w-20"
@@ -304,59 +296,19 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Pending Approval Alert Banner ────────────────── */}
-      {pendingCount > 0 && (
-        <div
-          className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl p-6 anim-fade-up"
-          style={{
-            background: 'linear-gradient(135deg, rgba(212,175,55,0.15) 0%, rgba(30,25,15,0.95) 100%)',
-            border: '1px solid rgba(212,175,55,0.4)',
-            boxShadow: '0 8px 32px rgba(212,175,55,0.12)',
-          }}
-        >
-          <div className="flex items-center gap-4">
-            <div
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl font-bold text-xl"
-              style={{ background: 'rgba(212,175,55,0.2)', color: '#f5e27a', border: '1px solid rgba(212,175,55,0.4)' }}
-            >
-              ⚠️
-            </div>
-            <div>
-              <h3 className="font-display text-lg text-white font-semibold">
-                {pendingCount} Restaurant{pendingCount > 1 ? 's' : ''} Awaiting Approval
-              </h3>
-              <p className="font-sans text-xs text-white/70 mt-0.5">
-                Review and approve new restaurant partner submissions to publish them to customers.
-              </p>
-            </div>
-          </div>
-
-          <Link
-            to="/admin/restaurants?status=pending"
-            className="shrink-0 rounded-xl px-5 py-2.5 font-sans text-xs font-semibold uppercase tracking-wider text-black transition-all hover:scale-105"
-            style={{
-              background: 'linear-gradient(135deg, #f5e27a 0%, #d4af37 100%)',
-              boxShadow: '0 0 20px rgba(212,175,55,0.4)',
-            }}
-          >
-            Review Applications
-          </Link>
-        </div>
-      )}
-
       {/* ── 4-KPI Stat Cards ────────────────────────────── */}
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 mb-6">
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 mb-8">
         <StatCard
-          label="Total Restaurants"
+          label="Active Restaurants"
           value={stats?.totalRestaurants ?? 0}
-          sub={`${pendingCount} pending approval`}
+          sub="Admin managed venues"
           Icon={IconRestaurants}
-          accent={pendingCount > 0}
+          accent
         />
         <StatCard
-          label="Approved & Live"
-          value={approvedCount}
-          sub="Visible to customers"
+          label="Total Users"
+          value={stats?.totalUsers ?? 0}
+          sub="Registered accounts"
           Icon={IconApproved}
         />
         <StatCard
@@ -368,19 +320,9 @@ export default function Dashboard() {
         <StatCard
           label="Token Fees Collected"
           value={`₹${(stats?.totalTokenFees ?? 0).toLocaleString()}`}
-          sub="Total platform earnings"
+          sub="Total platform revenue"
           Icon={IconRevenue}
           accent
-        />
-      </div>
-
-      {/* ── Platform Approval Bar ────────────────────────── */}
-      <div className="mb-8">
-        <PlatformBar
-          approved={approvedCount}
-          pending={pendingCount}
-          rejected={Math.max(0, rejectedCount)}
-          total={stats?.totalRestaurants ?? 0}
         />
       </div>
 

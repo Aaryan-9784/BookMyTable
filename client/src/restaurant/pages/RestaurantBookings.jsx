@@ -177,8 +177,6 @@ export default function RestaurantBookings() {
     }
   };
 
-  if (loading) return <Loader label="Loading Reservations…" />;
-
   /* ── Derived stats ── */
   const confirmed  = bookings.filter((b) => b.status === 'confirmed');
   const completed  = bookings.filter((b) => b.status === 'completed');
