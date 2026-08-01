@@ -7,10 +7,19 @@ import toast from 'react-hot-toast';
 import api from '../services/api.js';
 import Loader from '../components/Loader.jsx';
 import EditProfileModal from '../components/EditProfileModal.jsx';
+import ChangePasswordModal from '../components/ChangePasswordModal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { formatISODate } from '../utils/formatDate.js';
 
 /* ── tiny icon helpers ── */
+function IconKey() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0121 8.25z" />
+    </svg>
+  );
+}
+
 function IconRefresh() {
   return (
     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
@@ -46,6 +55,7 @@ export default function Profile() {
   const [bookings, setBookings]               = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [editOpen, setEditOpen]               = useState(false);
+  const [changePassOpen, setChangePassOpen]   = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +78,8 @@ export default function Profile() {
   if (profileLoading) return null;
 
   const displayEmail = profile?.email || email || '—';
+  const rawPhone     = profile?.phone || profile?.phoneNumber || localStorage.getItem('bookmytable_phone') || '+91 8238012515';
+  const displayPhone = rawPhone.startsWith('+') ? rawPhone : `+91 ${rawPhone}`;
   const isAdmin      = (role || '').toLowerCase() === 'admin';
 
   return (
@@ -84,6 +96,13 @@ export default function Profile() {
           onUpdated={() => { refreshProfile(); }}
         />
 
+        {/* ── CHANGE PASSWORD MODAL ── */}
+        <ChangePasswordModal
+          isOpen={changePassOpen}
+          onClose={() => setChangePassOpen(false)}
+          userEmail={displayEmail}
+        />
+
         <header className="mb-10">
           <p className="mb-2.5 font-sans text-[0.65rem] font-bold uppercase tracking-[0.28em] text-luxury-gold/80">
             YOUR ACCOUNT
@@ -97,41 +116,41 @@ export default function Profile() {
         <div
           className="overflow-hidden rounded-2xl transition-all duration-300"
           style={{
-            background: 'rgba(255,255,255,0.025)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            border: '1px solid rgba(212,175,55,0.20)',
-            boxShadow: '0 16px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
+            background: 'linear-gradient(165deg, rgba(30,30,35,0.7) 0%, rgba(14,14,16,0.95) 100%)',
+            backdropFilter: 'blur(32px)',
+            WebkitBackdropFilter: 'blur(32px)',
+            border: '1px solid rgba(212,175,55,0.22)',
+            boxShadow: '0 28px 84px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06)',
           }}
         >
-          {/* Gold left accent bar */}
           <div className="flex">
-            <div className="w-1.5 shrink-0" style={{ background: 'linear-gradient(180deg, #d4af37 0%, rgba(212,175,55,0.15) 100%)' }} />
+            {/* Gold left accent bar */}
+            <div className="w-1.5 shrink-0" style={{ background: 'linear-gradient(180deg, #f5e27a 0%, #d4af37 50%, rgba(212,175,55,0.1) 100%)' }} />
 
-            <div className="flex-1 p-6 md:p-10">
+            <div className="flex-1 p-6 sm:p-8 md:p-10">
 
               {/* ── User identity row ── */}
               <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
 
                 {/* Avatar + Name + Email */}
                 <div className="flex items-center gap-5">
-                  {/* Avatar circle with gold gradient ring */}
                   <div
-                    className="shrink-0 rounded-full"
+                    className="relative shrink-0 rounded-full"
                     style={{
-                      width: 60,
-                      height: 60,
+                      width: 64,
+                      height: 64,
                       padding: '2px',
-                      background: 'linear-gradient(135deg, #f5e27a 0%, #d4af37 50%, #a8892a 100%)',
-                      boxShadow: '0 0 24px rgba(212,175,55,0.30)',
+                      background: 'linear-gradient(135deg, #f5e27a 0%, #d4af37 50%, #997819 100%)',
+                      boxShadow: '0 0 28px rgba(212,175,55,0.35)',
                     }}
                   >
                     <div
-                      className="flex h-full w-full items-center justify-center rounded-full font-sans text-lg font-bold"
+                      className="flex h-full w-full items-center justify-center rounded-full font-sans text-xl font-extrabold"
                       style={{
                         background: 'linear-gradient(145deg, #242424, #141414)',
-                        color: '#d4af37',
+                        color: '#f5e27a',
                         letterSpacing: '0.04em',
+                        textShadow: '0 0 10px rgba(212,175,55,0.4)',
                       }}
                     >
                       {(displayName || displayEmail)
@@ -142,6 +161,11 @@ export default function Profile() {
                         .map((w) => w[0].toUpperCase())
                         .join('')}
                     </div>
+                    {/* Live Online status indicator */}
+                    <span
+                      className="absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full border-2 border-[#121212] bg-emerald-400"
+                      title="Online"
+                    />
                   </div>
 
                   {/* Name + email stack */}
@@ -149,24 +173,24 @@ export default function Profile() {
                     <p className="font-display text-2xl font-light text-white leading-tight">
                       {displayName || '—'}
                     </p>
-                    <p className="break-all font-sans text-xs text-white/45">{displayEmail}</p>
-                    <div className="pt-1">
+                    <p className="break-all font-sans text-xs text-gray-400">{displayEmail}</p>
+                    <div className="pt-1.5">
                       <span
-                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[10px] font-bold uppercase tracking-wider text-luxury-gold"
+                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[10px] font-bold uppercase tracking-wider"
                         style={{
-                          background: 'rgba(212,175,55,0.10)',
-                          border: '1px solid rgba(212,175,55,0.28)',
-                          boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                          background: 'rgba(212,175,55,0.12)',
+                          border: '1px solid rgba(212,175,55,0.30)',
+                          color: '#f5e27a',
                         }}
                       >
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#f5e27a] animate-pulse" />
-                        {isAdmin ? 'Administrator Account' : isRestaurant ? 'Partner Restaurant Account' : 'Customer Account'}
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        {isAdmin ? 'Super Admin' : isRestaurant ? 'Restaurant Partner' : 'Customer Account'}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Dashboard Access Button + Edit button */}
+                {/* Primary Console / Dashboard Action Button */}
                 <div className="flex items-center gap-3 sm:shrink-0">
                   {isAdmin ? (
                     <button
@@ -178,7 +202,7 @@ export default function Profile() {
                         boxShadow: '0 0 24px rgba(212,175,55,0.3)',
                       }}
                     >
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#0b0b0c] animate-pulse" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#0b0b0c]" />
                       Admin Console →
                     </button>
                   ) : isRestaurant ? (
@@ -191,7 +215,7 @@ export default function Profile() {
                         boxShadow: '0 0 24px rgba(212,175,55,0.3)',
                       }}
                     >
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#0b0b0c] animate-pulse" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#0b0b0c]" />
                       Partner Console →
                     </button>
                   ) : (
@@ -208,106 +232,77 @@ export default function Profile() {
                       My Bookings <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
                     </button>
                   )}
-
-                  {/* Edit pencil button */}
-                  <button
-                    type="button"
-                    title="Edit Profile"
-                    onClick={() => setEditOpen(true)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-luxury-gold/70 transition-all duration-200 hover:scale-110 hover:text-luxury-gold active:scale-95"
-                    style={{
-                      border: '1px solid rgba(212,175,55,0.3)',
-                      background: 'rgba(212,175,55,0.08)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = 'rgba(212,175,55,0.7)';
-                      e.currentTarget.style.background = 'rgba(212,175,55,0.18)';
-                      e.currentTarget.style.boxShadow = '0 0 16px rgba(212,175,55,0.25)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'rgba(212,175,55,0.3)';
-                      e.currentTarget.style.background = 'rgba(212,175,55,0.08)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
-                  >
-                    <IconPencil />
-                  </button>
                 </div>
               </div>
 
-              {/* Stats Grid */}
+              {/* Account Quick Info Cards */}
               <div className="my-8 h-px" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.04) 100%)' }} />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {(isRestaurant ? [
-                  { label: 'Portal Access', value: 'Partner Console', icon: '🔑' },
-                  { label: 'Account Role',  value: 'Restaurant Partner', icon: '👑' },
+                  { label: 'Mobile Number',   value: displayPhone, icon: '📱', highlight: 'amber' },
+                  { label: 'Partner Status',  value: 'Active & Verified', icon: '🟢', highlight: 'emerald' },
+                ] : isAdmin ? [
+                  { label: 'Mobile Number',   value: displayPhone, icon: '📱', highlight: 'amber' },
+                  { label: 'System Access',   value: 'Root Administrator', icon: '👑', highlight: 'emerald' },
                 ] : [
-                  { label: 'Total bookings', value: profile?.stats?.totalBookings ?? 0, icon: '📊' },
-                  { label: 'Upcoming',        value: profile?.stats?.upcomingConfirmed ?? 0, icon: '📅' },
-                ]).map(({ label, value, icon }) => (
+                  { label: 'Total bookings', value: profile?.stats?.totalBookings ?? 0, icon: '📊', highlight: 'white' },
+                  { label: 'Upcoming',        value: profile?.stats?.upcomingConfirmed ?? 0, icon: '📅', highlight: 'amber' },
+                ]).map(({ label, value, icon, highlight }) => (
                   <div
                     key={label}
-                    className="group rounded-xl p-5 transition-all duration-300 hover:-translate-y-0.5"
+                    className="group rounded-xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5"
                     style={{
                       background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(212,175,55,0.04) 100%)',
                       border: '1px solid rgba(212,175,55,0.14)',
                       boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = 'rgba(212,175,55,0.38)';
-                      e.currentTarget.style.boxShadow = '0 6px 28px rgba(0,0,0,0.35), 0 0 16px rgba(212,175,55,0.08)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'rgba(212,175,55,0.14)';
-                      e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
                     }}
                   >
                     <div className="flex items-center justify-between">
                       <p className="font-sans text-[0.65rem] font-bold uppercase tracking-[0.22em] text-white/40 group-hover:text-luxury-gold/80 transition-colors">
                         {label}
                       </p>
-                      <span className="text-sm opacity-60 group-hover:scale-110 transition-transform">{icon}</span>
+                      <span className="text-sm opacity-70 group-hover:scale-110 transition-transform">{icon}</span>
                     </div>
-                    <p className={`mt-2 font-display ${typeof value === 'number' ? 'text-3xl font-light tabular-nums' : 'text-lg font-medium'} text-white`}>
+                    <p className={`mt-2 font-sans ${typeof value === 'number' ? 'font-display text-3xl font-light tabular-nums' : 'text-sm font-semibold'} ${highlight === 'emerald' ? 'text-emerald-400' : highlight === 'amber' ? 'text-amber-300' : 'text-white'}`}>
                       {value}
                     </p>
                   </div>
                 ))}
               </div>
 
-              {/* Divider & Actions */}
-              <div className="my-8 h-px" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.15) 0%, transparent 100%)' }} />
+              {/* Divider & Actions Toolbar */}
+              <div className="my-8 h-px" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.18) 0%, transparent 100%)' }} />
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                {/* Refresh */}
-                <button
-                  type="button"
-                  onClick={() => { refreshProfile(); toast.success('Profile refreshed'); }}
-                  className="flex items-center justify-center gap-2 rounded-full border px-6 py-2.5 font-sans text-xs font-semibold uppercase tracking-wider text-white/60 transition-all duration-200 hover:text-luxury-gold active:scale-[0.97]"
-                  style={{ borderColor: 'rgba(212,175,55,0.2)', background: 'rgba(255,255,255,0.03)' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(212,175,55,0.5)';
-                    e.currentTarget.style.background = 'rgba(212,175,55,0.08)';
-                    e.currentTarget.style.color = '#d4af37';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(212,175,55,0.2)';
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                    e.currentTarget.style.color = 'rgba(255,255,255,0.6)';
-                  }}
-                >
-                  <IconRefresh />
-                  Refresh Profile
-                </button>
+                
+                {/* Left Account Settings Actions */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setEditOpen(true)}
+                    className="flex items-center justify-center gap-2 rounded-full border px-5 py-2.5 font-sans text-xs font-semibold uppercase tracking-wider text-gray-300 transition-all duration-200 hover:text-amber-300 hover:border-amber-500/40 hover:bg-amber-500/10 active:scale-[0.97]"
+                    style={{ borderColor: 'rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.03)' }}
+                  >
+                    <IconPencil />
+                    Edit Profile
+                  </button>
 
-                {/* Logout */}
+                  <button
+                    type="button"
+                    onClick={() => setChangePassOpen(true)}
+                    className="flex items-center justify-center gap-2 rounded-full border px-5 py-2.5 font-sans text-xs font-semibold uppercase tracking-wider text-amber-400/90 transition-all duration-200 hover:text-amber-300 hover:border-amber-400/60 hover:bg-amber-500/15 active:scale-[0.97]"
+                    style={{ borderColor: 'rgba(212,175,55,0.30)', background: 'rgba(212,175,55,0.06)' }}
+                  >
+                    <IconKey />
+                    Change Password
+                  </button>
+                </div>
+
+                {/* Right Logout Action */}
                 <button
                   type="button"
                   onClick={() => logout()}
-                  className="flex items-center justify-center gap-2 rounded-full px-7 py-2.5 font-sans text-xs font-bold uppercase tracking-wider text-[#0b0b0c] transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-[0.97]"
-                  style={{
-                    background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)',
-                    boxShadow: '0 0 28px rgba(212,175,55,0.28)',
-                  }}
+                  className="flex items-center justify-center gap-2 rounded-full border px-6 py-2.5 font-sans text-xs font-semibold uppercase tracking-wider text-red-400/90 hover:text-red-300 hover:bg-red-500/10 hover:border-red-500/40 transition-all duration-200 active:scale-[0.97]"
+                  style={{ borderColor: 'rgba(239,68,68,0.25)', background: 'rgba(239,68,68,0.04)' }}
                 >
                   <IconLogout />
                   Log out

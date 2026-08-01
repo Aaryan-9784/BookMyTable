@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import Booking from '../models/Booking.js';
 import Restaurant from '../models/Restaurant.js';
 import { sendBookingEmail, sendCancellationEmail } from '../utils/resendEmail.js';
+import { pushToUser } from '../utils/sseManager.js';
 
 export const createBookingValidators = [
   body('restaurantId').notEmpty().withMessage('restaurantId is required'),
@@ -119,6 +120,17 @@ export async function createBooking(req, res, next) {
     });
 
     const payload = populated.toObject ? populated.toObject() : populated;
+
+    // 🔔 Push real-time SSE notification to the booking user
+    pushToUser(String(req.user._id), {
+      id: Date.now(),
+      type: 'booking_confirmed',
+      title: 'Booking Confirmed ✓',
+      desc: `Your table at ${restaurant.name} is confirmed for ${date} at ${time} (${Number(guests)} guest${Number(guests) > 1 ? 's' : ''}).`,
+      time: 'Just now',
+      unread: true,
+    });
+
     res.status(201).json({ ...payload, emailDelivery });
   } catch (e) {
     next(e);
@@ -185,6 +197,17 @@ export async function cancelBooking(req, res, next) {
     console.log(`${log} Cancellation email result`, emailDelivery);
 
     const plain = booking.toObject ? booking.toObject() : booking;
+
+    // 🔔 Push real-time SSE notification to the booking owner
+    pushToUser(String(req.user._id), {
+      id: Date.now(),
+      type: 'booking_cancelled',
+      title: 'Booking Cancelled',
+      desc: `Your reservation at ${restName} on ${booking.date} at ${booking.time} has been cancelled.`,
+      time: 'Just now',
+      unread: true,
+    });
+
     res.json({ ...plain, emailDelivery });
   } catch (e) {
     next(e);
