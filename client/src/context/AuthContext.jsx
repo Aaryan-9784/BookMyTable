@@ -140,46 +140,37 @@ export function AuthProvider({ children }) {
     setLoading(true);
 
     try {
-      let token = null;
-
-      // 1. Attempt Supabase Auth Login only if a real Supabase URL is set
-      const url = import.meta.env.VITE_SUPABASE_URL || '';
-      const key = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-      const isRealSupabase = url && !url.includes('your-supabase-project') && !url.includes('xyzcompany') && key && !key.includes('your-supabase-anon-key') && !key.includes('dummykey');
-
-      if (isRealSupabase) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: trimmedEmail,
-          password,
-        });
-
-        if (error) {
-          setLoading(false);
-          throw new Error(error.message);
-        }
-        token = data?.session?.access_token;
+      // Validate Supabase configuration
+      if (!isRealSupabaseConfigured()) {
+        setLoading(false);
+        throw new Error('Authentication service is not properly configured. Please contact support.');
       }
 
-      // 2. Local session JWT fallback (when Supabase is not yet linked or in development)
+      // Use Supabase authentication only - no client-side JWT fallback
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: trimmedEmail,
+        password,
+      });
+
+      if (error) {
+        setLoading(false);
+        throw new Error(error.message);
+      }
+
+      const token = data?.session?.access_token;
+      
       if (!token) {
-        const headerStr = JSON.stringify({ alg: 'HS256', typ: 'JWT' });
-        const payloadStr = JSON.stringify({
-          sub: `user-${trimmedEmail}`,
-          email: trimmedEmail,
-          password: password,
-          name: localStorage.getItem('bookmytable_full_name') || trimmedEmail.split('@')[0],
-          iat: Math.floor(Date.now() / 1000),
-        });
-        const b64uHeader = btoa(headerStr).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-        const b64uPayload = btoa(payloadStr).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-        token = `${b64uHeader}.${b64uPayload}.signature`;
+        setLoading(false);
+        throw new Error('Authentication failed - no token received');
       }
 
+      // Store token securely
       localStorage.setItem(STORAGE_ID_TOKEN, token);
       setIdTokenState(token);
       setEmailState(trimmedEmail);
       setLoading(false);
 
+      // Fetch user profile
       let fetchedProfile = null;
       try {
         const { data: profileData } = await api.get('/api/users/profile');
@@ -187,7 +178,10 @@ export function AuthProvider({ children }) {
         setProfile(profileData);
         writeCachedProfile(profileData);
         fetchedProfile = profileData;
-      } catch {}
+      } catch (profileError) {
+        console.error('Failed to fetch profile:', profileError);
+        // Don't fail login if profile fetch fails
+      }
 
       return { token, profile: fetchedProfile };
     } catch (err) {
@@ -202,30 +196,34 @@ export function AuthProvider({ children }) {
   const signUp = useCallback(async (userEmail, password, fullName) => {
     const trimmedEmail = (userEmail || '').trim();
     const trimmedName = (fullName || '').trim();
-    if (!trimmedName) throw new Error('Full name is required');
+    
+    if (!trimmedName) {
+      throw new Error('Full name is required');
+    }
+
+    // Validate Supabase configuration
+    if (!isRealSupabaseConfigured()) {
+      throw new Error('Authentication service is not properly configured. Please contact support.');
+    }
 
     localStorage.setItem('bookmytable_full_name', trimmedName);
     setLoading(true);
+    
     try {
-      const url = import.meta.env.VITE_SUPABASE_URL || '';
-      const key = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-      const isRealSupabase = url && !url.includes('your-supabase-project') && !url.includes('xyzcompany') && key && !key.includes('your-supabase-anon-key') && !key.includes('dummykey');
-
-      let userConfirmed = false;
-      if (isRealSupabase) {
-        const { data, error } = await supabase.auth.signUp({
-          email: trimmedEmail,
-          password,
-          options: {
-            data: { full_name: trimmedName },
-          },
-        });
-        if (error) {
-          setLoading(false);
-          throw new Error(error.message);
-        }
-        userConfirmed = Boolean(data?.user?.confirmed_at);
+      const { data, error } = await supabase.auth.signUp({
+        email: trimmedEmail,
+        password,
+        options: {
+          data: { full_name: trimmedName },
+        },
+      });
+      
+      if (error) {
+        setLoading(false);
+        throw new Error(error.message);
       }
+      
+      const userConfirmed = Boolean(data?.user?.confirmed_at);
 
       setLoading(false);
       return {

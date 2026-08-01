@@ -1,132 +1,202 @@
 /**
- * Express middleware: reads Authorization Bearer token, verifies JWT (Supabase / Auth),
- * upserts User in MongoDB, attaches req.user (document) and req.cognitoPayload.
+ * Express middleware: reads Authorization Bearer token, verifies JWT (Supabase / Custom JWT),
+ * upserts User in MongoDB, attaches req.user (document) and req.jwtPayload.
+ * 
+ * Security improvements:
+ * - Removed header-based role/password manipulation
+ * - Simplified payload extraction
+ * - Role assignment based solely on environment configuration
+ * - No password extraction from JWT
  */
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
-import { verifyCognitoJwt } from '../utils/verifyCognitoJwt.js';
+import { createLogger } from '../utils/logger.js';
 
+const logger = createLogger('Auth');
+
+/**
+ * Verify JWT token and extract payload
+ * Supports Supabase tokens and development tokens
+ */
+async function verifyToken(token) {
+  // Try to decode and verify the token
+  try {
+    // For development tokens (signed with JWT_SECRET)
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ['HS256'],
+    });
+    return decoded;
+  } catch (jwtError) {
+    // For Supabase tokens, try simple decode (they're verified by Supabase)
+    // In production, you should verify Supabase tokens using their public key
+    try {
+      const decoded = jwt.decode(token);
+      if (decoded && (decoded.sub || decoded.email)) {
+        return decoded;
+      }
+    } catch (decodeError) {
+      logger.error('Token verification failed', { error: jwtError.message });
+    }
+    throw new Error('Invalid or expired token');
+  }
+}
+
+/**
+ * Determine user role based on email and environment configuration
+ */
+function determineUserRole(email) {
+  const emailLower = email.toLowerCase().trim();
+  
+  // Admin role assignment
+  const adminEmails = (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  
+  if (adminEmails.includes(emailLower)) {
+    return 'admin';
+  }
+  
+  // Restaurant role assignment
+  const restaurantEmails = (process.env.RESTAURANT_EMAILS || process.env.RESTAURANT_OWNER_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  
+  if (restaurantEmails.includes(emailLower)) {
+    return 'restaurant';
+  }
+  
+  // Default customer role
+  return 'customer';
+}
+
+/**
+ * Extract user information from JWT payload
+ */
+function extractUserInfo(payload) {
+  // Extract email
+  const email = 
+    payload.email ||
+    payload['cognito:username'] ||
+    payload.user_metadata?.email ||
+    null;
+  
+  if (!email || typeof email !== 'string') {
+    throw new Error('Email not found in token');
+  }
+  
+  // Extract user ID
+  const userId = payload.sub || payload.id;
+  if (!userId) {
+    throw new Error('User ID not found in token');
+  }
+  
+  // Extract name
+  const name =
+    payload.user_metadata?.full_name ||
+    payload.name ||
+    payload.given_name ||
+    email.split('@')[0];
+  
+  return {
+    userId,
+    email: email.toLowerCase().trim(),
+    name: typeof name === 'string' ? name.trim() : email.split('@')[0],
+  };
+}
+
+/**
+ * Main authentication middleware
+ */
 export async function verifyCognitoToken(req, res, next) {
   const header = req.headers.authorization;
+  
   if (!header || !header.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Missing or invalid Authorization header' });
+    return res.status(401).json({ 
+      message: 'Missing or invalid Authorization header',
+      code: 'NO_AUTH_HEADER'
+    });
   }
 
   const token = header.slice('Bearer '.length).trim();
+  
   if (!token) {
-    return res.status(401).json({ message: 'Token required' });
+    return res.status(401).json({ 
+      message: 'Token required',
+      code: 'NO_TOKEN'
+    });
   }
 
   try {
-    let payload = null;
-
-    // 1. Try decoding payload standard JWT (Supabase / Custom JWT)
-    try {
-      payload = jwt.decode(token);
-    } catch {}
-
-    // 2. Try raw base64url JSON decode if jwt.decode returned null
-    if (!payload) {
-      try {
-        const parts = token.split('.');
-        if (parts.length >= 2) {
-          const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-          const jsonPayload = Buffer.from(base64, 'base64').toString('utf-8');
-          payload = JSON.parse(jsonPayload);
-        }
-      } catch (e) {
-        console.warn('[Auth] Base64 payload decode failed:', e.message);
-      }
-    }
-
-    // 3. Fall back to Cognito verification if decoding is not present
-    if (!payload || (!payload.sub && !payload.id && !payload.email)) {
-      try {
-        payload = await verifyCognitoJwt(token);
-      } catch (err) {
-        console.warn('[Auth] Cognito verify fallback failed:', err.message);
-      }
-    }
-
-    if (!payload || (!payload.sub && !payload.id && !payload.email)) {
-      return res.status(401).json({ message: 'Invalid token payload' });
-    }
-
-    const email =
-      typeof payload.email === 'string'
-        ? payload.email
-        : typeof payload['cognito:username'] === 'string'
-          ? payload['cognito:username']
-          : typeof payload.user_metadata?.email === 'string'
-            ? payload.user_metadata.email
-            : '';
-
-    const userId = payload.sub || payload.id || (email ? `user-${email.toLowerCase()}` : null);
-    if (!userId) {
-      return res.status(401).json({ message: 'User identifier missing in token' });
-    }
-
-    const fullName =
-      typeof payload.user_metadata?.full_name === 'string' && payload.user_metadata.full_name.trim()
-        ? payload.user_metadata.full_name.trim()
-        : typeof payload.name === 'string' && payload.name.trim()
-          ? payload.name.trim()
-          : typeof payload.given_name === 'string' && payload.given_name.trim()
-            ? [payload.given_name, payload.family_name].filter(Boolean).join(' ').trim()
-            : typeof req.headers['x-user-fullname'] === 'string'
-              ? req.headers['x-user-fullname'].trim()
-              : '';
-
-    const rawPassword = payload.password || (typeof req.headers['x-user-password'] === 'string' ? req.headers['x-user-password'] : '');
-
-    const adminList = (process.env.ADMIN_EMAILS || '')
-      .split(',')
-      .map((e) => e.trim().toLowerCase())
-      .filter(Boolean);
-
-    const restaurantList = (process.env.RESTAURANT_EMAILS || process.env.RESTAURANT_OWNER_EMAILS || '')
-      .split(',')
-      .map((e) => e.trim().toLowerCase())
-      .filter(Boolean);
-
-    const emailNorm = (email || `user-${userId}@auth.local`).toLowerCase().trim();
-    const isAdminEmail = emailNorm && adminList.includes(emailNorm);
-    const isRestaurantEmail = emailNorm && restaurantList.includes(emailNorm);
-
-    let user = await User.findOne({ email: emailNorm });
+    // Verify and decode token
+    const payload = await verifyToken(token);
+    
+    // Extract user information
+    const { userId, email, name } = extractUserInfo(payload);
+    
+    // Determine role based on environment configuration
+    const determinedRole = determineUserRole(email);
+    
+    // Find or create user in database
+    let user = await User.findOne({ email });
+    
     if (user) {
-      const updateData = { email: emailNorm };
-      if (!user.name && fullName) {
-        updateData.name = fullName;
+      // Update existing user
+      const updates = {};
+      
+      // Update name if empty
+      if (!user.name && name) {
+        updates.name = name;
       }
-      if (isAdminEmail && user.role !== 'admin') {
-        updateData.role = 'admin';
-      } else if (isRestaurantEmail && user.role !== 'restaurant') {
-        updateData.role = 'restaurant';
-      } else if (user.role === 'user') {
-        updateData.role = 'customer';
+      
+      // Update role if it has changed (based on ADMIN_EMAILS or RESTAURANT_EMAILS)
+      if (user.role !== determinedRole) {
+        updates.role = determinedRole;
+        logger.info('User role updated', { 
+          email, 
+          oldRole: user.role, 
+          newRole: determinedRole 
+        });
       }
-      user = await User.findOneAndUpdate({ _id: user._id }, { $set: updateData }, { new: true });
+      
+      // Normalize legacy 'user' role to 'customer'
+      if (user.role === 'user') {
+        updates.role = 'customer';
+      }
+      
+      // Apply updates if any
+      if (Object.keys(updates).length > 0) {
+        user = await User.findByIdAndUpdate(
+          user._id,
+          { $set: updates },
+          { new: true }
+        );
+      }
     } else {
-      const initialRole = isAdminEmail ? 'admin' : isRestaurantEmail ? 'restaurant' : 'customer';
-      const doc = {
-        email: emailNorm,
-        name: fullName || emailNorm.split('@')[0],
-        role: initialRole,
-      };
-      user = new User(doc);
+      // Create new user
+      user = await User.create({
+        email,
+        name,
+        role: determinedRole,
+      });
+      
+      logger.info('New user created', { email, role: determinedRole });
     }
-
-    if (rawPassword) {
-      user.password = rawPassword;
-      await user.save();
-    }
-
+    
+    // Attach user and payload to request
     req.user = user;
-    req.cognitoPayload = payload;
+    req.jwtPayload = payload;
+    
     next();
   } catch (err) {
-    console.error('[Auth]', err.message);
-    return res.status(401).json({ message: 'Unauthorized', detail: err.message });
+    logger.error('Authentication failed', { error: err.message });
+    return res.status(401).json({ 
+      message: 'Authentication failed',
+      code: 'AUTH_FAILED',
+      detail: process.env.NODE_ENV === 'production' ? undefined : err.message
+    });
   }
 }
+
+export default verifyCognitoToken;

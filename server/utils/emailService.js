@@ -5,6 +5,17 @@ import {
   generateLoginOtpEmailTemplate,
   generateWelcomeEmailTemplate,
 } from './emailTemplates.js';
+import { createLogger } from './logger.js';
+
+const logger = createLogger('Email');
+
+/**
+ * Check if email service is properly configured
+ */
+function isEmailConfigured() {
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  return Boolean(pass && pass.length > 0);
+}
 
 const getTransporter = () => {
   const user = process.env.GMAIL_USER || 'aaryanpatel9784@gmail.com';
@@ -30,8 +41,22 @@ async function sendMail({ to, subject, html, text }) {
   const transporter = getTransporter();
 
   if (!transporter) {
-    console.log(`[BookMyTable][Gmail Dev Log] To: ${to} | Subject: ${subject}`);
-    return { ok: true, devMode: true };
+    const error = 'Email service not configured - GMAIL_APP_PASSWORD not set';
+    logger.error(error, { to, subject });
+    
+    // In development, log but don't fail
+    if (process.env.NODE_ENV !== 'production') {
+      logger.warn('Development mode: Email not sent but operation continues', { to, subject });
+      return { 
+        ok: false, 
+        devMode: true, 
+        reason: error,
+        message: 'Email service not configured - set GMAIL_APP_PASSWORD or RESEND_API_KEY in .env'
+      };
+    }
+    
+    // In production, this is a critical failure
+    throw new Error(error);
   }
 
   try {
@@ -42,10 +67,16 @@ async function sendMail({ to, subject, html, text }) {
       text,
       html,
     });
-    console.log(`[BookMyTable][Gmail] Email delivered to ${to} (MessageId: ${info.messageId})`);
+    logger.info('Email delivered successfully', { to, subject, messageId: info.messageId });
     return { ok: true, messageId: info.messageId };
   } catch (err) {
-    console.error('[BookMyTable][Gmail Error]:', err.message);
+    logger.error('Email delivery failed', { to, subject, error: err.message });
+    
+    // In production, throw the error so it can be handled appropriately
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(`Email delivery failed: ${err.message}`);
+    }
+    
     return { ok: false, reason: err.message };
   }
 }
@@ -85,12 +116,11 @@ export async function sendLoginOtpEmail({ toEmail, otpCode }) {
   const to = (toEmail || '').trim().toLowerCase();
   if (!to) return { ok: false, reason: 'Invalid recipient email' };
 
-  console.log(`\n======================================================`);
-  console.log(`🔑 [BookMyTable OTP] Email: ${to} | OTP Code: ${otpCode}`);
-  console.log(`======================================================\n`);
+  // Log OTP sending without exposing the actual code
+  logger.info('Sending login OTP email', { to });
 
-  const subject = `BookMyTable — Your Login Verification Code: ${otpCode}`;
-  const text = `Your 6-digit BookMyTable Login Verification Code is: ${otpCode}`;
+  const subject = `BookMyTable — Your Login Verification Code`;
+  const text = `Your 6-digit BookMyTable Login Verification Code has been sent to your email.`;
   const html = generateLoginOtpEmailTemplate({ otpCode });
 
   return await sendMail({ to, subject, text, html });

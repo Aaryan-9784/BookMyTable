@@ -11,8 +11,12 @@ import {
 import { verifyCognitoToken } from '../middleware/verifyCognitoToken.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
+import { createSanitizationMiddleware } from '../middleware/inputSanitizer.js';
 
 const router = Router();
+
+// Apply input sanitization to all restaurant routes
+const sanitizeRestaurant = createSanitizationMiddleware('restaurant');
 
 router.get('/', asyncHandler(listRestaurants));
 router.get('/:id', asyncHandler(getRestaurantById));
@@ -20,6 +24,7 @@ router.post(
   '/',
   verifyCognitoToken,
   requireAdmin,
+  sanitizeRestaurant,
   createRestaurantValidators,
   asyncHandler(createRestaurant)
 );

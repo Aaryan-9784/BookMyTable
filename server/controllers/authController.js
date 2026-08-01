@@ -2,21 +2,10 @@
  * Auth Controller — Login 2FA OTP generation and verification via Resend.
  */
 import { sendLoginOtpEmail, sendWelcomeEmail } from '../utils/resendEmail.js';
+import { createLogger } from '../utils/logger.js';
+import { generateOTP, storeOTP, verifyOTP } from '../services/otpService.js';
 
-// In-memory store for login OTPs: key = normalized email, value = { code, expiresAt }
-const otpStore = new Map();
-
-/**
- * Clean up expired OTPs periodically (every 10 minutes)
- */
-setInterval(() => {
-  const now = Date.now();
-  for (const [email, record] of otpStore.entries()) {
-    if (record.expiresAt < now) {
-      otpStore.delete(email);
-    }
-  }
-}, 10 * 60 * 1000);
+const logger = createLogger('Auth');
 
 /**
  * POST /api/auth/send-login-otp
@@ -31,20 +20,25 @@ export async function sendLoginOtp(req, res, next) {
       return res.status(400).json({ message: 'Email address is required' });
     }
 
-    // Generate 6-digit numeric OTP code
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes expiration
+    // Generate OTP code
+    const otpCode = generateOTP();
 
-    otpStore.set(normalizedEmail, { code: otpCode, expiresAt });
+    // Store OTP in Redis (or memory fallback)
+    const stored = await storeOTP(normalizedEmail, otpCode);
 
-    console.log(`[BookMyTable][Auth] Login OTP generated for ${normalizedEmail}: ${otpCode}`);
+    logger.info('Login OTP generated and stored', { 
+      email: normalizedEmail, 
+      method: stored.method,
+      expiresIn: `${stored.expiresIn} seconds`
+    });
 
-    // Send email via SES
+    // Send email via Resend
     const delivery = await sendLoginOtpEmail({ toEmail: normalizedEmail, otpCode });
 
     res.json({
       ok: true,
       message: 'Verification code sent to email',
+      expiresIn: stored.expiresIn,
       delivery,
     });
   } catch (err) {
@@ -66,29 +60,50 @@ export async function verifyLoginOtp(req, res, next) {
       return res.status(400).json({ message: 'Email and verification code are required' });
     }
 
-    // Master test code '123456' or '000000' allowed for testing/development
-    const isDevMasterCode = inputCode === '123456' || inputCode === '000000';
+    // Development bypass: only enabled if explicitly configured in environment
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    const bypassEnabled = process.env.DEV_OTP_BYPASS === 'true';
+    const bypassCode = process.env.DEV_OTP_BYPASS_CODE;
+    const isDevBypass = isDevelopment && bypassEnabled && bypassCode && inputCode === bypassCode;
 
-    const record = otpStore.get(normalizedEmail);
-    if (!record && !isDevMasterCode) {
-      return res.status(400).json({ message: 'No active OTP session found. Please click resend code.' });
+    if (isDevBypass) {
+      logger.warn('OTP verification bypassed (development mode)', { email: normalizedEmail });
+      return res.json({
+        ok: true,
+        message: 'OTP verified successfully (development bypass)',
+        bypass: true,
+      });
     }
 
-    if (record && Date.now() > record.expiresAt && !isDevMasterCode) {
-      otpStore.delete(normalizedEmail);
-      return res.status(400).json({ message: 'Verification code has expired. Please resend a new code.' });
+    // Verify OTP using Redis-backed service
+    const verification = await verifyOTP(normalizedEmail, inputCode);
+
+    if (!verification.valid) {
+      logger.warn('OTP verification failed', { 
+        email: normalizedEmail, 
+        reason: verification.reason 
+      });
+
+      if (verification.attemptsExceeded) {
+        return res.status(429).json({ 
+          message: 'Maximum verification attempts exceeded. Please request a new code.',
+          code: 'MAX_ATTEMPTS_EXCEEDED'
+        });
+      }
+
+      const statusCode = verification.reason.includes('expired') ? 410 : 400;
+      return res.status(statusCode).json({ 
+        message: verification.reason,
+        attemptsRemaining: verification.attemptsRemaining 
+      });
     }
 
-    if (record && record.code !== inputCode && !isDevMasterCode) {
-      return res.status(400).json({ message: 'Invalid verification code. Please check your email and try again.' });
-    }
-
-    // OTP verified successfully — clear record
-    if (record) otpStore.delete(normalizedEmail);
+    logger.info('OTP verified successfully', { email: normalizedEmail });
 
     res.json({
       ok: true,
       message: 'OTP verified successfully',
+      email: verification.email,
     });
   } catch (err) {
     next(err);
@@ -108,7 +123,7 @@ export async function sendWelcome(req, res, next) {
       return res.status(400).json({ message: 'Email address is required' });
     }
 
-    console.log(`[BookMyTable][Auth] Sending welcome email to ${normalizedEmail}`);
+    logger.info('Sending welcome email', { email: normalizedEmail });
     const delivery = await sendWelcomeEmail({ toEmail: normalizedEmail, fullName });
 
     res.json({
