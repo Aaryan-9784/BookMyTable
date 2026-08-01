@@ -26,11 +26,10 @@ function IconTrash() {
 function StatusBadge() {
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold tracking-wide whitespace-nowrap"
+      className="inline-flex items-center rounded-full px-3 py-1 font-sans text-[11px] font-semibold tracking-wide whitespace-nowrap"
       style={{ background: 'rgba(34,197,94,0.10)', border: '1px solid rgba(34,197,94,0.25)', color: '#4ade80' }}
     >
-      <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: '#4ade80' }} />
-      Live &amp; Active
+      Active
     </span>
   );
 }

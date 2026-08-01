@@ -148,10 +148,9 @@ export default function Dashboard() {
           title: 'Platform Metrics',
           headers: ['Metric', 'Value'],
           rows: [
-            ['Active Restaurants',   stats?.totalRestaurants ?? 0],
-            ['Total Users',          stats?.totalUsers       ?? 0],
-            ['Total Bookings',       stats?.totalBookings    ?? 0],
-            ['Token Fees Collected', fmt(stats?.totalTokenFees ?? 0)],
+            ['Active Restaurants', stats?.totalRestaurants ?? 0],
+            ['Total Users',        stats?.totalUsers       ?? 0],
+            ['Total Bookings',     stats?.totalBookings    ?? 0],
           ],
         },
         {
@@ -223,8 +222,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── 4-KPI Stat Cards ────────────────────────────────── */}
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 mb-8">
+      {/* ── 3-KPI Stat Cards ────────────────────────────────── */}
+      <div className="grid gap-5 sm:grid-cols-3 mb-8">
         <StatCard
           label="Active Restaurants"
           value={stats?.totalRestaurants ?? 0}
@@ -243,13 +242,6 @@ export default function Dashboard() {
           value={stats?.totalBookings ?? 0}
           sub="Platform-wide reservations"
           Icon={IconBookings}
-        />
-        <StatCard
-          label="Token Fees Collected"
-          value={`₹${(stats?.totalTokenFees ?? 0).toLocaleString()}`}
-          sub="Total platform revenue"
-          Icon={IconRevenue}
-          accent
         />
       </div>
 
