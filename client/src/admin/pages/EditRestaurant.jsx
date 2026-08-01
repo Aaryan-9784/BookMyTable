@@ -283,9 +283,19 @@ export default function EditRestaurant() {
       return;
     }
 
+    if (partnerMode === 'manual_otp' && !partnerVerified) {
+      toast.error('Please verify the partner account by OTP before submitting');
+      return;
+    }
+
+    if (!imageUrls.length) {
+      toast.error('Please upload or add at least 1 restaurant photo');
+      return;
+    }
+
     setSaving(true);
     try {
-      await adminApi.updateRestaurant(id, {
+      const payload = {
         name: name.trim(),
         location: location.trim(),
         description: description.trim(),
@@ -298,7 +308,19 @@ export default function EditRestaurant() {
         experiences,
         imageUrl: imageUrls[0] || '',
         imageUrls,
-      });
+      };
+
+      // Add partner assignment based on mode
+      if (partnerMode === 'existing' && ownerId !== 'none') {
+        payload.ownerId = ownerId;
+      } else if (partnerMode === 'manual_otp' && partnerVerified) {
+        payload.ownerEmail = manualPartnerEmail.trim();
+        if (manualPartnerName.trim()) {
+          payload.ownerName = manualPartnerName.trim();
+        }
+      }
+
+      await adminApi.updateRestaurant(id, payload);
       toast.success('Restaurant updated successfully!');
       navigate('/admin/restaurants');
     } catch (e) {
@@ -325,25 +347,35 @@ export default function EditRestaurant() {
 
       {/* ── Page Header ─────────────────────────────────────── */}
       <div className="mb-6 space-y-3">
-        <div className="flex items-center justify-between">
-          <Link
-            to="/admin/restaurants"
-            className="group inline-flex items-center gap-2 font-sans text-xs font-semibold text-luxury-muted hover:text-luxury-gold transition-colors duration-200"
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="transition-transform duration-200 group-hover:-translate-x-1">
-              <path d="M10 3.5L5.5 8l4.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span>Back to Restaurants</span>
-          </Link>
+        <Link
+          to="/admin/restaurants"
+          className="group inline-flex items-center gap-2 font-sans text-xs font-semibold text-luxury-muted hover:text-luxury-gold transition-colors duration-200"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="transition-transform duration-200 group-hover:-translate-x-1">
+            <path d="M10 3.5L5.5 8l4.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span>Back to Restaurants</span>
+        </Link>
+
+        <div className="flex items-end justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="font-display leading-none text-white font-bold" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)' }}>
+              Edit Restaurant
+            </h1>
+            <p className="mt-2 font-sans text-xs sm:text-sm text-luxury-muted">
+              {initial.name} — update venue details, images, and pricing
+            </p>
+            <div className="mt-4 h-px w-20" style={{ background: 'linear-gradient(90deg, #d4af37, rgba(212,175,55,0.15), transparent)' }} />
+          </div>
 
           <button
             type="button"
             disabled={refreshing}
             onClick={() => { fetchRestaurant(true); toast.success('Data refreshed'); }}
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-sans text-xs text-luxury-muted hover:text-luxury-gold transition-all duration-200 disabled:opacity-50"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-luxury-gold hover:brightness-110 transition-all duration-200 disabled:opacity-50 shrink-0"
+            style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.25)' }}
           >
-            <svg width="12" height="12" viewBox="0 0 15 15" fill="none" className={refreshing ? 'animate-spin' : ''}>
+            <svg width="14" height="14" viewBox="0 0 15 15" fill="none" className={refreshing ? 'animate-spin' : ''}>
               <path d="M13 7.5A5.5 5.5 0 012.02 9M2 7.5A5.5 5.5 0 0112.98 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
               <path d="M12.5 3v3h-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M2.5 12v-3h3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
@@ -351,16 +383,102 @@ export default function EditRestaurant() {
             Refresh
           </button>
         </div>
+      </div>
 
-        <div>
-          <h1 className="font-display leading-none text-white font-bold" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)' }}>
-            Edit Restaurant
-          </h1>
-          <p className="mt-2 font-sans text-xs sm:text-sm text-luxury-muted">
-            {initial.name} — update venue details, images, and pricing
+      {/* ── Live Preview Stat Boxes (mirror RestaurantsAdmin StatCards) ── */}
+      <div className="grid grid-cols-3 gap-4 mb-7">
+
+        {/* Box 1: Venue Name / Status */}
+        <div
+          className="relative overflow-hidden rounded-2xl p-5 transition-all duration-300 group"
+          style={{
+            background: 'linear-gradient(150deg, #1e1b0f 0%, #181507 60%, #151300 100%)',
+            border: '1px solid rgba(212,175,55,0.28)',
+            boxShadow: '0 4px 40px rgba(0,0,0,0.55), 0 0 24px rgba(212,175,55,0.08)',
+          }}
+        >
+          <div className="pointer-events-none absolute -top-6 -right-6 h-24 w-24 rounded-full"
+            style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%)' }} />
+          <div className="flex items-start justify-between mb-3">
+            <p className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted">Current Venue</p>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-110"
+              style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.20)' }}>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M4 1.5v5.5A2.5 2.5 0 006.5 9.5v7" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+                <path d="M6.5 1.5v3.5" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+                <path d="M12 1.5s2.5 2 2.5 4.5S12 9.5 12 9.5v7" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+            </div>
+          </div>
+          <p className="font-sans leading-tight text-white font-extrabold tracking-tight truncate" style={{ fontSize: name.trim() ? '1.1rem' : '2.5rem' }}>
+            {name.trim() || '—'}
           </p>
-          <div className="mt-4 h-px w-20" style={{ background: 'linear-gradient(90deg, #d4af37, rgba(212,175,55,0.15), transparent)' }} />
+          <p className="mt-1.5 font-sans text-xs text-luxury-muted truncate">
+            {location.trim() ? `📍 ${location.trim()}` : 'Location not set'}
+          </p>
+          <div className="absolute bottom-0 left-0 right-0 h-[2px] transition-opacity duration-300 group-hover:opacity-100"
+            style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.55) 0%, transparent 100%)', opacity: 0.8 }} />
         </div>
+
+        {/* Box 2: Total Seating Capacity */}
+        <div
+          className="relative overflow-hidden rounded-2xl p-5 transition-all duration-300 group"
+          style={{
+            background: 'linear-gradient(150deg, #1c1c1c 0%, #161616 55%, #131313 100%)',
+            border: '1px solid rgba(212,175,55,0.13)',
+            boxShadow: '0 4px 40px rgba(0,0,0,0.55)',
+          }}
+        >
+          <div className="flex items-start justify-between mb-3">
+            <p className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted">Total Seating Capacity</p>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-110"
+              style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.20)' }}>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M5 7V4a1 1 0 011-1h6a1 1 0 011 1v3" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+                <rect x="2" y="7" width="14" height="5" rx="1.5" stroke="#d4af37" strokeWidth="1.4" />
+                <path d="M4 12v4M14 12v4" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+            </div>
+          </div>
+          <p className="font-sans leading-none text-white font-extrabold tracking-tight" style={{ fontSize: '2.5rem' }}>
+            {capacity ? Number(capacity).toLocaleString() : '—'}
+          </p>
+          <p className="mt-2 font-sans text-xs text-luxury-muted">
+            Seats at this venue
+          </p>
+          <div className="absolute bottom-0 left-0 right-0 h-[2px] transition-opacity duration-300 group-hover:opacity-100"
+            style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.55) 0%, transparent 100%)', opacity: 0.5 }} />
+        </div>
+
+        {/* Box 3: Token Fee */}
+        <div
+          className="relative overflow-hidden rounded-2xl p-5 transition-all duration-300 group"
+          style={{
+            background: 'linear-gradient(150deg, #1c1c1c 0%, #161616 55%, #131313 100%)',
+            border: '1px solid rgba(212,175,55,0.13)',
+            boxShadow: '0 4px 40px rgba(0,0,0,0.55)',
+          }}
+        >
+          <div className="flex items-start justify-between mb-3">
+            <p className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted">Token Fee Per Seat</p>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-110"
+              style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.20)' }}>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <circle cx="9" cy="9" r="7" stroke="#d4af37" strokeWidth="1.4" />
+                <path d="M9 5v8M6.5 7.5h5M6.5 10.5h5" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+            </div>
+          </div>
+          <p className="font-sans leading-none text-white font-extrabold tracking-tight" style={{ fontSize: '2.5rem' }}>
+            {tokenFee ? `₹${Number(tokenFee).toLocaleString()}` : '—'}
+          </p>
+          <p className="mt-2 font-sans text-xs text-luxury-muted">
+            Per guest at this venue
+          </p>
+          <div className="absolute bottom-0 left-0 right-0 h-[2px] transition-opacity duration-300 group-hover:opacity-100"
+            style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.55) 0%, transparent 100%)', opacity: 0.5 }} />
+        </div>
+
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
