@@ -398,18 +398,7 @@ export default function Navbar() {
         <div className="hidden items-center md:flex" style={{ gap: '1.75rem' }}>
           <span className="h-1 w-1 rounded-full bg-luxury-gold/20" />
           <NavLink to="/restaurants" className={navLinkClass}>Restaurants</NavLink>
-          {isAuthenticated && !isRestaurant && (
-            <>
-              <span className="h-3 w-px bg-white/10" />
-              <NavLink to="/my-bookings" className={navLinkClass}>My bookings</NavLink>
-            </>
-          )}
-          {isAdmin && (
-            <>
-              <span className="h-3 w-px bg-white/10" />
-              <NavLink to="/admin" className={navLinkClass}>Admin</NavLink>
-            </>
-          )}
+
           <span className="h-1 w-1 rounded-full bg-luxury-gold/20" />
         </div>
 
@@ -514,10 +503,8 @@ export default function Navbar() {
           <NavLink to="/restaurants" className={navLinkClass}>Venues</NavLink>
           {isAuthenticated && (
             <>
-              {!isRestaurant && <NavLink to="/my-bookings" className={navLinkClass}>Bookings</NavLink>}
               <NavLink to="/profile" className={navLinkClass}>Profile</NavLink>
               {isRestaurant && <NavLink to="/restaurant-dashboard" className={navLinkClass}>Partner</NavLink>}
-              {isAdmin && <NavLink to="/admin" className={navLinkClass}>Admin</NavLink>}
             </>
           )}
         </div>
