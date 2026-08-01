@@ -500,7 +500,7 @@ export default function RestaurantNavbar() {
                 className="font-sans text-[9px] font-extrabold uppercase tracking-wider leading-tight mt-[2px]"
                 style={{ color: '#d4af37' }}
               >
-                {role === 'admin' ? 'Super Admin' : 'Restaurant Partner'}
+                {role === 'admin' ? 'Admin' : 'Restaurant Partner'}
               </p>
             </div>
 
@@ -516,7 +516,7 @@ export default function RestaurantNavbar() {
             <ProfilePopup
               name={name}
               email={email}
-              role={role === 'admin' ? 'Super Admin' : 'Restaurant Partner'}
+              role={role === 'admin' ? 'Admin' : 'Restaurant Partner'}
               onClose={() => setOpen(false)}
               onLogout={handleLogout}
             />

@@ -184,7 +184,7 @@ export default function Profile() {
                         }}
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-                        {isAdmin ? 'Super Admin' : isRestaurant ? 'Restaurant Partner' : 'Customer Account'}
+                        {isAdmin ? 'Admin' : isRestaurant ? 'Restaurant Partner' : 'Customer Account'}
                       </span>
                     </div>
                   </div>

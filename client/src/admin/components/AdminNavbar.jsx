@@ -5,7 +5,7 @@ import { useNotifications } from '../../context/NotificationContext.jsx';
 
 /* ── PAGE TITLES ────────────────────────────────────────────── */
 const PAGE_TITLES = {
-  '/admin':             'Super Admin Dashboard',
+  '/admin':             'Admin Dashboard',
   '/admin/restaurants': 'Restaurants Directory',
   '/admin/users':       'Users Management',
 };
@@ -255,7 +255,7 @@ function NotificationsPopup() {
       </div>
 
       <div className="border-t border-white/5 p-2 bg-black/20 text-center">
-        <span className="font-sans text-[10px] text-gray-500">Super Admin Command Feed</span>
+        <span className="font-sans text-[10px] text-gray-500">Admin Command Feed</span>
       </div>
     </div>
   );
@@ -298,7 +298,7 @@ function ProfilePopup({ name, email, role, onClose, onLogout }) {
                   color: '#d4af37',
                 }}
               >
-                {role || 'Super Admin'}
+                {role || 'Admin'}
               </span>
             </div>
           </div>
@@ -497,7 +497,7 @@ export default function AdminNavbar() {
                 className="font-sans text-[9px] font-extrabold uppercase tracking-wider leading-tight mt-[2px]"
                 style={{ color: '#d4af37' }}
               >
-                {role ?? 'Super Admin'}
+                {role ?? 'Admin'}
               </p>
             </div>
 
@@ -513,7 +513,7 @@ export default function AdminNavbar() {
             <ProfilePopup
               name={name}
               email={email}
-              role={role ?? 'Super Admin'}
+              role={role ?? 'Admin'}
               onClose={() => setOpen(false)}
               onLogout={handleLogout}
             />

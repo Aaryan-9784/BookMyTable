@@ -1,153 +1,373 @@
-# 🍽️ BookMyTable
+# BookMyTable
 
-A full-stack luxury restaurant reservation platform built with the MERN stack. Users can browse curated restaurants, make table reservations, and receive email confirmations — all wrapped in a premium dark-gold UI.
+A full-stack restaurant table reservation platform. Customers browse and book tables, restaurant partners manage their operations through a dedicated console, and admins oversee everything from a central panel — all wrapped in a dark-gold luxury UI.
 
-**Live stack:** React + Vite + Tailwind CSS · Express.js + Mongoose · Amazon Cognito · Amazon S3 + CloudFront · Amazon SES · AWS Elastic Beanstalk · AWS Amplify
-
----
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────┐
-│                    AWS Cloud                        │
-│                                                     │
-│  ┌──────────────┐        ┌─────────────────────┐   │
-│  │ AWS Amplify  │        │  Elastic Beanstalk  │   │
-│  │  (Frontend)  │◄──────►│     (Backend API)   │   │
-│  │  React/Vite  │        │    Express/Node.js   │   │
-│  └──────────────┘        └──────────┬──────────┘   │
-│                                     │               │
-│  ┌──────────────┐        ┌──────────▼──────────┐   │
-│  │  CloudFront  │        │    MongoDB Atlas     │   │
-│  │    + S3      │        │     (Database)       │   │
-│  │  (Images)    │        └─────────────────────┘   │
-│  └──────────────┘                                   │
-│                                                     │
-│  ┌──────────────┐        ┌─────────────────────┐   │
-│  │   Cognito    │        │    Amazon SES        │   │
-│  │    (Auth)    │        │    (Emails)          │   │
-│  └──────────────┘        └─────────────────────┘   │
-└─────────────────────────────────────────────────────┘
-```
+**Live:** [bookmytable.me](https://bookmytable.me)
 
 ---
 
-## ✨ Features
+## Table of Contents
 
-- 🔐 **Authentication** — Sign up, log in, email verification via Amazon Cognito
-- 🍴 **Restaurant browsing** — Search, filter by cuisine / price / rating / location, sort
-- 📅 **Table booking** — Pick date, time slot, and guest count; instant confirmation
-- 📧 **Email confirmation** — Booking and cancellation emails via Amazon SES
-- 👤 **User profile** — View stats, recent reservations, manage account
-- 🛡️ **Admin panel** — Add/edit/delete restaurants, manage bookings and users
-- 🖼️ **Image uploads** — Restaurant photos stored on S3, served via CloudFront CDN
-- 💎 **Luxury UI** — Dark obsidian + gold design system, glassmorphism, smooth animations
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Features](#features)
+- [User Roles](#user-roles)
+- [Data Models](#data-models)
+- [API Reference](#api-reference)
+- [Local Development](#local-development)
+- [Environment Variables](#environment-variables)
+- [Deployment](#deployment)
+- [Common Issues](#common-issues)
 
 ---
 
-## 🗂️ Project Structure
+## Tech Stack
+
+### Frontend
+| Technology | Purpose |
+|---|---|
+| React 18 + Vite | UI framework & build tool |
+| Tailwind CSS | Utility-first styling |
+| React Router v6 | Client-side routing |
+| Framer Motion | Page & component animations |
+| Axios | HTTP client with interceptors |
+| Supabase Auth | User authentication |
+| react-hot-toast | Toast notifications |
+
+### Backend
+| Technology | Purpose |
+|---|---|
+| Node.js 18+ + Express 4 | REST API server |
+| Mongoose | MongoDB ODM |
+| jsonwebtoken + jwk-to-pem | JWT verification |
+| express-validator | Input validation |
+| Cloudinary | Image storage & CDN |
+| Nodemailer + Resend | Transactional emails |
+| Multer | Multipart file uploads |
+| Helmet + CORS | Security headers |
+| Morgan | HTTP request logging |
+| Server-Sent Events (SSE) | Real-time push notifications |
+
+### Infrastructure
+| Service | Purpose |
+|---|---|
+| AWS Amplify | Frontend hosting + CI/CD |
+| AWS Elastic Beanstalk | Backend hosting (Node.js) |
+| MongoDB Atlas | Cloud database |
+| Supabase | Authentication provider |
+
+---
+
+## Project Structure
 
 ```
 BookMyTable/
-├── client/                     # React frontend (Vite)
+├── client/                          # React frontend (Vite)
 │   ├── public/
-│   │   └── _redirects          # Amplify SPA routing fix
+│   │   ├── _redirects               # Amplify/Netlify SPA routing fix
+│   │   └── *.jpg                    # Static assets
 │   ├── src/
-│   │   ├── admin/              # Admin-only pages & components
-│   │   ├── components/         # Shared UI components
-│   │   ├── context/            # Auth context (Cognito)
-│   │   ├── hooks/              # Custom React hooks
-│   │   ├── pages/              # Route-level pages
-│   │   ├── services/           # Axios API client
-│   │   └── utils/              # Helpers (date, time slots, etc.)
-│   ├── .env                    # Client env vars (VITE_*)
+│   │   ├── admin/                   # Admin portal (role-gated)
+│   │   │   ├── components/          # Admin-specific UI (DataTable, StatsCard, etc.)
+│   │   │   ├── pages/               # Dashboard, Restaurants CRUD, Users
+│   │   │   ├── services/            # adminApi.js
+│   │   │   ├── utils/               # CSV export
+│   │   │   ├── AdminLayout.jsx      # Admin shell with sidebar + navbar
+│   │   │   └── AdminProtectedRoute.jsx
+│   │   ├── restaurant/              # Restaurant partner portal (role-gated)
+│   │   │   ├── components/          # RestaurantNavbar, RestaurantSidebar
+│   │   │   ├── pages/               # Dashboard, Tables, Bookings, Analytics, Settings
+│   │   │   ├── services/            # restaurantApi.js
+│   │   │   ├── utils/               # CSV export
+│   │   │   ├── RestaurantLayout.jsx
+│   │   │   └── RestaurantProtectedRoute.jsx
+│   │   ├── components/              # Shared UI components
+│   │   │   ├── BookingForm.jsx
+│   │   │   ├── Navbar.jsx / Footer.jsx
+│   │   │   ├── RestaurantCard.jsx
+│   │   │   ├── SearchInput.jsx
+│   │   │   └── UserProtectedRoute.jsx
+│   │   ├── config/
+│   │   │   └── supabase.js          # Supabase client initialisation
+│   │   ├── context/
+│   │   │   ├── AuthContext.jsx      # Auth state, login/signup/logout actions
+│   │   │   └── NotificationContext.jsx # SSE notification state
+│   │   ├── hooks/
+│   │   │   ├── useAuth.js           # Convenience hook for AuthContext
+│   │   │   └── useDebounce.js
+│   │   ├── pages/                   # Public + customer pages
+│   │   │   ├── Home.jsx
+│   │   │   ├── Restaurants.jsx      # Browse & filter restaurants
+│   │   │   ├── RestaurantDetails.jsx
+│   │   │   ├── BookTable.jsx        # Booking flow
+│   │   │   ├── MyBookings.jsx
+│   │   │   ├── Profile.jsx
+│   │   │   ├── Login.jsx / Signup.jsx / ForgotPassword.jsx
+│   │   ├── services/
+│   │   │   └── api.js               # Axios instance with auth interceptor
+│   │   ├── utils/
+│   │   │   ├── authSession.js       # Session event helpers
+│   │   │   ├── constants.js         # localStorage keys, shared constants
+│   │   │   ├── formatDate.js
+│   │   │   └── timeSlots.js         # Generates bookable time slot options
+│   │   ├── App.jsx                  # Route tree (all three portals)
+│   │   ├── main.jsx                 # React root
+│   │   └── index.css                # Tailwind base + custom design tokens
+│   ├── .env                         # Client env vars (VITE_*)
+│   ├── index.html
+│   ├── package.json
+│   ├── tailwind.config.js
+│   ├── postcss.config.js
+│   └── vercel.json
+│
+├── server/                          # Express backend
+│   ├── config/
+│   │   └── db.js                    # MongoDB Atlas connection
+│   ├── controllers/                 # Route handler logic
+│   │   ├── restaurantController.js
+│   │   ├── bookingController.js
+│   │   ├── userController.js
+│   │   ├── adminController.js
+│   │   ├── restaurantDashboardController.js
+│   │   ├── authController.js        # OTP send/verify, welcome email
+│   │   └── uploadController.js      # Cloudinary upload handler
+│   ├── middleware/
+│   │   ├── verifyCognitoToken.js    # JWT decode + MongoDB user upsert
+│   │   ├── requireAdmin.js          # Role check: admin only
+│   │   ├── requireRole.js           # Role check: parameterised
+│   │   ├── uploadImage.js           # Multer config for image uploads
+│   │   ├── asyncHandler.js          # Wraps async controllers
+│   │   └── errorHandler.js          # 404 + global error responses
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Restaurant.js
+│   │   ├── Booking.js
+│   │   └── Table.js
+│   ├── routes/
+│   │   ├── restaurantRoutes.js
+│   │   ├── bookingRoutes.js
+│   │   ├── userRoutes.js
+│   │   ├── adminRoutes.js
+│   │   ├── restaurantDashboardRoutes.js
+│   │   ├── authRoutes.js
+│   │   ├── uploadRoutes.js
+│   │   └── notificationRoutes.js
+│   ├── utils/
+│   │   ├── sseManager.js            # In-process SSE broker (push to user / broadcast)
+│   │   ├── verifyCognitoJwt.js      # JWKS-based Cognito fallback verifier
+│   │   ├── emailService.js          # Nodemailer + Resend helpers
+│   │   └── cloudinaryUpload.js      # Cloudinary upload utility
+│   ├── scripts/                     # One-off DB maintenance scripts
+│   ├── .env                         # Server env vars (never commit)
+│   ├── app.js                       # Express app setup (routes, middleware)
+│   ├── server.js                    # HTTP server entry point
 │   └── package.json
 │
-├── server/                     # Express backend
-│   ├── .platform/              # EB nginx config (upload size, timeouts)
-│   ├── config/                 # DB + AWS SDK clients
-│   ├── controllers/            # Route handlers
-│   ├── middleware/             # Auth, error handling, upload
-│   ├── models/                 # Mongoose schemas
-│   ├── routes/                 # Express routers
-│   ├── utils/                  # S3, SES, JWT helpers
-│   ├── Procfile                # EB process definition
-│   ├── .ebignore               # Files excluded from EB zip
-│   ├── .env                    # Server env vars (never commit)
-│   └── package.json
-│
-├── amplify.yml                 # Amplify monorepo build spec
+├── amplify.yml                      # Amplify monorepo build spec
 ├── .gitignore
 └── README.md
 ```
 
 ---
 
-## 🔧 Prerequisites
+## Features
+
+### Customer
+- Browse restaurants with search and filters (cuisine, location, price range, rating)
+- View restaurant details, gallery, reviews, and opening hours
+- Book a table — choose date, time slot, and guest count
+- Token fee system — a small refundable deposit is collected per booking
+- View and cancel bookings from the "My Bookings" page
+- User profile management with password change
+
+### Restaurant Partner
+- Dedicated dashboard at `/restaurant-dashboard` with KPI stats
+- Table management — add/edit/delete tables with zone, capacity, and token fee
+- Bookings management — view all reservations, update statuses in real time
+- Token fee analytics — track earnings from confirmed bookings
+- Restaurant settings — update opening hours, description, seating capacity
+- Export dashboard analytics as CSV
+
+### Admin
+- Central panel at `/admin` for platform oversight
+- Full restaurant CRUD with approve / reject workflow
+- User management — view all users, change roles, delete accounts
+- Booking oversight — list and delete any booking
+- Platform-wide stats on the dashboard
+
+### Platform
+- Real-time notifications via Server-Sent Events (SSE)
+- Email notifications — booking confirmation, cancellation, welcome email
+- Image uploads via Cloudinary (JPEG / PNG / WebP / GIF, max 5 MB)
+- Dark obsidian + gold design system with glassmorphism and smooth animations
+
+---
+
+## User Roles
+
+| Role | Access |
+|---|---|
+| `customer` | Public pages + booking flow + profile |
+| `restaurant` | All above + `/restaurant-dashboard` portal |
+| `admin` | All above + `/admin` panel + full CRUD on all data |
+
+Roles are assigned automatically:
+- Emails listed in `ADMIN_EMAILS` → `admin`
+- Emails listed in `RESTAURANT_EMAILS` → `restaurant`
+- Everyone else → `customer`
+
+Role is determined on every request by the `verifyCognitoToken` middleware and stored in MongoDB.
+
+---
+
+## Data Models
+
+### User
+```
+email       String   unique, indexed
+password    String   bcrypt-hashed, not returned in queries
+name        String
+phone       String
+role        Enum     customer | restaurant | admin
+restaurantId ObjectId  ref → Restaurant (for restaurant owners)
+```
+
+### Restaurant
+```
+name              String   required
+location          String   required
+description       String
+imageUrl          String   primary image (Cloudinary URL)
+imageUrls         [String] gallery images
+category          String   e.g. "Indian", "Italian"
+priceRange        Number   1 (₹) to 4 (₹₹₹₹)
+rating            Number   0–5
+reviews           [{author, text, rating, date}]
+tokenFee          Number   booking deposit in ₹ (default 150)
+totalSeatingCapacity Number
+openingHours      String   e.g. "11:00 AM – 11:00 PM"
+ownerId           ObjectId ref → User
+approvalStatus    Enum     pending | approved | rejected
+rejectionReason   String
+```
+
+### Booking
+```
+userId        ObjectId  ref → User, required
+restaurantId  ObjectId  ref → Restaurant, required
+date          String    e.g. "2026-08-15"
+time          String    e.g. "7:00 PM"
+guests        Number    1–50
+status        Enum      confirmed | cancelled
+```
+Unique index on `(userId, restaurantId, date, time)` where `status = confirmed` — prevents double-booking the same slot.
+
+### Table
+```
+restaurantId  ObjectId  ref → Restaurant, required
+tableNumber   String    required, unique per restaurant
+capacity      Number    1–30 (default 4)
+zone          Enum      Main Hall | Outdoor Terrace | VIP Private Dining | Rooftop | Bar Counter
+status        Enum      Available | Reserved | Maintenance
+tokenFee      Number    per-table override (default 150)
+```
+
+---
+
+## API Reference
+
+### Public
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/health` | Health check |
+| GET | `/api/restaurants` | List restaurants (filterable, paginated) |
+| GET | `/api/restaurants/:id` | Single restaurant |
+
+**Query params for `GET /api/restaurants`**
+
+| Param | Example | Description |
+|---|---|---|
+| `q` | `?q=pizza` | Full-text search (name / location / category) |
+| `category` | `?category=Indian` | Filter by cuisine type |
+| `location` | `?location=Mumbai` | Filter by city |
+| `minPrice` | `?minPrice=2` | Min price range (1–4) |
+| `maxPrice` | `?maxPrice=3` | Max price range (1–4) |
+| `minRating` | `?minRating=4` | Minimum rating |
+| `sort` | `?sort=rating` | `newest`, `rating`, `price_asc`, `price_desc` |
+| `page` | `?page=2` | Page number (default 1) |
+| `limit` | `?limit=12` | Results per page (default 9) |
+
+### Auth (Public)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/send-login-otp` | Send OTP to email |
+| POST | `/api/auth/verify-login-otp` | Verify OTP |
+| POST | `/api/auth/send-welcome-email` | Trigger welcome email |
+
+### Customer (requires JWT)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/users/profile` | Get own profile |
+| PATCH | `/api/users/profile` | Update name / phone |
+| POST | `/api/bookings` | Create a booking |
+| GET | `/api/bookings/my` | List own bookings |
+| PATCH | `/api/bookings/:id/cancel` | Cancel a booking |
+| GET | `/api/notifications/stream` | Open SSE stream (`?token=<jwt>`) |
+
+### Admin (requires JWT + admin role)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/admin/dashboard/stats` | Platform stats |
+| GET | `/api/admin/restaurants` | All restaurants |
+| POST | `/api/admin/restaurants` | Create restaurant |
+| PUT | `/api/admin/restaurants/:id` | Update restaurant |
+| PUT | `/api/admin/restaurants/:id/approve` | Approve restaurant |
+| PUT | `/api/admin/restaurants/:id/reject` | Reject restaurant |
+| DELETE | `/api/admin/restaurants/:id` | Delete restaurant |
+| GET | `/api/admin/bookings` | All bookings |
+| DELETE | `/api/admin/bookings/:id` | Delete booking |
+| GET | `/api/admin/users` | All users |
+| PUT | `/api/admin/users/:id/role` | Change user role |
+| DELETE | `/api/admin/users/:id` | Delete user |
+| POST | `/api/upload` | Upload image to Cloudinary |
+
+### Restaurant Dashboard (requires JWT + restaurant or admin role)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/restaurant-dashboard/stats` | Dashboard KPIs |
+| GET | `/api/restaurant-dashboard/tables` | List tables |
+| POST | `/api/restaurant-dashboard/tables` | Add table |
+| PUT | `/api/restaurant-dashboard/tables/:id` | Update table |
+| DELETE | `/api/restaurant-dashboard/tables/:id` | Delete table |
+| GET | `/api/restaurant-dashboard/bookings` | List bookings |
+| PUT | `/api/restaurant-dashboard/bookings/:id/status` | Update booking status |
+| GET | `/api/restaurant-dashboard/analytics` | Token fee analytics |
+| GET | `/api/restaurant-dashboard/settings` | Get settings |
+| PUT | `/api/restaurant-dashboard/settings` | Update settings |
+
+---
+
+## Local Development
+
+### Prerequisites
 
 | Tool | Version |
-|------|---------|
+|---|---|
 | Node.js | v18+ |
 | npm | v9+ |
 | Git | Any |
 
-AWS services needed:
-- Amazon Cognito (auth)
-- Amazon S3 + CloudFront (image storage + CDN)
-- Amazon SES (transactional email)
-- AWS Elastic Beanstalk (backend hosting)
-- AWS Amplify (frontend hosting)
-- MongoDB Atlas (database)
+You will also need:
+- A [MongoDB Atlas](https://www.mongodb.com/atlas) cluster (free tier works fine)
+- A [Supabase](https://supabase.com) project for authentication (free tier, 50k MAU)
+- A [Cloudinary](https://cloudinary.com) account for image uploads (free tier works)
 
----
-
-## ⚙️ Environment Variables
-
-### `server/.env`
-
-```env
-PORT=5000
-NODE_ENV=development
-
-MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/bookmytable
-
-AWS_REGION=us-east-1
-
-COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
-COGNITO_APP_CLIENT_ID=your_app_client_id
-
-AWS_ACCESS_KEY_ID=your_access_key
-AWS_SECRET_ACCESS_KEY=your_secret_key
-
-S3_BUCKET_NAME=your-bucket-name
-
-SES_FROM_EMAIL=you@yourdomain.com
-
-ADMIN_EMAILS=admin@example.com
-
-# CORS — set to your Amplify URL in production
-CLIENT_URL=http://localhost:5173
-
-SES_SANDBOX_FALLBACK_TO_SENDER=true
-```
-
-### `client/.env`
-
-```env
-VITE_API_URL=http://localhost:5000
-VITE_AWS_REGION=us-east-1
-VITE_COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
-VITE_COGNITO_CLIENT_ID=your_app_client_id
-```
-
-> Never commit `.env` files — they are in `.gitignore`.
-
----
-
-## 🚀 Local Development
-
-### 1. Clone
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/your-username/BookMyTable.git
@@ -158,111 +378,112 @@ cd BookMyTable
 
 ```bash
 # Backend
-cd server && npm install
+cd server
+npm install
 
 # Frontend
-cd ../client && npm install
+cd ../client
+npm install
 ```
 
-### 3. Set up AWS services (see sections below)
+### 3. Configure environment variables
 
-### 4. Run
+Copy the examples below into `server/.env` and `client/.env`, then fill in your values (see the [Environment Variables](#environment-variables) section).
+
+### 4. Start both servers
 
 ```bash
-# Terminal 1 — backend
-cd server && npm run dev
+# Terminal 1 — backend (runs on port 5000)
+cd server
+npm run dev
 
-# Terminal 2 — frontend
-cd client && npm run dev
+# Terminal 2 — frontend (runs on port 5173)
+cd client
+npm run dev
 ```
 
-Open `http://localhost:5173`
+Open [http://localhost:5173](http://localhost:5173).
 
----
+### 5. Set up an admin account
 
-## ☁️ AWS Setup
+Add your email to `ADMIN_EMAILS` in `server/.env`:
 
-### Amazon Cognito
-
-1. AWS Console → Cognito → Create user pool
-2. Sign-in: Email
-3. Required attributes: `email`, `name`
-4. App integration → create App client (Public client, no secret)
-5. Note: **User Pool ID** and **Client ID**
-
-### Amazon S3 + CloudFront
-
-#### S3 Bucket
-
-1. AWS Console → S3 → Create bucket
-2. Region: `us-east-1`
-3. Uncheck "Block all public access"
-4. Permissions → Bucket policy:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "PublicReadGetObject",
-      "Effect": "Allow",
-      "Principal": "*",
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::YOUR_BUCKET_NAME/*"
-    }
-  ]
-}
-```
-
-#### CloudFront Distribution (for fast image delivery)
-
-1. AWS Console → CloudFront → Create distribution
-2. Origin domain: select your S3 bucket
-3. Origin access: "Origin access control settings (recommended)"
-   - Create new OAC → Sign requests → Create
-4. Viewer protocol policy: "Redirect HTTP to HTTPS"
-5. Cache policy: `CachingOptimized`
-6. Create distribution — note the **Distribution domain** (e.g. `dxxxxxxxxx.cloudfront.net`)
-7. After creation, CloudFront will prompt you to update the S3 bucket policy — click "Copy policy" and paste it into your S3 bucket policy (replaces the public one above)
-
-Now update `server/utils/s3Upload.js` to return CloudFront URLs instead of S3 URLs:
-
-```js
-// Replace the return line in uploadBufferToS3:
-const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; // e.g. dxxxxxxxxx.cloudfront.net
-
-const safeKey = key.split('/').map(encodeURIComponent).join('/');
-return CLOUDFRONT_DOMAIN
-  ? `https://${CLOUDFRONT_DOMAIN}/${safeKey}`
-  : `https://${bucket}.s3.${region}.amazonaws.com/${safeKey}`;
-```
-
-Add to `server/.env`:
 ```env
-CLOUDFRONT_DOMAIN=dxxxxxxxxx.cloudfront.net
+ADMIN_EMAILS=you@example.com
 ```
 
-### Amazon SES
-
-1. AWS Console → SES → Verified identities → Create identity
-2. Choose Email address → enter your email → verify the link
-3. Set `SES_FROM_EMAIL` in `server/.env`
-
-> SES sandbox only sends to verified addresses. Request production access in SES → Account dashboard to send to anyone.
-
-### IAM Credentials
-
-1. AWS Console → IAM → Users → Create user
-2. Attach policies: `AmazonS3FullAccess`, `AmazonSESFullAccess`
-3. Security credentials → Create access key → copy into `server/.env`
+Log in with that email and you will automatically get the `admin` role.
 
 ---
 
-## � Production Deployment
+## Environment Variables
+
+### `server/.env`
+
+```env
+# Server
+PORT=5000
+NODE_ENV=development
+
+# Database
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/bookmytable
+
+# Supabase (optional — used for JWKS verification fallback)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# Roles — comma-separated email lists
+ADMIN_EMAILS=admin@example.com
+RESTAURANT_EMAILS=owner@restaurant.com
+
+# Cloudinary — image uploads
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+
+# Email (choose one or both)
+GMAIL_USER=you@gmail.com
+GMAIL_APP_PASSWORD=your-gmail-app-password
+RESEND_API_KEY=re_xxxxxxxxxxxx
+EMAIL_FROM=BookMyTable <noreply@bookmytable.me>
+
+# CORS — set to your frontend URL in production
+CLIENT_URL=http://localhost:5173
+```
+
+### `client/.env`
+
+```env
+# Backend API URL
+VITE_API_URL=http://localhost:5000
+
+# Supabase Auth — get these from your Supabase project settings
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+> Never commit `.env` files. They are listed in `.gitignore`.
+
+---
+
+## Deployment
+
+### Frontend — AWS Amplify
+
+The repo includes `amplify.yml` at the root configured for the monorepo layout.
+
+1. AWS Console → Amplify → Create new app → Host web app
+2. Connect GitHub → select `BookMyTable` → branch `main`
+3. Amplify auto-detects `amplify.yml` (builds from the `client/` folder)
+4. Add environment variables:
+   - `VITE_API_URL` → your Elastic Beanstalk URL
+   - `VITE_SUPABASE_URL` → your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY` → your Supabase anon key
+5. Deploy — Amplify auto-deploys on every push to `main`
 
 ### Backend — AWS Elastic Beanstalk
 
-#### Create the deployment zip (PowerShell)
+Create the deployment zip (PowerShell):
 
 ```powershell
 $source = "path\to\BookMyTable\server"
@@ -270,7 +491,7 @@ $dest   = "path\to\BookMyTable\bookmytable-api.zip"
 
 if (Test-Path $dest) { Remove-Item $dest }
 
-$excludeNames = @("node_modules", ".env", ".git", "scripts", ".elasticbeanstalk", ".ebignore", "*.pem")
+$excludeNames = @("node_modules", ".env", ".git", "scripts", ".elasticbeanstalk")
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = [System.IO.Compression.ZipFile]::Open($dest, 'Create')
@@ -288,180 +509,68 @@ Get-ChildItem -Path $source -Recurse | Where-Object {
 $zip.Dispose()
 ```
 
-#### Deploy on EB Console
-
-1. AWS Console → Elastic Beanstalk → Create application
-   - Name: `bookmytable-api`
-2. Create environment
-   - Tier: Web server
-   - Platform: Node.js 20+ on Amazon Linux 2023
-   - Upload: `bookmytable-api.zip`
-   - Preset: Single instance (free tier)
-3. Configure → Software → Environment properties — add all vars from `server/.env` plus:
+Deploy on EB Console:
+1. Elastic Beanstalk → Create application → Name: `bookmytable-api`
+2. Platform: Node.js 20+ on Amazon Linux 2023
+3. Upload `bookmytable-api.zip`
+4. Configuration → Software → Environment properties — add all vars from `server/.env` and set:
    - `NODE_ENV` = `production`
    - `PORT` = `8080`
    - `CLIENT_URL` = your Amplify URL
-   - `CLOUDFRONT_DOMAIN` = your CloudFront domain
-4. Create environment
 
-Verify: `http://your-eb-domain.elasticbeanstalk.com/health` → `{"ok":true}`
-
-#### Re-deploying after changes
-
-Re-create the zip and use "Upload and deploy" in the EB console with a new version label.
+Verify the backend is running: `http://your-eb-url.elasticbeanstalk.com/health` should return `{"ok":true}`.
 
 ---
 
-### Frontend — AWS Amplify
+## Auth Flow
 
-The repo includes `amplify.yml` at the root for monorepo builds.
-
-1. AWS Console → Amplify → Create new app → Host web app
-2. Connect GitHub → select `BookMyTable` repo → branch `main`
-3. Amplify auto-detects `amplify.yml`
-4. Environment variables — add:
-   - `VITE_API_URL` = `http://your-eb-domain.elasticbeanstalk.com`
-   - `VITE_AWS_REGION` = `us-east-1`
-   - `VITE_COGNITO_USER_POOL_ID` = your pool ID
-   - `VITE_COGNITO_CLIENT_ID` = your client ID
-5. Save and deploy
-
-Amplify auto-deploys on every push to `main`.
-
-#### After Amplify is live
-
-Update `CLIENT_URL` on EB to your Amplify URL:
-- EB Console → your environment → Configuration → Software → Edit → update `CLIENT_URL`
-
-Update Cognito callback URLs:
-- Cognito → User Pools → your pool → App integration → App clients → your client
-- Add your Amplify URL to "Allowed callback URLs" and "Allowed sign-out URLs"
-
----
-
-## 🌐 API Reference
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/health` | No | Health check |
-| GET | `/api/restaurants` | No | List restaurants (filterable) |
-| GET | `/api/restaurants/:id` | No | Single restaurant |
-| POST | `/api/restaurants` | Admin | Create restaurant |
-| PUT | `/api/restaurants/:id` | Admin | Update restaurant |
-| DELETE | `/api/restaurants/:id` | Admin | Delete restaurant |
-| POST | `/api/bookings` | User | Create booking |
-| GET | `/api/bookings/my` | User | My bookings |
-| PATCH | `/api/bookings/:id/cancel` | User | Cancel booking |
-| POST | `/api/upload` | Admin | Upload image to S3 |
-| GET | `/api/users/profile` | User | Get profile |
-| PATCH | `/api/users/profile` | User | Update profile |
-| GET | `/api/admin/dashboard/stats` | Admin | Dashboard stats |
-| GET | `/api/admin/restaurants` | Admin | All restaurants |
-| GET | `/api/admin/bookings` | Admin | All bookings |
-| GET | `/api/admin/users` | Admin | All users |
-
-**Query params for `GET /api/restaurants`:**
-
-| Param | Example | Description |
-|-------|---------|-------------|
-| `q` | `?q=pizza` | Search name/location/category |
-| `category` | `?category=Indian` | Filter by cuisine |
-| `location` | `?location=Mumbai` | Filter by city |
-| `minPrice` | `?minPrice=2` | Min price range (1–4) |
-| `maxPrice` | `?maxPrice=3` | Max price range (1–4) |
-| `minRating` | `?minRating=4` | Minimum rating |
-| `sort` | `?sort=rating` | `newest`, `rating`, `price_asc`, `price_desc` |
-| `page` | `?page=2` | Pagination |
-| `limit` | `?limit=12` | Results per page |
-
----
-
-## 👑 Admin Access
-
-Add your email to `ADMIN_EMAILS` in `server/.env` (comma-separated for multiple):
-
-```env
-ADMIN_EMAILS=admin@example.com,another@example.com
+```
+Client (Supabase Auth)
+  │
+  │  signInWithPassword() → JWT access token
+  │
+  └──► Axios request with Authorization: Bearer <token>
+         │
+         └──► verifyCognitoToken middleware (server)
+                │  1. Decode JWT payload
+                │  2. Extract email + sub
+                │  3. Upsert User in MongoDB
+                │  4. Assign role from ADMIN_EMAILS / RESTAURANT_EMAILS env
+                └──► req.user attached → controller runs
 ```
 
-On EB, update via Configuration → Software → Environment properties. Admins get access to `/admin` in the app.
+A local JWT fallback is available for development when Supabase is not configured — the client generates a simple base64-encoded token that the server can decode without signature verification.
 
 ---
 
-## 🔒 Security Notes
+## Common Issues
 
-- All `.env` files are gitignored
-- Cognito ID tokens verified server-side (RS256, issuer, audience, expiry)
-- Admin routes require valid JWT + admin role
-- File uploads limited by type (JPEG/PNG/WebP/GIF) and size (5MB)
-- Images served via CloudFront (not direct S3 URLs) in production
-- CORS locked to `CLIENT_URL` env var
+**MongoDB connection refused**
+→ Whitelist `0.0.0.0/0` in MongoDB Atlas → Network Access, or add your current IP.
 
----
+**Images not uploading / not showing**
+→ Check `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` in `server/.env`.
 
-## 🐛 Common Issues
+**Emails not delivered**
+→ For Gmail, make sure you are using an App Password (not your account password) and that 2FA is enabled on the Google account.
 
-**"MongoDB connection failed"**
-→ Whitelist `0.0.0.0/0` in MongoDB Atlas → Network Access.
+**Login fails silently**
+→ Check `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `client/.env`. The dev fallback only works when these are set to the placeholder values.
 
-**"Restaurant images not loading"**
-→ Check S3 bucket policy allows public `GetObject`, or verify CloudFront OAC policy is applied.
+**Admin panel not accessible**
+→ Add your email to `ADMIN_EMAILS` in `server/.env` and restart the server.
 
-**"Email not received after booking"**
-→ SES sandbox only sends to verified emails. Set `SES_SANDBOX_FALLBACK_TO_SENDER=true` or request SES production access.
-
-**"Login fails / token error"**
-→ `COGNITO_APP_CLIENT_ID` in `server/.env` must match `VITE_COGNITO_CLIENT_ID` in `client/.env`.
-
-**"Admin panel not accessible"**
-→ Add your email to `ADMIN_EMAILS` and redeploy.
-
-**"CORS error in production"**
-→ `CLIENT_URL` on EB must exactly match your Amplify domain (no trailing slash).
+**CORS error in production**
+→ `CLIENT_URL` in `server/.env` (or EB environment properties) must exactly match your Amplify domain — no trailing slash.
 
 **Amplify build fails with "Monorepo spec provided without applications key"**
-→ Ensure `amplify.yml` uses the `applications:` array format (already configured in this repo).
+→ Ensure `amplify.yml` uses the `applications:` array format (already set up in this repo).
+
+**SSE notifications not connecting**
+→ The SSE stream passes the JWT as `?token=<jwt>` in the query string — make sure your reverse proxy or load balancer does not strip query params from the `/api/notifications/stream` path.
 
 ---
 
-## 🏗️ Tech Stack
-
-### Frontend
-| Technology | Purpose |
-|-----------|---------|
-| React 18 | UI framework |
-| Vite | Build tool |
-| Tailwind CSS | Styling |
-| React Router v6 | Client-side routing |
-| Axios | HTTP client |
-| amazon-cognito-identity-js | Cognito auth |
-| Framer Motion | Animations |
-| react-hot-toast | Notifications |
-
-### Backend
-| Technology | Purpose |
-|-----------|---------|
-| Node.js + Express | API server |
-| Mongoose | MongoDB ODM |
-| AWS SDK v3 | S3 + SES |
-| express-validator | Input validation |
-| multer | File uploads |
-| jsonwebtoken + jwk-to-pem | JWT verification |
-| helmet + cors | Security |
-
-### Infrastructure
-| Service | Purpose |
-|---------|---------|
-| AWS Elastic Beanstalk | Backend hosting (Node.js) |
-| AWS Amplify | Frontend hosting + CI/CD |
-| Amazon S3 | Image storage |
-| Amazon CloudFront | Image CDN |
-| Amazon Cognito | Authentication |
-| Amazon SES | Transactional email |
-| MongoDB Atlas | Database |
-
----
-
-## 📄 License
+## License
 
 Free to use and modify for personal and commercial projects.
