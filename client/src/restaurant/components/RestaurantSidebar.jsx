@@ -110,16 +110,6 @@ function NavItem({ to, label, Icon, end }) {
 
       {isActive && (
         <span
-          className="ml-auto h-[7px] w-[7px] shrink-0 rounded-full"
-          style={{
-            background: 'radial-gradient(circle, #f5e27a 0%, #d4af37 60%)',
-            boxShadow: '0 0 8px rgba(212,175,55,0.9)',
-          }}
-        />
-      )}
-
-      {isActive && (
-        <span
           className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full"
           style={{
             height: '60%',
@@ -194,13 +184,6 @@ export default function RestaurantSidebar() {
           }}
         />
       </div>
-
-      <p
-        className="px-6 pb-2 font-sans uppercase"
-        style={{ fontSize: '9px', letterSpacing: '0.22em', color: '#383838' }}
-      >
-        Navigation
-      </p>
 
       <nav className="flex-1 px-3 flex flex-col gap-0.5">
         {NAV.map((item) => (

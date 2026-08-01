@@ -15,7 +15,9 @@ const DINING_EXPERIENCES = [
   { label: 'Rooftop Dining', icon: '🌆' },
   { label: 'VIP Dining', icon: '👑' },
   { label: 'Bar & Lounge', icon: '🍸' },
-  { label: 'Gourmet Cuisine', icon: '🍛' },
+  { label: 'Gourmet Cuisine', icon: '🍲' },
+  { label: 'Private Dining', icon: '🍷' },
+  { label: 'Live Music', icon: '🎵' },
 ];
 
 export default function Home() {

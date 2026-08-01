@@ -72,10 +72,9 @@ export default function StatsCard({ title, value }) {
         </div>
       </div>
 
-      {/* Value */}
       <p
-        className="mt-5 font-display leading-none"
-        style={{ fontSize: '3.6rem', color: '#f0f0f0', fontWeight: 600 }}
+        className="mt-5 font-sans font-extrabold tracking-tight leading-none"
+        style={{ fontSize: '3.4rem', color: '#f0f0f0' }}
       >
         {value}
       </p>

@@ -5,9 +5,9 @@ import { NavLink, useLocation } from 'react-router-dom';
    NAV CONFIG
 ───────────────────────────────────────────────────────────── */
 const NAV = [
-  { to: '/admin',             label: 'Dashboard',           Icon: DashIcon,       end: true },
-  { to: '/admin/restaurants', label: 'Approve Restaurants', Icon: RestaurantIcon        },
-  { to: '/admin/users',       label: 'System Users',        Icon: UsersIcon             },
+  { to: '/admin',                  label: 'Dashboard',        Icon: DashIcon,       end: true },
+  { to: '/admin/restaurants',      label: 'Restaurants',      Icon: RestaurantIcon        },
+  { to: '/admin/users',            label: 'System Users',     Icon: UsersIcon             },
 ];
 
 /* ─────────────────────────────────────────────────────────────
@@ -24,6 +24,7 @@ function DashIcon({ active }) {
     </svg>
   );
 }
+
 function RestaurantIcon({ active }) {
   const c = active ? '#d4af37' : '#505050';
   return (
@@ -34,6 +35,19 @@ function RestaurantIcon({ active }) {
     </svg>
   );
 }
+
+function AddRestIcon({ active }) {
+  const c = active ? '#d4af37' : '#505050';
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M3 8.5v5" stroke={c} strokeWidth="1.35" strokeLinecap="round" />
+      <path d="M3 3v3.5" stroke={c} strokeWidth="1.35" strokeLinecap="round" />
+      <path d="M8.5 1.5s2.2 1.6 2.2 3.8S8.5 8.5 8.5 8.5v5" stroke={c} strokeWidth="1.35" strokeLinecap="round" />
+      <path d="M13 3.5v5M10.5 6h5" stroke={c} strokeWidth="1.35" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function UsersIcon({ active }) {
   const c = active ? '#d4af37' : '#505050';
   return (
@@ -50,13 +64,15 @@ function UsersIcon({ active }) {
 ───────────────────────────────────────────────────────────── */
 function NavItem({ to, label, Icon, end }) {
   const { pathname } = useLocation();
-  const isActive = end ? pathname === to : pathname.startsWith(to);
+  const isActive = end
+    ? pathname === to
+    : pathname.startsWith(to);
   const [hov, setHov] = useState(false);
 
   return (
     <NavLink
       to={to}
-      end={end}
+      end={end || to === '/admin/restaurants/new'}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       className="relative flex items-center gap-3 rounded-[14px] px-4 py-[11px] font-sans text-[13px] font-medium select-none"
@@ -90,17 +106,6 @@ function NavItem({ to, label, Icon, end }) {
 
       {/* Label */}
       <span className="flex-1">{label}</span>
-
-      {/* Active dot */}
-      {isActive && (
-        <span
-          className="ml-auto h-[7px] w-[7px] shrink-0 rounded-full"
-          style={{
-            background: 'radial-gradient(circle, #f5e27a 0%, #d4af37 60%)',
-            boxShadow: '0 0 8px rgba(212,175,55,0.9)',
-          }}
-        />
-      )}
 
       {/* Active left accent bar */}
       {isActive && (
@@ -138,14 +143,8 @@ export default function AdminSidebar() {
 
       {/* ── Logo ─────────────────────────────────────────── */}
       <div className="relative px-6 pt-8 pb-6">
-        {/* Wordmark */}
         <div className="flex items-baseline gap-0 select-none">
-          <span
-            className="font-display leading-none"
-            style={{ fontSize: '21px', color: '#f0f0f0', letterSpacing: '0.02em' }}
-          >
-            Book
-          </span>
+          <span className="font-display leading-none" style={{ fontSize: '21px', color: '#f0f0f0', letterSpacing: '0.02em' }}>Book</span>
           <span
             className="font-display leading-none"
             style={{
@@ -157,42 +156,16 @@ export default function AdminSidebar() {
               backgroundClip: 'text',
               filter: 'drop-shadow(0 0 8px rgba(212,175,55,0.35))',
             }}
-          >
-            My
-          </span>
-          <span
-            className="font-display leading-none"
-            style={{ fontSize: '21px', color: '#f0f0f0', letterSpacing: '0.02em' }}
-          >
-            Table
-          </span>
+          >My</span>
+          <span className="font-display leading-none" style={{ fontSize: '21px', color: '#f0f0f0', letterSpacing: '0.02em' }}>Table</span>
         </div>
 
-        {/* Console label */}
-        <p
-          className="mt-1.5 font-sans uppercase"
-          style={{ fontSize: '9px', letterSpacing: '0.28em', color: '#484848' }}
-        >
+        <p className="mt-1.5 font-sans uppercase" style={{ fontSize: '9px', letterSpacing: '0.28em', color: '#484848' }}>
           Admin Console
         </p>
 
-        {/* Divider */}
-        <div
-          className="mt-5"
-          style={{
-            height: '1px',
-            background: 'linear-gradient(90deg, rgba(212,175,55,0.22), rgba(212,175,55,0.06), transparent)',
-          }}
-        />
+        <div className="mt-5" style={{ height: '1px', background: 'linear-gradient(90deg, rgba(212,175,55,0.22), rgba(212,175,55,0.06), transparent)' }} />
       </div>
-
-      {/* ── Section label ────────────────────────────────── */}
-      <p
-        className="px-6 pb-2 font-sans uppercase"
-        style={{ fontSize: '9px', letterSpacing: '0.22em', color: '#383838' }}
-      >
-        Navigation
-      </p>
 
       {/* ── Nav items ────────────────────────────────────── */}
       <nav className="flex-1 px-3 flex flex-col gap-0.5">
@@ -203,15 +176,7 @@ export default function AdminSidebar() {
 
       {/* ── Bottom ───────────────────────────────────────── */}
       <div className="px-3 pb-8">
-        {/* Divider */}
-        <div
-          className="mb-3 mx-1"
-          style={{
-            height: '1px',
-            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent)',
-          }}
-        />
-
+        <div className="mb-3 mx-1" style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent)' }} />
         <BackToSite />
       </div>
     </aside>
@@ -237,14 +202,7 @@ function BackToSite() {
       }}
     >
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path
-          d="M9 2.5L4 7l5 4.5"
-          stroke={hov ? '#d4af37' : '#484848'}
-          strokeWidth="1.35"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ transition: 'stroke 0.22s ease' }}
-        />
+        <path d="M9 2.5L4 7l5 4.5" stroke={hov ? '#d4af37' : '#484848'} strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke 0.22s ease' }} />
       </svg>
       Back to site
     </NavLink>

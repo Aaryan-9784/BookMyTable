@@ -69,4 +69,12 @@ export const restaurantApi = {
     cache.clear();
     return api.put(`${base}/settings`, data);
   },
+
+  uploadImage: async (file) => {
+    const fd = new FormData();
+    fd.append('image', file);
+    return api.post('/api/upload', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };

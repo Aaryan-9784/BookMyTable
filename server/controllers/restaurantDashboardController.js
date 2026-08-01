@@ -322,15 +322,31 @@ export async function updateSettings(req, res) {
   const restaurant = await getTargetRestaurant(req);
   if (!restaurant) return res.status(404).json({ ok: false, error: 'Restaurant not found' });
 
-  const { name, location, category, description, tokenFee, openingHours, priceRange } = req.body;
+  const {
+    name,
+    location,
+    category,
+    description,
+    tokenFee,
+    totalSeatingCapacity,
+    openingHours,
+    priceRange,
+    experiences,
+    imageUrl,
+    imageUrls,
+  } = req.body;
 
   if (name) restaurant.name = name.trim();
   if (location) restaurant.location = location.trim();
   if (category) restaurant.category = category.trim();
   if (description !== undefined) restaurant.description = description.trim();
   if (tokenFee !== undefined) restaurant.tokenFee = Number(tokenFee);
+  if (totalSeatingCapacity !== undefined) restaurant.totalSeatingCapacity = Number(totalSeatingCapacity);
   if (openingHours) restaurant.openingHours = openingHours.trim();
   if (priceRange) restaurant.priceRange = Number(priceRange);
+  if (Array.isArray(experiences)) restaurant.experiences = experiences;
+  if (imageUrl !== undefined) restaurant.imageUrl = imageUrl;
+  if (Array.isArray(imageUrls)) restaurant.imageUrls = imageUrls;
 
   await restaurant.save();
 

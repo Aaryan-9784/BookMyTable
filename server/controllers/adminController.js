@@ -161,7 +161,33 @@ export async function createRestaurantAdmin(req, res, next) {
       priceRange = 2,
       rating = 4.2,
       reviews = [],
+      tokenFee = 150,
+      totalSeatingCapacity = 40,
+      openingHours = '11:00 AM - 11:00 PM',
+      ownerId = null,
+      ownerEmail = null,
+      ownerName = null,
+      experiences = ['Fine Dining', 'Outdoor Terrace'],
     } = req.body;
+
+    let finalOwnerId = ownerId || null;
+    if (!finalOwnerId && ownerEmail && typeof ownerEmail === 'string' && ownerEmail.trim()) {
+      const emailNorm = ownerEmail.trim().toLowerCase();
+      let partnerUser = await User.findOne({ email: emailNorm });
+      if (!partnerUser) {
+        partnerUser = await User.create({
+          fullName: ownerName || emailNorm.split('@')[0],
+          email: emailNorm,
+          password: 'Partner@' + Math.random().toString(36).slice(-6),
+          role: 'restaurant',
+          isEmailVerified: true,
+        });
+      } else if (partnerUser.role !== 'restaurant' && partnerUser.role !== 'admin') {
+        partnerUser.role = 'restaurant';
+        await partnerUser.save();
+      }
+      finalOwnerId = partnerUser._id;
+    }
 
     const urls = Array.isArray(imageUrls) && imageUrls.length ? imageUrls : imageUrl ? [imageUrl] : [];
     const r = await Restaurant.create({
@@ -174,6 +200,11 @@ export async function createRestaurantAdmin(req, res, next) {
       priceRange,
       rating,
       reviews,
+      tokenFee: Number(tokenFee) || 150,
+      totalSeatingCapacity: Number(totalSeatingCapacity) || 40,
+      openingHours: openingHours || '11:00 AM - 11:00 PM',
+      ownerId: finalOwnerId,
+      experiences: Array.isArray(experiences) ? experiences : ['Fine Dining', 'Outdoor Terrace'],
     });
     res.status(201).json(r);
   } catch (e) {
@@ -207,6 +238,11 @@ export async function updateRestaurantAdmin(req, res, next) {
       'priceRange',
       'rating',
       'reviews',
+      'tokenFee',
+      'totalSeatingCapacity',
+      'openingHours',
+      'ownerId',
+      'experiences',
     ];
     const patch = {};
     for (const k of allowed) {
@@ -288,7 +324,7 @@ export async function deleteBookingAdmin(req, res, next) {
 
 export const updateRoleValidators = [
   param('id').isMongoId(),
-  body('role').isIn(['user', 'admin']),
+  body('role').isIn(['user', 'customer', 'restaurant', 'admin']),
 ];
 
 /**

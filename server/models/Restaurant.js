@@ -80,6 +80,10 @@ const restaurantSchema = new mongoose.Schema(
       ref: 'User',
       default: null,
     },
+    experiences: {
+      type: [String],
+      default: ['Fine Dining', 'Outdoor Terrace'],
+    },
     approvalStatus: {
       type: String,
       enum: ['pending', 'approved', 'rejected'],

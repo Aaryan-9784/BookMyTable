@@ -10,7 +10,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 
 function priceLabel(n) {
   if (n == null || Number.isNaN(Number(n))) return '';
-  return '₹'.repeat(Math.min(4, Math.max(1, Number(n))));
+  return '◆'.repeat(Math.min(4, Math.max(1, Number(n))));
 }
 
 export default function RestaurantDetails() {

@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 
 function priceLabel(n) {
   if (n == null || Number.isNaN(Number(n))) return null;
-  return '₹'.repeat(Math.min(4, Math.max(1, Number(n))));
+  return '◆'.repeat(Math.min(4, Math.max(1, Number(n))));
 }
 
 export default function RestaurantCard({ restaurant }) {

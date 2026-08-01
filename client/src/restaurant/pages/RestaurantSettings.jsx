@@ -1,7 +1,17 @@
 import { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { restaurantApi } from '../services/restaurantApi.js';
-import Loader from '../../components/Loader.jsx';
+
+const EXPERIENCE_OPTIONS = [
+  { id: 'Fine Dining', label: 'Fine Dining', icon: '🕯️' },
+  { id: 'Outdoor Terrace', label: 'Outdoor Terrace', icon: '🌿' },
+  { id: 'Rooftop Dining', label: 'Rooftop Dining', icon: '🌆' },
+  { id: 'VIP Dining', label: 'VIP Dining', icon: '👑' },
+  { id: 'Bar & Lounge', label: 'Bar & Lounge', icon: '🍸' },
+  { id: 'Gourmet Cuisine', label: 'Gourmet Cuisine', icon: '🍲' },
+  { id: 'Private Dining', label: 'Private Dining', icon: '🍷' },
+  { id: 'Live Music', label: 'Live Music', icon: '🎵' },
+];
 
 /* ── SVG ICONS (matches Partner Console theme) ──────────────── */
 function IconRefresh() {
@@ -32,10 +42,10 @@ function IconClock() {
   );
 }
 
-function IconCategory() {
+function IconCapacity() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path d="M3 4.5h12M3 9h12M3 13.5h7" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M4 14v-3a2 2 0 012-2h6a2 2 0 012 2v3M9 6a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }
@@ -97,15 +107,19 @@ export default function RestaurantSettings() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   // Form fields
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
-  const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [tokenFee, setTokenFee] = useState(150);
+  const [tokenFee, setTokenFee] = useState('150');
+  const [capacity, setCapacity] = useState('40');
   const [openingHours, setOpeningHours] = useState('11:00 AM - 11:00 PM');
   const [priceRange, setPriceRange] = useState(2);
+  const [experiences, setExperiences] = useState(['Fine Dining', 'Outdoor Terrace']);
+  const [imageUrls, setImageUrls] = useState([]);
+  const [imageUrlInput, setImageUrlInput] = useState('');
 
   const fetchSettings = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -116,11 +130,13 @@ export default function RestaurantSettings() {
       setRestaurant(r);
       setName(r.name || '');
       setLocation(r.location || '');
-      setCategory(r.category || 'Multi-cuisine');
       setDescription(r.description || '');
-      setTokenFee(r.tokenFee || 150);
+      setTokenFee(String(r.tokenFee ?? 150));
+      setCapacity(String(r.totalSeatingCapacity ?? 40));
       setOpeningHours(r.openingHours || '11:00 AM - 11:00 PM');
       setPriceRange(r.priceRange || 2);
+      setExperiences(Array.isArray(r.experiences) && r.experiences.length ? r.experiences : ['Fine Dining', 'Outdoor Terrace']);
+      setImageUrls(Array.isArray(r.imageUrls) && r.imageUrls.length ? r.imageUrls : r.imageUrl ? [r.imageUrl] : []);
     } catch (err) {
       toast.error(err.message || 'Failed to load restaurant settings');
     } finally {
@@ -133,18 +149,70 @@ export default function RestaurantSettings() {
     fetchSettings();
   }, [fetchSettings]);
 
+  const toggleExperience = (id) => {
+    setExperiences((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const uploadFiles = async (files) => {
+    const arr = Array.from(files || []);
+    if (!arr.length) return;
+    setUploading(true);
+    try {
+      const urls = [];
+      for (const f of arr) {
+        const { data } = await restaurantApi.uploadImage(f);
+        if (data?.url) urls.push(data.url);
+      }
+      setImageUrls((prev) => [...prev, ...urls]);
+      toast.success(`${urls.length} image${urls.length > 1 ? 's' : ''} uploaded`);
+    } catch (e) {
+      toast.error(e.message || 'Image upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleAddImageUrl = (e) => {
+    e.preventDefault();
+    if (!imageUrlInput.trim()) return;
+    const url = imageUrlInput.trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      toast.error('Please enter a valid image URL starting with http:// or https://');
+      return;
+    }
+    setImageUrls((prev) => [...prev, url]);
+    setImageUrlInput('');
+    toast.success('Image URL added');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!name.trim() || !location.trim() || !description.trim() || !openingHours.trim()) {
+      toast.error('Please fill in all mandatory text fields');
+      return;
+    }
+
+    if (!experiences.length) {
+      toast.error('Please select at least 1 seating & dining experience option');
+      return;
+    }
+
     setSaving(true);
     try {
       await restaurantApi.updateSettings({
-        name,
-        location,
-        category,
-        description,
-        tokenFee: Number(tokenFee),
-        openingHours,
+        name: name.trim(),
+        location: location.trim(),
+        description: description.trim(),
+        tokenFee: Number(tokenFee) || 150,
+        totalSeatingCapacity: Number(capacity) || 40,
+        openingHours: openingHours.trim(),
         priceRange: Number(priceRange),
+        experiences,
+        imageUrl: imageUrls[0] || '',
+        imageUrls,
       });
       toast.success('Restaurant profile updated successfully!');
       fetchSettings(true);
@@ -156,7 +224,7 @@ export default function RestaurantSettings() {
   };
 
   return (
-    <div className="max-w-[1100px] mx-auto">
+    <div className="max-w-[1100px] mx-auto pb-16">
       {/* ── Page Header Row ─────────────────────────────────── */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between anim-fade-up">
         <div>
@@ -167,7 +235,7 @@ export default function RestaurantSettings() {
             Settings & Profile
           </h1>
           <p className="mt-2 font-sans text-sm text-luxury-muted">
-            Manage operating hours, base token fees per seat, category, and public restaurant branding
+            Manage seating capacity, base token fees per seat, operating hours, and photo gallery
           </p>
           <div
             className="mt-4 h-px w-20"
@@ -195,9 +263,15 @@ export default function RestaurantSettings() {
         <StatCard
           label="Base Token Fee"
           value={`₹${tokenFee || 150}`}
-          sub="Token fee charged per guest seat"
+          sub="Booking fee per guest seat"
           Icon={IconFee}
           accent
+        />
+        <StatCard
+          label="Total Guest Capacity"
+          value={`🪑 ${capacity || 40}`}
+          sub="Maximum seating capacity"
+          Icon={IconCapacity}
         />
         <StatCard
           label="Operating Hours"
@@ -206,14 +280,8 @@ export default function RestaurantSettings() {
           Icon={IconClock}
         />
         <StatCard
-          label="Cuisine Category"
-          value={category || 'Multi-cuisine'}
-          sub="Public discovery label"
-          Icon={IconCategory}
-        />
-        <StatCard
           label="Price Tier"
-          value={'₹'.repeat(priceRange || 2)}
+          value={'◆'.repeat(priceRange || 2)}
           sub={priceRange === 4 ? 'Ultra Luxury' : priceRange === 3 ? 'Luxury Dining' : 'Fine Dining'}
           Icon={IconPrice}
         />
@@ -221,143 +289,306 @@ export default function RestaurantSettings() {
 
       {/* ── Main Form Container Panel ───────────────────────── */}
       <div
-        className="rounded-2xl p-6 sm:p-8"
+        className="rounded-3xl p-7 sm:p-10 space-y-8"
         style={{
           background: 'linear-gradient(160deg, #181818 0%, #121212 100%)',
-          border: '1px solid rgba(212,175,55,0.13)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          border: '1px solid rgba(212,175,55,0.14)',
+          boxShadow: '0 16px 60px rgba(0,0,0,0.65)',
         }}
       >
-        <div className="mb-6 flex items-center justify-between border-b border-white/[0.06] pb-4">
+        <div className="mb-2 flex items-center justify-between border-b border-white/[0.06] pb-4">
           <div>
             <h2 className="font-display text-xl font-semibold text-white">
-              Restaurant Branding & Pricing
+              Restaurant Branding & Platform Rules
             </h2>
             <p className="mt-0.5 font-sans text-xs text-luxury-muted">
-              Configure parameters shown on your public restaurant page and booking flow
+              Configure parameters shown on your public restaurant marketplace listing
             </p>
           </div>
           <span
-            className="rounded-full px-3 py-1 font-sans text-[10px] font-bold uppercase tracking-wider text-luxury-gold"
+            className="rounded-full px-3.5 py-1 font-sans text-[10px] font-bold uppercase tracking-wider text-luxury-gold"
             style={{ background: 'rgba(212,175,55,0.10)', border: '1px solid rgba(212,175,55,0.25)' }}
           >
             {restaurant?.approvalStatus === 'approved' ? 'Approved & Live' : 'Pending Review'}
           </span>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div>
-              <label className="block font-sans text-xs uppercase tracking-wider text-luxury-muted mb-2 font-semibold">
-                Restaurant Name
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white placeholder-white/30 outline-none transition-colors duration-200 focus:border-luxury-gold/60"
-                required
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-7">
+          {/* Section 1: Basic Identity */}
+          <div className="space-y-4">
+            <h3 className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-luxury-gold flex items-center gap-2">
+              <span>🍴</span> Basic Details & Location
+            </h3>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
+                  Restaurant Name *
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white outline-none focus:border-luxury-gold/60"
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block font-sans text-xs uppercase tracking-wider text-luxury-muted mb-2 font-semibold">
-                Location / City
-              </label>
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white placeholder-white/30 outline-none transition-colors duration-200 focus:border-luxury-gold/60"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div>
-              <label className="block font-sans text-xs uppercase tracking-wider text-luxury-muted mb-2 font-semibold">
-                Cuisine Category
-              </label>
-              <input
-                type="text"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Italian Fine Dining, Indian Gourmet"
-                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white placeholder-white/30 outline-none transition-colors duration-200 focus:border-luxury-gold/60"
-              />
-            </div>
-
-            <div>
-              <label className="block font-sans text-xs uppercase tracking-wider text-luxury-muted mb-2 font-semibold">
-                Base Token Fee Per Seat (₹)
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={tokenFee}
-                onChange={(e) => setTokenFee(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-luxury-gold font-bold outline-none transition-colors duration-200 focus:border-luxury-gold/60"
-                required
-              />
+              <div>
+                <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
+                  Location / Address *
+                </label>
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white outline-none focus:border-luxury-gold/60"
+                  required
+                />
+              </div>
             </div>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div>
-              <label className="block font-sans text-xs uppercase tracking-wider text-luxury-muted mb-2 font-semibold">
-                Opening Hours
-              </label>
-              <input
-                type="text"
-                value={openingHours}
-                onChange={(e) => setOpeningHours(e.target.value)}
-                placeholder="e.g. 11:00 AM - 11:00 PM"
-                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white placeholder-white/30 outline-none transition-colors duration-200 focus:border-luxury-gold/60"
-              />
-            </div>
+          {/* Section 2: Seating & Economics */}
+          <div className="space-y-4 pt-2">
+            <h3 className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-luxury-gold flex items-center gap-2">
+              <span>💰</span> Seating & Platform Economics
+            </h3>
+            <div className="grid gap-5 sm:grid-cols-3">
+              <div>
+                <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
+                  Token Fee Per Seat (₹) *
+                </label>
+                <div className="flex items-center rounded-xl border border-white/10 bg-white/[0.04] overflow-hidden">
+                  <span className="px-3 font-sans font-bold text-luxury-gold">₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={tokenFee}
+                    onChange={(e) => setTokenFee(e.target.value)}
+                    onBlur={() => {
+                      if (!tokenFee || isNaN(Number(tokenFee))) setTokenFee('150');
+                      else setTokenFee(String(Math.max(0, parseInt(tokenFee, 10))));
+                    }}
+                    className="w-full bg-transparent py-3 font-sans text-sm font-bold text-luxury-gold outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    required
+                  />
+                </div>
+              </div>
 
+              <div>
+                <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
+                  Total Seating Capacity *
+                </label>
+                <div className="flex items-center rounded-xl border border-white/10 bg-white/[0.04] overflow-hidden">
+                  <span className="px-3 text-luxury-muted">🪑</span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={capacity}
+                    onChange={(e) => setCapacity(e.target.value)}
+                    onBlur={() => {
+                      if (!capacity || isNaN(Number(capacity))) setCapacity('40');
+                      else setCapacity(String(Math.max(1, parseInt(capacity, 10))));
+                    }}
+                    className="w-full bg-transparent py-3 font-sans text-sm font-bold text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
+                  Opening Hours *
+                </label>
+                <input
+                  type="text"
+                  value={openingHours}
+                  onChange={(e) => setOpeningHours(e.target.value)}
+                  placeholder="e.g. 11:00 AM - 11:00 PM"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white outline-none focus:border-luxury-gold/60"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 3: Dining Tier */}
+          <div className="space-y-4 pt-2">
+            <h3 className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-luxury-gold flex items-center gap-2">
+              <span>⭐</span> Price Tier Level
+            </h3>
             <div>
-              <label className="block font-sans text-xs uppercase tracking-wider text-luxury-muted mb-2 font-semibold">
-                Price Range Level
-              </label>
               <select
                 value={priceRange}
                 onChange={(e) => setPriceRange(Number(e.target.value))}
-                className="w-full rounded-xl border border-white/10 bg-[#101010] px-4 py-3 font-sans text-sm text-white outline-none transition-colors duration-200 focus:border-luxury-gold/60"
+                className="w-full rounded-xl border border-white/10 bg-[#101010] px-4 py-3 font-sans text-sm text-white outline-none focus:border-luxury-gold/60"
               >
-                <option value={1}>₹ — Casual / Moderate</option>
-                <option value={2}>₹₹ — Fine Dining</option>
-                <option value={3}>₹₹₹ — Luxury Dining</option>
-                <option value={4}>₹₹₹₹ — Ultra Luxury</option>
+                <option value={1}>◆ — Casual / Budget</option>
+                <option value={2}>◆◆ — Moderate Fine Dining</option>
+                <option value={3}>◆◆◆ — Premium Luxury</option>
+                <option value={4}>◆◆◆◆ — Ultra Luxury</option>
               </select>
             </div>
           </div>
 
-          <div>
-            <label className="block font-sans text-xs uppercase tracking-wider text-luxury-muted mb-2 font-semibold">
-              Restaurant Description
-            </label>
+          {/* Section 4: Experiences & Seating */}
+          <div className="space-y-4 pt-2">
+            <h3 className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-luxury-gold flex items-center gap-2">
+              <span>🥂</span> Reserve Tables By Experiences & Seating
+            </h3>
+            <div className="flex flex-wrap gap-2.5">
+              {EXPERIENCE_OPTIONS.map((exp) => {
+                const active = experiences.includes(exp.id);
+                return (
+                  <button
+                    key={exp.id}
+                    type="button"
+                    onClick={() => toggleExperience(exp.id)}
+                    className="flex items-center gap-2 rounded-full px-4 py-2.5 font-sans text-xs font-semibold transition-all duration-200"
+                    style={
+                      active
+                        ? {
+                            background: 'linear-gradient(135deg, rgba(212,175,55,0.22) 0%, rgba(212,175,55,0.08) 100%)',
+                            border: '1px solid rgba(212,175,55,0.60)',
+                            color: '#ffffff',
+                            boxShadow: '0 0 16px rgba(212,175,55,0.18)',
+                          }
+                        : {
+                            background: 'rgba(255,255,255,0.03)',
+                            border: '1px solid rgba(255,255,255,0.09)',
+                            color: '#a0a0a0',
+                          }
+                    }
+                  >
+                    <span>{exp.icon}</span>
+                    <span>{exp.label}</span>
+                    {active && <span className="ml-1 text-[11px] font-bold text-luxury-gold">✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Section 5: Gallery & Photos */}
+          <div className="space-y-4 pt-2">
+            <h3 className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-luxury-gold flex items-center gap-2">
+              <span>🖼️</span> Restaurant Imagery & Gallery
+            </h3>
+
+            {/* Drag & Drop Upload Zone */}
+            <div
+              onClick={() => document.getElementById('partner-file-input')?.click()}
+              className="group relative flex cursor-pointer flex-col items-center justify-center rounded-2xl py-7 px-4 text-center transition-all duration-200"
+              style={{
+                border: imageUrls.length ? '1.5px dashed rgba(212,175,55,0.40)' : '1.5px dashed rgba(212,175,55,0.25)',
+                background: 'rgba(255,255,255,0.02)',
+              }}
+            >
+              <p className="font-sans text-xs font-semibold text-white">
+                {uploading ? 'Uploading imagery…' : 'Drop photos here or click to upload gallery images'}
+              </p>
+              <p className="mt-1 font-sans text-[11px] text-luxury-muted">
+                Supports PNG, JPG, WEBP formats
+              </p>
+              <input
+                id="partner-file-input"
+                type="file"
+                accept="image/*"
+                multiple
+                disabled={uploading}
+                className="hidden"
+                onChange={(e) => uploadFiles(e.target.files)}
+              />
+            </div>
+
+            {/* Visual OR Separator Divider */}
+            <div className="relative flex items-center justify-center my-1.5">
+              <div className="w-full border-t border-white/[0.08]" />
+              <span className="absolute bg-[#141414] px-3 font-sans text-[10px] font-bold uppercase tracking-widest text-luxury-muted">
+                OR
+              </span>
+            </div>
+
+            {/* Add via URL option */}
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={imageUrlInput}
+                onChange={(e) => setImageUrlInput(e.target.value)}
+                placeholder="Paste direct image URL (https://...)"
+                className="flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 font-sans text-xs text-white outline-none"
+              />
+              <button
+                type="button"
+                onClick={handleAddImageUrl}
+                className="rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-luxury-gold transition-colors shrink-0"
+                style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.25)' }}
+              >
+                Add URL
+              </button>
+            </div>
+
+            {/* Preview grid */}
+            {imageUrls.length > 0 && (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-2">
+                {imageUrls.map((url, i) => (
+                  <div
+                    key={url}
+                    className="group relative overflow-hidden rounded-xl border border-white/10"
+                    style={{ aspectRatio: '4/3' }}
+                  >
+                    <img src={url} alt={`Gallery ${i + 1}`} className="h-full w-full object-cover" />
+                    {i === 0 && (
+                      <span className="absolute left-2 top-2 rounded-full px-2 py-0.5 font-sans text-[9px] font-bold uppercase tracking-wider text-black bg-luxury-gold font-semibold">
+                        Cover Photo
+                      </span>
+                    )}
+                    <div
+                      className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                      style={{ background: 'rgba(0,0,0,0.60)' }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setImageUrls((prev) => prev.filter((u) => u !== url))}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-red-400 hover:bg-red-500/20"
+                        style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Section 6: Description */}
+          <div className="space-y-4 pt-2">
+            <h3 className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-luxury-gold flex items-center gap-2">
+              <span>📜</span> Restaurant Overview & Ambiance
+            </h3>
             <textarea
               rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Tell guests about your dining atmosphere, specialties, and service..."
-              className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white placeholder-white/30 outline-none transition-colors duration-200 focus:border-luxury-gold/60"
+              placeholder="Tell guests about your dining atmosphere, chef specialties, seating style, and service..."
+              className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white placeholder-white/30 outline-none focus:border-luxury-gold/60 resize-none"
+              required
             />
           </div>
 
-          <div className="flex justify-end pt-4 border-t border-white/[0.06]">
+          {/* Save Button */}
+          <div className="pt-4 border-t border-white/[0.06]">
             <button
               type="submit"
-              disabled={saving}
-              className="flex items-center gap-2 rounded-xl px-8 py-3 font-sans text-xs font-bold uppercase tracking-wider text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-95 disabled:opacity-50"
+              disabled={saving || uploading}
+              className="w-full rounded-2xl py-4 font-sans text-xs font-bold uppercase tracking-wider text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-[0.99] disabled:opacity-50"
               style={{
-                background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)',
-                boxShadow: '0 0 20px rgba(212,175,55,0.25)',
+                background: 'linear-gradient(135deg, #d4af37 0%, #f0cc55 45%, #c9a227 100%)',
+                boxShadow: '0 0 24px rgba(212,175,55,0.30)',
               }}
             >
-              {saving ? 'Saving Changes…' : 'Save Restaurant Profile'}
+              {saving ? 'Saving Restaurant Profile…' : 'Save & Publish Profile Updates'}
             </button>
           </div>
         </form>

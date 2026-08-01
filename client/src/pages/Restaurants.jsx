@@ -139,10 +139,10 @@ function LuxurySelect({ value, onChange, options, placeholder = 'Any' }) {
 /* ── Option sets ── */
 const PRICE_OPTIONS = [
   { value: '', label: 'Any' },
-  { value: '1', label: '₹' },
-  { value: '2', label: '₹₹' },
-  { value: '3', label: '₹₹₹' },
-  { value: '4', label: '₹₹₹₹' },
+  { value: '1', label: '◆' },
+  { value: '2', label: '◆◆' },
+  { value: '3', label: '◆◆◆' },
+  { value: '4', label: '◆◆◆◆' },
 ];
 const RATING_OPTIONS = [
   { value: '', label: 'Any' },

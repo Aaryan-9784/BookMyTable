@@ -82,9 +82,15 @@ function CopyIcon() {
 }
 function CrownIcon() {
   return (
-    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
-      <path d="M1 8.5l1.5-5 2.5 3L5.5 2l.5 4.5 2.5-3L10 8.5H1z"
-        stroke="#d4af37" strokeWidth="1" strokeLinejoin="round" fill="rgba(212,175,55,0.15)" />
+    <svg width="12" height="12" viewBox="0 0 11 11" fill="none" aria-hidden>
+      <path
+        d="M1 8.5l1.5-5 2.5 3L5.5 2l.5 4.5 2.5-3L10 8.5H1z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+        fill="currentColor"
+        fillOpacity="0.25"
+      />
     </svg>
   );
 }
@@ -159,7 +165,7 @@ function StatCard({ label, value, sub, Icon, accent = false }) {
           <Icon />
         </div>
       </div>
-      <p className="font-display leading-none text-white font-bold" style={{ fontSize: '2.6rem' }}>{value}</p>
+      <p className="font-sans leading-none text-white font-extrabold tracking-tight" style={{ fontSize: '2.5rem' }}>{value}</p>
       {sub && <p className="mt-2 font-sans text-xs text-luxury-muted">{sub}</p>}
       <div
         className="absolute bottom-0 left-0 right-0 h-[2px] transition-opacity duration-300 group-hover:opacity-100"
@@ -302,7 +308,7 @@ function DeleteUserModal({ user, onConfirm, onCancel, loading }) {
 /* ─────────────────────────────────────────────────────────────
    ROLE SELECT
 ───────────────────────────────────────────────────────────── */
-function RoleSelect({ userId, role, disabled, onChange }) {
+function RoleSelect({ userId, role, onChange, disabled }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -312,11 +318,18 @@ function RoleSelect({ userId, role, disabled, onChange }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const isAdmin = role === 'admin';
+  const normalizedRole = role === 'user' ? 'customer' : role;
+  const isAdmin = normalizedRole === 'admin';
 
   const pillStyle = isAdmin
     ? { background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.32)', color: '#d4af37', boxShadow: '0 0 10px rgba(212,175,55,0.10)' }
     : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', color: '#9a9a9a' };
+
+  const roleOptions = [
+    { value: 'customer', label: 'customer', icon: '👤' },
+    { value: 'restaurant', label: 'restaurant', icon: '🍴' },
+    { value: 'admin', label: 'admin', icon: <CrownIcon /> },
+  ];
 
   return (
     <div ref={ref} className="relative inline-block">
@@ -327,35 +340,44 @@ function RoleSelect({ userId, role, disabled, onChange }) {
         className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-sans text-[11px] font-semibold"
         style={{ ...pillStyle, transition: 'all 0.18s ease', opacity: disabled ? 0.5 : 1, cursor: disabled ? 'wait' : 'pointer' }}
       >
-        {isAdmin && <CrownIcon />}
-        {role}
+        {normalizedRole === 'admin' ? (
+          <CrownIcon />
+        ) : normalizedRole === 'restaurant' ? (
+          <span className="text-[10px]">🍴</span>
+        ) : (
+          <span className="text-[10px]">👤</span>
+        )}
+        {normalizedRole}
         <ChevronDown />
       </button>
 
       {open && (
         <div
-          className="absolute left-0 top-full z-50 mt-1.5 w-28 overflow-hidden rounded-xl py-1"
-          style={{ background: 'rgba(22,22,22,0.97)', border: '1px solid rgba(212,175,55,0.15)', boxShadow: '0 12px 40px rgba(0,0,0,0.6)', backdropFilter: 'blur(16px)', animation: 'fadeUp 0.15s ease forwards' }}
+          className="absolute left-0 top-full z-50 mt-1.5 w-32 overflow-hidden rounded-xl py-1 shadow-2xl"
+          style={{ background: 'rgba(22,22,22,0.98)', border: '1px solid rgba(212,175,55,0.25)', boxShadow: '0 12px 40px rgba(0,0,0,0.85)', backdropFilter: 'blur(16px)', animation: 'fadeUp 0.15s ease forwards' }}
         >
-          {['user', 'restaurant', 'admin'].map((r) => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => { setOpen(false); if (r !== role) onChange(userId, r); }}
-              className="flex w-full items-center gap-2 px-3.5 py-2 font-sans text-[12px] font-medium"
-              style={{ color: r === role ? '#d4af37' : '#9a9a9a', background: r === role ? 'rgba(212,175,55,0.08)' : 'transparent', transition: 'background 0.15s ease' }}
-              onMouseEnter={(e) => { if (r !== role) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-              onMouseLeave={(e) => { if (r !== role) e.currentTarget.style.background = 'transparent'; }}
-            >
-              {r === 'admin' && <CrownIcon />}
-              <span className="capitalize">{r}</span>
-              {r === role && (
-                <svg className="ml-auto" width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path d="M2 5l2.5 2.5L8 3" stroke="#d4af37" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              )}
-            </button>
-          ))}
+          {roleOptions.map(({ value: r, label, icon }) => {
+            const isSelected = normalizedRole === r;
+            return (
+              <button
+                key={r}
+                type="button"
+                onClick={() => { setOpen(false); if (r !== normalizedRole) onChange(userId, r); }}
+                className="flex w-full items-center gap-2 px-3.5 py-2 font-sans text-[12px] font-medium"
+                style={{ color: isSelected ? '#d4af37' : '#9a9a9a', background: isSelected ? 'rgba(212,175,55,0.08)' : 'transparent', transition: 'background 0.15s ease' }}
+                onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+              >
+                {icon && typeof icon === 'string' ? <span className="text-[10px]">{icon}</span> : icon}
+                <span>{label}</span>
+                {isSelected && (
+                  <svg className="ml-auto" width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M2 5l2.5 2.5L8 3" stroke="#d4af37" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
@@ -505,11 +527,11 @@ function UserRow({ user: u, isLast, updatingId, onRoleChange, onDelete, isSelf }
         </div>
       </td>
 
-      {/* COGNITO ID */}
+      {/* USER ID */}
       <td className="px-6 py-4">
-        {u.fullCognitoId
-          ? <CopyId fullId={u.fullCognitoId} shortId={u.cognitoId} />
-          : <span className="font-mono text-[12px] text-luxury-muted">{u.cognitoId}</span>
+        {u.fullUserId
+          ? <CopyId fullId={u.fullUserId} shortId={u.userId} />
+          : <span className="font-mono text-[12px] text-luxury-muted">—</span>
         }
       </td>
 
@@ -525,7 +547,7 @@ function UserRow({ user: u, isLast, updatingId, onRoleChange, onDelete, isSelf }
 
       {/* ACTIONS */}
       <td className="px-6 py-4">
-        <div style={{ opacity: hovered ? 1 : 0.25, transition: 'opacity 0.18s ease' }}>
+        <div className="flex justify-end" style={{ opacity: hovered ? 1 : 0.25, transition: 'opacity 0.18s ease' }}>
           <button
             type="button"
             onClick={onDelete}
@@ -655,23 +677,26 @@ export default function UsersAdmin() {
     }
   };
 
-  if (loading && !data.items.length) return <Loader label="Loading users…" />;
-
   const allRows = (data.items || []).map((u) => ({
     key: u._id,
     id: u._id,
     fullName: u.fullName || u.name || '',
     email: u.email,
     role: u.role,
-    cognitoId: u.cognitoId ? `${u.cognitoId.slice(0, 8)}…` : '—',
-    fullCognitoId: u.cognitoId || null,
+    userId: u._id ? `...${u._id.slice(-8)}` : '—',
+    fullUserId: u._id || null,
   }));
 
-  const rows = allRows.filter((r) => roleFilter === 'all' || r.role === roleFilter);
+  const rows = allRows.filter(
+    (r) =>
+      roleFilter === 'all' ||
+      r.role === roleFilter ||
+      (roleFilter === 'user' && (r.role === 'customer' || r.role === 'user'))
+  );
 
   const adminCount      = allRows.filter((r) => r.role === 'admin').length;
   const restaurantCount = allRows.filter((r) => r.role === 'restaurant').length;
-  const userCount       = allRows.filter((r) => r.role === 'user').length;
+  const userCount       = allRows.filter((r) => r.role === 'user' || r.role === 'customer').length;
 
   /* Export users as CSV */
   const exportUsers = () => {
@@ -690,12 +715,12 @@ export default function UsersAdmin() {
         },
         {
           title: 'All Users',
-          headers: ['Name', 'Email', 'Role', 'Cognito ID'],
+          headers: ['Name', 'Email', 'Role', 'User ID'],
           rows: allRows.map((u) => [
             u.fullName || '—',
             u.email,
             u.role,
-            u.fullCognitoId || '—',
+            u.fullUserId || '—',
           ]),
         },
       ],
@@ -709,9 +734,6 @@ export default function UsersAdmin() {
       {/* ── Page header ──────────────────────────────────── */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between anim-fade-up">
         <div>
-          <p className="font-sans text-[10px] uppercase tracking-[0.22em] text-luxury-muted mb-2">
-            Admin / Users
-          </p>
           <h1
             className="font-display text-white leading-none font-bold"
             style={{ fontSize: 'clamp(2rem, 4.5vw, 3.2rem)' }}
@@ -816,25 +838,48 @@ export default function UsersAdmin() {
 
         {/* Role filter pills */}
         <div
-          className="flex items-center gap-1 rounded-full p-1.5"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+          className="flex items-center gap-1 rounded-full p-1.5 transition-all duration-200"
+          style={{
+            background: 'rgba(20, 20, 22, 0.8)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)',
+          }}
         >
-          {['all', 'admin', 'restaurant', 'user'].map((r) => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => setRoleFilter(r)}
-              className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 font-sans text-xs font-bold uppercase tracking-wider transition-all duration-200"
-              style={
-                roleFilter === r
-                  ? { background: 'linear-gradient(135deg, #c9a84c, #f0d060)', color: '#0b0b0c', boxShadow: '0 0 12px rgba(212,175,55,0.3)' }
-                  : { background: 'transparent', color: 'rgba(255,255,255,0.4)' }
-              }
-            >
-              {r === 'admin' && <CrownIcon />}
-              {r === 'all' ? 'All' : r}
-            </button>
-          ))}
+          {[
+            { id: 'all', label: 'ALL', icon: null },
+            { id: 'admin', label: 'ADMIN', icon: <CrownIcon /> },
+            { id: 'restaurant', label: 'RESTAURANT', icon: '🍴' },
+            { id: 'user', label: 'CUSTOMER', icon: '👤' },
+          ].map(({ id, label, icon }) => {
+            const active = roleFilter === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setRoleFilter(id)}
+                className="group relative inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 font-sans text-xs font-bold uppercase tracking-wider transition-all duration-200 select-none hover:text-white"
+                style={
+                  active
+                    ? {
+                        background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 100%)',
+                        color: '#0a0a0b',
+                        boxShadow: '0 0 16px rgba(212,175,55,0.35)',
+                      }
+                    : {
+                        background: 'transparent',
+                        color: 'rgba(255,255,255,0.45)',
+                      }
+                }
+              >
+                {icon && typeof icon === 'string' ? (
+                  <span className="text-[11px]">{icon}</span>
+                ) : (
+                  icon
+                )}
+                <span>{label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -850,10 +895,10 @@ export default function UsersAdmin() {
         <table className="w-full min-w-[560px]">
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(212,175,55,0.07)' }}>
-              {['User', 'Cognito ID', 'Role', ''].map((h) => (
+              {['User', 'User ID', 'Role', 'Actions'].map((h, i) => (
                 <th
                   key={h}
-                  className="px-6 py-4 text-left font-sans text-[10px] font-semibold uppercase tracking-[0.18em]"
+                  className={`px-6 py-4 font-sans text-[10px] font-semibold uppercase tracking-[0.18em] ${i === 3 ? 'text-right' : 'text-left'}`}
                   style={{ color: 'rgba(212,175,55,0.45)' }}
                 >
                   {h}

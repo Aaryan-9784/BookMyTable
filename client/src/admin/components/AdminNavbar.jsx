@@ -5,10 +5,24 @@ import { useNotifications } from '../../context/NotificationContext.jsx';
 
 /* ── PAGE TITLES ────────────────────────────────────────────── */
 const PAGE_TITLES = {
-  '/admin':             'Admin Dashboard',
-  '/admin/restaurants': 'Restaurants Directory',
-  '/admin/users':       'Users Management',
+  '/admin':                    'Dashboard',
+  '/admin/restaurants/new':    'Add Restaurant',
+  '/admin/restaurants':        'Restaurants',
+  '/admin/users':              'System Users',
 };
+
+function getTitleForPath(pathname) {
+  // Exact match first
+  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
+  // Edit route: /admin/restaurants/:id/edit
+  if (/^\/admin\/restaurants\/[^/]+\/edit$/.test(pathname)) return 'Edit Restaurant';
+  // Fallback prefix match (longest first)
+  const sorted = Object.entries(PAGE_TITLES).sort((a, b) => b[0].length - a[0].length);
+  for (const [p, t] of sorted) {
+    if (pathname.startsWith(p)) return t;
+  }
+  return 'Dashboard';
+}
 
 function getInitials(name = '', email = '') {
   const src = name?.trim() || email.split('@')[0];
@@ -24,35 +38,11 @@ function getDisplayName(name = '', email = '') {
 }
 
 /* ── SVG ICONS ────────────────────────────────────────────── */
-function IconCrown() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-      <path d="M2 13h12M2.5 10.5l1.5-6 4 3.5 4-3.5 1.5 6H2.5z" stroke="#d4af37" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 function IconProfile() {
   return (
     <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
       <circle cx="7" cy="5" r="2.8" stroke="currentColor" strokeWidth="1.3" />
       <path d="M1.5 13c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconRestaurants() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
-      <path d="M2 4.5h10M2 9.5h10M4.5 2v10M9.5 2v10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconUsers() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
-      <path d="M4.5 6a2.2 2.2 0 100-4.4 2.2 2.2 0 000 4.4zM9.5 6a2.2 2.2 0 100-4.4 2.2 2.2 0 000 4.4zM1.5 12.5c0-2.2 2-3.5 4.5-3.5s4.5 1.3 4.5 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
     </svg>
   );
 }
@@ -86,29 +76,11 @@ function IconChevron({ open }) {
   );
 }
 
-function IconSearch() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-      <circle cx="7" cy="7" r="4.5" stroke="#777" strokeWidth="1.35" />
-      <path d="M10.5 10.5L14 14" stroke="#777" strokeWidth="1.35" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function IconBell() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
       <path d="M8 2a3.5 3.5 0 00-3.5 3.5v2.8L3 10.5h10l-1.5-2.2V5.5A3.5 3.5 0 008 2z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M6.5 12.5a1.5 1.5 0 003 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconCheckVerified() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-      <circle cx="7" cy="7" r="6" fill="#d4af37" />
-      <path d="M4 7l2 2 4-4" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -167,12 +139,7 @@ function MenuItem({ icon, label, onClick, danger }) {
           : hov ? 'rgba(212,175,55,0.08)' : 'transparent',
       }}
     >
-      <span
-        style={{
-          color: danger ? (hov ? '#f87171' : '#555') : (hov ? '#d4af37' : '#555'),
-          transition: 'color 0.18s ease',
-        }}
-      >
+      <span style={{ color: danger ? (hov ? '#f87171' : '#555') : (hov ? '#d4af37' : '#555'), transition: 'color 0.18s ease' }}>
         {icon}
       </span>
       <span className="flex-1 leading-none">{label}</span>
@@ -203,22 +170,14 @@ function NotificationsPopup() {
           {unreadCount > 0 && (
             <span
               className="rounded-full px-2 py-0.5 font-sans text-[10px] font-bold"
-              style={{
-                background: 'rgba(212,175,55,0.16)',
-                border: '1px solid rgba(212,175,55,0.30)',
-                color: '#f5e27a',
-              }}
+              style={{ background: 'rgba(212,175,55,0.16)', border: '1px solid rgba(212,175,55,0.30)', color: '#f5e27a' }}
             >
               {unreadCount} New
             </span>
           )}
         </div>
         {unreadCount > 0 && (
-          <button
-            type="button"
-            onClick={markAllRead}
-            className="font-sans text-[11px] font-medium text-amber-400/80 hover:text-amber-300 transition-colors"
-          >
+          <button type="button" onClick={markAllRead} className="font-sans text-[11px] font-medium text-amber-400/80 hover:text-amber-300 transition-colors">
             Mark all read
           </button>
         )}
@@ -235,12 +194,7 @@ function NotificationsPopup() {
           </div>
         ) : (
           unreadItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => markRead(item.id)}
-              className="w-full text-left p-3.5 transition-colors bg-amber-500/[0.04] hover:bg-amber-500/[0.07]"
-            >
+            <button key={item.id} type="button" onClick={() => markRead(item.id)} className="w-full text-left p-3.5 transition-colors bg-amber-500/[0.04] hover:bg-amber-500/[0.07]">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0 mt-0.5" />
@@ -255,7 +209,7 @@ function NotificationsPopup() {
       </div>
 
       <div className="border-t border-white/5 p-2 bg-black/20 text-center">
-        <span className="font-sans text-[10px] text-gray-500">Admin Command Feed</span>
+        <span className="font-sans text-[10px] text-gray-500">Admin Command Feed • Realtime Updates</span>
       </div>
     </div>
   );
@@ -265,10 +219,7 @@ function NotificationsPopup() {
 function ProfilePopup({ name, email, role, onClose, onLogout }) {
   const initials = getInitials(name, email);
   return (
-    <div
-      className="absolute right-0 top-full z-50 mt-2.5 w-[260px]"
-      style={{ animation: 'profilePopupIn 0.22s cubic-bezier(0.22,1,0.36,1) forwards' }}
-    >
+    <div className="absolute right-0 top-full z-50 mt-2.5 w-[260px]" style={{ animation: 'profilePopupIn 0.22s cubic-bezier(0.22,1,0.36,1) forwards' }}>
       <div
         className="overflow-hidden rounded-2xl"
         style={{
@@ -279,24 +230,15 @@ function ProfilePopup({ name, email, role, onClose, onLogout }) {
           WebkitBackdropFilter: 'blur(28px)',
         }}
       >
-        {/* Profile Card Header */}
         <div className="relative px-4 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
           <div className="flex items-center gap-3">
-            <Avatar initials={initials} size={40} showStatus={true} />
+            <Avatar initials={initials} size={40} showStatus />
             <div className="min-w-0 flex-1">
-              <p className="font-sans text-[13.5px] font-semibold text-white leading-snug truncate">
-                {name}
-              </p>
-              <p className="font-sans text-[11px] text-gray-400 truncate mt-0.5">
-                {email}
-              </p>
+              <p className="font-sans text-[13.5px] font-semibold text-white leading-snug truncate">{name}</p>
+              <p className="font-sans text-[11px] text-gray-400 truncate mt-0.5">{email}</p>
               <span
                 className="mt-1.5 inline-flex items-center rounded-full px-2 py-0.5 font-sans text-[9px] font-bold uppercase tracking-wider"
-                style={{
-                  background: 'rgba(212,175,55,0.12)',
-                  border: '1px solid rgba(212,175,55,0.25)',
-                  color: '#d4af37',
-                }}
+                style={{ background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.25)', color: '#d4af37' }}
               >
                 {role || 'Admin'}
               </span>
@@ -304,23 +246,13 @@ function ProfilePopup({ name, email, role, onClose, onLogout }) {
           </div>
         </div>
 
-        {/* Menu Links */}
         <div className="px-2 py-2">
-          <Link to="/profile" onClick={onClose}>
-            <MenuItem icon={<IconProfile />} label="View Profile" />
-          </Link>
-          <Link to="/" onClick={onClose}>
-            <MenuItem icon={<IconSwitchView />} label="Switch to User View" />
-          </Link>
+          <Link to="/profile" onClick={onClose}><MenuItem icon={<IconProfile />} label="View Profile" /></Link>
+          <Link to="/" onClick={onClose}><MenuItem icon={<IconSwitchView />} label="Switch to User View" /></Link>
         </div>
 
-        {/* Divider */}
-        <div
-          className="mx-3"
-          style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.16), transparent)' }}
-        />
+        <div className="mx-3" style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.16), transparent)' }} />
 
-        {/* Logout */}
         <div className="px-2 py-2">
           <MenuItem icon={<IconLogout />} label="Log out" onClick={onLogout} danger />
         </div>
@@ -330,44 +262,24 @@ function ProfilePopup({ name, email, role, onClose, onLogout }) {
 }
 
 /* ── BREADCRUMB SEPARATOR ─────────────────────────────────── */
-/* ── BREADCRUMB SEPARATOR ─────────────────────────────────── */
 function BreadcrumbSep() {
-  return (
-    <span className="text-amber-500/40 font-sans text-[11px] select-none mx-0.5 font-light">/</span>
-  );
+  return <span className="text-amber-500/40 font-sans text-[11px] select-none mx-0.5 font-light">/</span>;
 }
 
 /* ── MAIN ADMIN NAVBAR ────────────────────────────────────── */
 export default function AdminNavbar() {
   const { email, role, logout, displayName } = useAuth();
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [pillHov, setPillHov] = useState(false);
-  const [searchModal, setSearchModal] = useState(false);
   const { unreadCount } = useNotifications();
   const ref = useRef(null);
   const notifRef = useRef(null);
 
   const name     = displayName || getDisplayName('', email);
   const initials = getInitials(displayName, email);
-
-  const title = Object.entries(PAGE_TITLES).find(([p]) =>
-    p === '/admin' ? pathname === '/admin' : pathname.startsWith(p)
-  )?.[1] ?? 'Dashboard';
-
-  // Keyboard shortcut listener (Cmd+K / Ctrl+K)
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setSearchModal((prev) => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  const title    = getTitleForPath(pathname);
 
   useEffect(() => {
     const h = (e) => {
@@ -379,13 +291,7 @@ export default function AdminNavbar() {
   }, []);
 
   useEffect(() => {
-    const h = (e) => {
-      if (e.key === 'Escape') {
-        setOpen(false);
-        setNotifOpen(false);
-        setSearchModal(false);
-      }
-    };
+    const h = (e) => { if (e.key === 'Escape') { setOpen(false); setNotifOpen(false); } };
     document.addEventListener('keydown', h);
     return () => document.removeEventListener('keydown', h);
   }, []);
@@ -404,19 +310,15 @@ export default function AdminNavbar() {
         boxShadow: '0 4px 28px rgba(0,0,0,0.45), inset 0 -1px 0 rgba(255,255,255,0.02)',
       }}
     >
-      {/* Top Ambient Gold Wire */}
+      {/* Ambient gold wire */}
       <div
         className="pointer-events-none absolute left-0 bottom-0 right-0 h-[1px]"
         style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.25) 50%, transparent 100%)' }}
       />
 
-      {/* ── Breadcrumb (Home Icon > Admin Console > Title) ────── */}
+      {/* Breadcrumb */}
       <div className="flex items-center gap-2 font-sans text-xs">
-        <Link
-          to="/"
-          className="flex items-center justify-center text-gray-400 hover:text-amber-400 transition-colors p-1 rounded-md hover:bg-white/5"
-          title="Home"
-        >
+        <Link to="/" className="flex items-center justify-center text-gray-400 hover:text-amber-400 transition-colors p-1 rounded-md hover:bg-white/5" title="Home">
           <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
             <path d="M2.5 6.5L8 2l5.5 4.5v7a1 1 0 01-1 1h-3.5v-4h-2v4H3.5a1 1 0 01-1-1v-7z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -424,24 +326,27 @@ export default function AdminNavbar() {
 
         <BreadcrumbSep />
 
-        <Link
-          to="/admin"
-          className="font-semibold text-amber-400/90 hover:text-amber-300 transition-colors tracking-wide text-[12.5px]"
-        >
+        <Link to="/admin" className="font-semibold text-amber-400/90 hover:text-amber-300 transition-colors tracking-wide text-[12.5px]">
           Admin Console
         </Link>
 
+        {(pathname === '/admin/restaurants/new' || /^\/admin\/restaurants\/[^/]+\/edit$/.test(pathname)) && (
+          <>
+            <BreadcrumbSep />
+            <Link to="/admin/restaurants" className="font-semibold text-amber-400/90 hover:text-amber-300 transition-colors tracking-wide text-[12.5px]">
+              Restaurants
+            </Link>
+          </>
+        )}
+
         <BreadcrumbSep />
 
-        <span
-          className="font-bold text-[13.5px]"
-          style={{ color: '#ffffff', letterSpacing: '0.01em' }}
-        >
+        <span className="font-bold text-[13.5px]" style={{ color: '#ffffff', letterSpacing: '0.01em' }}>
           {title}
         </span>
       </div>
 
-      {/* ── Right Actions & Profile Pill ────────────────────── */}
+      {/* Right actions */}
       <div className="flex items-center gap-3.5">
         {/* Notification Bell */}
         <div ref={notifRef} className="relative">
@@ -456,7 +361,6 @@ export default function AdminNavbar() {
               <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-amber-400 ring-2 ring-[#0a0a0c]" />
             )}
           </button>
-
           {notifOpen && <NotificationsPopup />}
         </div>
 
@@ -469,42 +373,24 @@ export default function AdminNavbar() {
             onMouseLeave={() => setPillHov(false)}
             className="group flex items-center gap-3 rounded-full py-1.5 pl-1.5 pr-3.5 transition-all duration-250 select-none"
             style={{
-              background: open
-                ? 'rgba(212,175,55,0.14)'
-                : pillHov
-                ? 'rgba(212,175,55,0.08)'
-                : 'rgba(255,255,255,0.04)',
-              border: open
-                ? '1px solid rgba(212,175,55,0.40)'
-                : pillHov
-                ? '1px solid rgba(212,175,55,0.25)'
-                : '1px solid rgba(212,175,55,0.14)',
-              boxShadow: open
-                ? '0 0 24px rgba(212,175,55,0.20), inset 0 0 12px rgba(212,175,55,0.06)'
-                : pillHov
-                ? '0 0 16px rgba(212,175,55,0.12)'
-                : 'none',
+              background: open ? 'rgba(212,175,55,0.14)' : pillHov ? 'rgba(212,175,55,0.08)' : 'rgba(255,255,255,0.04)',
+              border: open ? '1px solid rgba(212,175,55,0.40)' : pillHov ? '1px solid rgba(212,175,55,0.25)' : '1px solid rgba(212,175,55,0.14)',
+              boxShadow: open ? '0 0 24px rgba(212,175,55,0.20), inset 0 0 12px rgba(212,175,55,0.06)' : pillHov ? '0 0 16px rgba(212,175,55,0.12)' : 'none',
               transform: pillHov && !open ? 'translateY(-1px)' : 'translateY(0)',
             }}
           >
-            <Avatar initials={initials} size={30} showStatus={true} />
+            <Avatar initials={initials} size={30} showStatus />
 
             <div className="hidden sm:flex flex-col justify-center text-left my-auto">
               <p className="font-sans font-bold text-white leading-tight text-[12.5px] tracking-wide group-hover:text-amber-200 transition-colors">
                 {name}
               </p>
-              <p
-                className="font-sans text-[9px] font-extrabold uppercase tracking-wider leading-tight mt-[2px]"
-                style={{ color: '#d4af37' }}
-              >
-                {role ?? 'Admin'}
+              <p className="font-sans text-[9px] font-extrabold uppercase tracking-wider leading-tight mt-[2px]" style={{ color: '#d4af37' }}>
+                Admin
               </p>
             </div>
 
-            <span
-              className="hidden sm:flex items-center justify-center self-center ml-0.5"
-              style={{ color: open ? '#f5e27a' : '#777', transition: 'color 0.22s ease' }}
-            >
+            <span className="hidden sm:flex items-center justify-center self-center ml-0.5" style={{ color: open ? '#f5e27a' : '#777', transition: 'color 0.22s ease' }}>
               <IconChevron open={open} />
             </span>
           </button>
@@ -513,7 +399,7 @@ export default function AdminNavbar() {
             <ProfilePopup
               name={name}
               email={email}
-              role={role ?? 'Admin'}
+              role="Admin"
               onClose={() => setOpen(false)}
               onLogout={handleLogout}
             />
@@ -523,4 +409,3 @@ export default function AdminNavbar() {
     </header>
   );
 }
-

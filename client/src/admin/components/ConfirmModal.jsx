@@ -1,5 +1,5 @@
-export default function ConfirmModal({ open, title, message, confirmLabel = 'Confirm', onConfirm, onCancel, loading }) {
-  if (!open) return null;
+export default function ConfirmModal({ open, title, message, confirmLabel = 'Confirm', cancelLabel = 'Cancel', onConfirm, onCancel, loading }) {
+  if (open === false) return null;
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
@@ -43,7 +43,7 @@ export default function ConfirmModal({ open, title, message, confirmLabel = 'Con
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
           >
-            Keep reservation
+            {cancelLabel}
           </button>
           <button
             type="button"
@@ -62,7 +62,7 @@ export default function ConfirmModal({ open, title, message, confirmLabel = 'Con
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                 </svg>
-                Cancelling…
+                Processing…
               </span>
             ) : confirmLabel}
           </button>

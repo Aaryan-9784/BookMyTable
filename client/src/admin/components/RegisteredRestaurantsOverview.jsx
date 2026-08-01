@@ -5,22 +5,6 @@ import { adminApi } from '../services/adminApi.js';
 import ConfirmModal from './ConfirmModal.jsx';
 
 /* ── SVG ICONS ──────────────────────────────────────────────── */
-function IconCheck() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path d="M2.5 7l3.5 3.5 5.5-6.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconCross() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 function IconEdit() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -43,9 +27,9 @@ function StatusBadge() {
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold tracking-wide whitespace-nowrap"
-      style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.3)', color: '#34d399' }}
+      style={{ background: 'rgba(34,197,94,0.10)', border: '1px solid rgba(34,197,94,0.25)', color: '#4ade80' }}
     >
-      <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#34d399' }} />
+      <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: '#4ade80' }} />
       Live &amp; Active
     </span>
   );
@@ -105,118 +89,32 @@ export default function RegisteredRestaurantsOverview() {
 
   return (
     <div className="anim-fade-up delay-4">
-      {/* ── Quick Admin Actions Grid ─────────────────────── */}
-      <div className="grid gap-4 sm:grid-cols-3 mb-8">
-        <Link
-          to="/admin/restaurants"
-          className="group relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02]"
-          style={{
-            background: 'linear-gradient(145deg, rgba(212,175,55,0.12) 0%, rgba(24,22,18,0.95) 100%)',
-            border: '1px solid rgba(212,175,55,0.30)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
-          }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-gold font-semibold">
-              Venue Directory
-            </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-luxury-gold/15 text-luxury-gold text-sm font-bold">
-              🏛️
-            </div>
-          </div>
-          <p className="font-display text-white font-semibold text-lg group-hover:text-luxury-gold transition-colors">
-            Manage All Venues
-          </p>
-          <p className="mt-1 font-sans text-xs text-luxury-muted">
-            View, edit, and update active restaurant venues
-          </p>
-        </Link>
 
-        <Link
-          to="/admin/restaurants/new"
-          className="group relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02]"
-          style={{
-            background: 'linear-gradient(145deg, #1c1c1c 0%, #151515 100%)',
-            border: '1px solid rgba(255,255,255,0.10)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
-          }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted font-semibold">
-              Admin Exclusive
-            </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-white text-sm font-bold">
-              ➕
-            </div>
-          </div>
-          <p className="font-display text-white font-semibold text-lg group-hover:text-luxury-gold transition-colors">
-            + Add Restaurant
-          </p>
-          <p className="mt-1 font-sans text-xs text-luxury-muted">
-            Directly create a new restaurant venue
-          </p>
-        </Link>
-
-        <Link
-          to="/admin/users"
-          className="group relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02]"
-          style={{
-            background: 'linear-gradient(145deg, #1c1c1c 0%, #151515 100%)',
-            border: '1px solid rgba(255,255,255,0.10)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
-          }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted font-semibold">
-              Access Control
-            </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-white text-sm font-bold">
-              👥
-            </div>
-          </div>
-          <p className="font-display text-white font-semibold text-lg group-hover:text-luxury-gold transition-colors">
-            Manage System Users
-          </p>
-          <p className="mt-1 font-sans text-xs text-luxury-muted">
-            Update user roles &amp; permissions
-          </p>
-        </Link>
-      </div>
-
-      {/* ── Registered Restaurants Table Card ─────────────── */}
+      {/* ── Active Restaurants Directory Table ──────────────── */}
       <div
-        className="overflow-hidden rounded-[20px]"
+        className="overflow-hidden rounded-2xl"
         style={{
-          background: 'linear-gradient(160deg, rgba(28,26,22,0.95) 0%, rgba(18,17,14,0.98) 100%)',
-          border: '1px solid rgba(212,175,55,0.10)',
-          boxShadow: '0 8px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(212,175,55,0.06)',
+          background: '#141414',
+          border: '1px solid rgba(255,255,255,0.07)',
         }}
       >
         {/* Header */}
         <div
           className="flex items-center justify-between px-6 py-5"
-          style={{ borderBottom: '1px solid rgba(212,175,55,0.08)' }}
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         >
           <div>
-            <h2
-              className="font-display text-white font-semibold"
-              style={{ fontSize: '1.35rem', letterSpacing: '0.01em' }}
-            >
+            <h2 className="font-display text-lg font-semibold text-white">
               Active Restaurants Directory
             </h2>
-            <p className="mt-0.5 font-sans text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <p className="mt-0.5 font-sans text-xs text-luxury-muted">
               Overview of all active restaurant venues across the platform
             </p>
           </div>
-
           <Link
             to="/admin/restaurants"
-            className="flex items-center gap-1.5 rounded-full px-4 py-2 font-sans text-[12px] font-medium transition-all duration-200 hover:bg-luxury-gold/20"
-            style={{
-              background: 'rgba(212,175,55,0.08)',
-              border: '1px solid rgba(212,175,55,0.25)',
-              color: '#d4af37',
-            }}
+            className="flex items-center gap-1.5 rounded-full px-4 py-1.5 font-sans text-[12px] font-semibold text-luxury-gold hover:bg-luxury-gold/20 transition-all duration-200"
+            style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.25)' }}
           >
             View All Restaurants
             <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
@@ -225,14 +123,14 @@ export default function RegisteredRestaurantsOverview() {
           </Link>
         </div>
 
-        {/* Column Header */}
+        {/* Column headers */}
         {!loading && restaurants.length > 0 && (
           <div
-            className="grid px-6 py-2.5 font-sans text-[10px] font-semibold uppercase tracking-[0.16em]"
+            className="grid px-6 py-2.5 font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted"
             style={{
               gridTemplateColumns: '1.8fr 1fr 0.8fr 0.8fr 1.2fr 1fr',
               borderBottom: '1px solid rgba(255,255,255,0.04)',
-              color: 'rgba(212,175,55,0.45)',
+              background: 'rgba(0,0,0,0.2)',
             }}
           >
             <span>Restaurant</span>
@@ -251,22 +149,26 @@ export default function RegisteredRestaurantsOverview() {
           <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
             <div
               className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
-              style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.12)' }}
+              style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.14)' }}
             >
-              🍽️
+              <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+                <path d="M5 2v8A3.5 3.5 0 008.5 13.5v11" stroke="rgba(212,175,55,0.4)" strokeWidth="1.4" strokeLinecap="round" />
+                <path d="M8.5 2v5" stroke="rgba(212,175,55,0.35)" strokeWidth="1.4" strokeLinecap="round" />
+                <path d="M17 2s3.5 2.5 3.5 6.5S17 15 17 15v9.5" stroke="rgba(212,175,55,0.4)" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
             </div>
             <p className="font-sans text-sm font-medium text-white/50">No restaurants registered yet</p>
-            <p className="mt-1 font-sans text-xs text-white/25">Admin added restaurants will appear here</p>
+            <p className="mt-1 font-sans text-xs text-white/25">Admin-added restaurants will appear here</p>
           </div>
         ) : (
-          <div className="divide-y divide-white/[0.035]">
+          <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
             {restaurants.map((r) => (
               <div
                 key={r._id}
-                className="grid items-center px-6 py-4 transition-colors duration-150 hover:bg-white/[0.02]"
+                className="grid items-center px-6 py-4 transition-colors duration-150 hover:bg-white/[0.025]"
                 style={{ gridTemplateColumns: '1.8fr 1fr 0.8fr 0.8fr 1.2fr 1fr' }}
               >
-                {/* Restaurant Info */}
+                {/* Restaurant info */}
                 <div className="flex items-center gap-3 min-w-0 pr-2">
                   {r.imageUrl ? (
                     <img
@@ -276,48 +178,40 @@ export default function RegisteredRestaurantsOverview() {
                     />
                   ) : (
                     <div
-                      className="flex h-10 w-10 items-center justify-center rounded-xl shrink-0 font-bold"
-                      style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.2)', color: '#d4af37' }}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                      style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.18)' }}
                     >
-                      🍽️
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M4 1.5v5.5A2.5 2.5 0 006.5 9.5v7" stroke="#d4af37" strokeWidth="1.3" strokeLinecap="round" />
+                        <path d="M6.5 1.5v3.5" stroke="#d4af37" strokeWidth="1.3" strokeLinecap="round" />
+                        <path d="M12 1.5s2.5 2 2.5 4.5S12 9.5 12 9.5v7" stroke="#d4af37" strokeWidth="1.3" strokeLinecap="round" />
+                      </svg>
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="font-sans text-[13px] font-semibold text-white leading-snug truncate">
-                      {r.name}
-                    </p>
-                    <p className="font-sans text-[11px] text-luxury-muted truncate mt-0.5">
-                      📍 {r.location || '—'}
-                    </p>
+                    <p className="font-sans text-[13px] font-semibold text-white leading-snug truncate">{r.name}</p>
+                    <p className="font-sans text-[11px] text-luxury-muted truncate mt-0.5">📍 {r.location || '—'}</p>
                   </div>
                 </div>
 
                 {/* Cuisine */}
-                <div className="font-sans text-xs text-white/80 truncate">
-                  {r.category || 'Multi Cuisine'}
-                </div>
+                <span className="font-sans text-xs text-white/80 truncate">{r.category || 'Multi Cuisine'}</span>
 
                 {/* Token Fee */}
-                <div className="font-sans text-xs font-semibold text-luxury-gold">
-                  ₹{r.tokenFee || 150}
-                </div>
+                <span className="font-sans text-xs font-bold text-luxury-gold">₹{r.tokenFee || 150}</span>
 
-                {/* Seating Capacity */}
-                <div className="font-sans text-xs text-white/80">
-                  {r.totalSeatingCapacity || 40} Seats
-                </div>
+                {/* Capacity */}
+                <span className="font-sans text-xs text-white/80">{r.totalSeatingCapacity || 40} Seats</span>
 
                 {/* Status */}
-                <div>
-                  <StatusBadge />
-                </div>
+                <div><StatusBadge /></div>
 
                 {/* Actions */}
                 <div className="flex items-center justify-end gap-2">
                   <Link
                     to={`/admin/restaurants/${r._id}/edit`}
                     title="Edit Restaurant"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-luxury-gold hover:bg-luxury-gold/10 transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-luxury-gold transition-all duration-200 hover:bg-luxury-gold/10"
                     style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.22)' }}
                   >
                     <IconEdit />
@@ -326,7 +220,7 @@ export default function RegisteredRestaurantsOverview() {
                     type="button"
                     onClick={() => setDeleteId(r._id)}
                     title="Delete Restaurant"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-red-400 hover:bg-red-500/20 transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-red-400 transition-all duration-200 hover:bg-red-500/20"
                     style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.18)' }}
                   >
                     <IconTrash />
