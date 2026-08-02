@@ -54,10 +54,10 @@ export default function Profile() {
   const { email, role, isRestaurant, profile, profileLoading, logout, refreshProfile, displayName } = useAuth();
   const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
-  const [bookings, setBookings]               = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
-  const [editOpen, setEditOpen]               = useState(false);
-  const [changePassOpen, setChangePassOpen]   = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [changePassOpen, setChangePassOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,9 +81,9 @@ export default function Profile() {
   if (profileLoading) return null;
 
   const displayEmail = profile?.email || email || '—';
-  const rawPhone     = profile?.phone || profile?.phoneNumber || localStorage.getItem('bookmytable_phone') || '+91 8238012515';
+  const rawPhone = profile?.phone || profile?.phoneNumber || localStorage.getItem('bookmytable_phone') || '+91 8238012515';
   const displayPhone = rawPhone.startsWith('+') ? rawPhone : `+91 ${rawPhone}`;
-  const isAdmin      = (role || '').toLowerCase() === 'admin';
+  const isAdmin = (role || '').toLowerCase() === 'admin';
 
   return (
     <div
@@ -238,15 +238,15 @@ export default function Profile() {
               <div className="my-8 h-px" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.04) 100%)' }} />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {(isRestaurant ? [
-                  { label: 'Mobile Number',   value: displayPhone, icon: '📱', highlight: 'amber' },
-                  { label: 'Partner Status',  value: 'Active & Verified', icon: '🟢', highlight: 'emerald' },
+                  { label: 'Mobile Number', value: displayPhone, icon: '📱', highlight: 'amber' },
+                  { label: 'Partner Status', value: 'Active & Verified', icon: '🟢', highlight: 'emerald' },
                 ] : isAdmin ? [
-                  { label: 'Mobile Number',   value: displayPhone, icon: '📱', highlight: 'amber' },
-                  { label: 'System Access',   value: 'Root Administrator', icon: '👑', highlight: 'emerald' },
+                  { label: 'Mobile Number', value: displayPhone, icon: '📱', highlight: 'amber' },
+                  { label: 'System Access', value: 'Root Administrator', icon: '👑', highlight: 'emerald' },
                 ] : [
                   { label: 'Total bookings', value: profile?.stats?.totalBookings ?? 0, icon: '📊', highlight: 'white' },
-                  { label: 'Saved Wishlist',  value: wishlistCount ?? 0, icon: '❤️', highlight: 'amber', link: '/wishlist' },
-                  { label: 'Upcoming',        value: profile?.stats?.upcomingConfirmed ?? 0, icon: '📅', highlight: 'amber' },
+                  { label: 'Saved Wishlist', value: wishlistCount ?? 0, icon: '❤️', highlight: 'amber', link: '/wishlist' },
+                  { label: 'Upcoming', value: profile?.stats?.upcomingConfirmed ?? 0, icon: '📅', highlight: 'amber' },
                 ]).map(({ label, value, icon, highlight, link }) => {
                   const content = (
                     <div
@@ -271,13 +271,13 @@ export default function Profile() {
                   );
                   return link ? <Link key={label} to={link}>{content}</Link> : <div key={label}>{content}</div>;
                 })}
-                ))}
+
               </div>
 
               {/* Divider & Actions Toolbar */}
               <div className="my-8 h-px" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.18) 0%, transparent 100%)' }} />
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                
+
                 {/* Left Account Settings Actions */}
                 <div className="flex flex-wrap items-center gap-3">
                   <button
@@ -382,10 +382,10 @@ export default function Profile() {
             ) : (
               <ul className="space-y-3">
                 {bookings.map((b) => {
-                  const rest        = b.restaurantId;
-                  const name        = typeof rest === 'object' && rest?.name ? rest.name : 'Restaurant';
-                  const rid         = typeof rest === 'object' && rest?._id  ? rest._id  : null;
-                  const status      = b.status || 'confirmed';
+                  const rest = b.restaurantId;
+                  const name = typeof rest === 'object' && rest?.name ? rest.name : 'Restaurant';
+                  const rid = typeof rest === 'object' && rest?._id ? rest._id : null;
+                  const status = b.status || 'confirmed';
                   const isCancelled = status === 'cancelled';
 
                   return (

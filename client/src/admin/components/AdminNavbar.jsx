@@ -47,6 +47,14 @@ function IconProfile() {
   );
 }
 
+function IconCalendar() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+    </svg>
+  );
+}
+
 function IconSwitchView() {
   return (
     <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
@@ -247,8 +255,25 @@ function ProfilePopup({ name, email, role, onClose, onLogout }) {
         </div>
 
         <div className="px-2 py-2">
-          <Link to="/profile" onClick={onClose}><MenuItem icon={<IconProfile />} label="View Profile" /></Link>
-          <Link to="/" onClick={onClose}><MenuItem icon={<IconSwitchView />} label="Switch to User View" /></Link>
+          <Link to="/profile" onClick={onClose}>
+            <MenuItem icon={<IconProfile />} label="View Profile" />
+          </Link>
+          <Link to="/my-bookings" onClick={onClose}>
+            <MenuItem icon={<IconCalendar />} label="My Bookings" />
+          </Link>
+          <Link to="/wishlist" onClick={onClose}>
+            <MenuItem
+              icon={
+                <svg className="h-4 w-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                </svg>
+              }
+              label="Saved Wishlist"
+            />
+          </Link>
+          <Link to="/admin" onClick={onClose}>
+            <MenuItem icon={<IconSwitchView />} label="Admin Console" />
+          </Link>
         </div>
 
         <div className="mx-3" style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.16), transparent)' }} />

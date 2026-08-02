@@ -423,11 +423,11 @@ export default function Navbar() {
         <div className="hidden items-center md:flex" style={{ gap: '1.5rem' }}>
           <NavLink to="/restaurants" className={navLinkClass}>Restaurants</NavLink>
 
-          {isRestaurant && (
+          {isRestaurant && !isHome && (
             <NavLink to="/restaurant-dashboard" className={navLinkClass}>Partner Portal</NavLink>
           )}
 
-          {isAdmin && (
+          {isAdmin && !isHome && (
             <NavLink to="/admin" className={navLinkClass}>Admin Console</NavLink>
           )}
         </div>
