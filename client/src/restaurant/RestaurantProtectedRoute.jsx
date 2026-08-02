@@ -9,7 +9,7 @@ export default function RestaurantProtectedRoute({ children }) {
   const { isAuthenticated, isRestaurant, isAdmin, profileLoading } = useAuth();
 
   if (profileLoading) {
-    return null;
+    return <Loader fullScreen message="Authenticating partner session..." />;
   }
 
   if (!isAuthenticated) {

@@ -100,26 +100,7 @@ export default function RestaurantCard({ restaurant }) {
             </div>
           )}
 
-          {/* ── Category pill — top left, fades in on hover ── */}
-          {category && (
-            <div
-              className="absolute left-4 top-4 transition-all duration-300"
-              style={{ opacity: hovered ? 1 : 0, transform: hovered ? 'translateY(0)' : 'translateY(-4px)' }}
-            >
-              <span
-                className="rounded-full px-3 py-1 font-sans text-[0.65rem] font-semibold uppercase tracking-widest"
-                style={{
-                  background: 'rgba(212,175,55,0.15)',
-                  backdropFilter: 'blur(8px)',
-                  WebkitBackdropFilter: 'blur(8px)',
-                  border: '1px solid rgba(212,175,55,0.3)',
-                  color: '#d4af37',
-                }}
-              >
-                {category}
-              </span>
-            </div>
-          )}
+
 
           {/* ── Content overlay — bottom of image ── */}
           <div className="absolute inset-x-0 bottom-0 p-5">

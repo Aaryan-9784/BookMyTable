@@ -226,8 +226,17 @@ function NotificationsPopup() {
   );
 }
 
+function IconCalendar() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
+      <rect x="1.5" y="2.5" width="11" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M4.5 1v3M9.5 1v3M1.5 5.5h11" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 /* ── PROFILE POPUP MENU ────────────────────────────────────── */
-function ProfilePopup({ name, email, role, isRestaurant, isAdmin, onClose, onLogout }) {
+function ProfilePopup({ name, email, role, isCustomer, isRestaurant, isAdmin, onClose, onLogout }) {
   const userInitials = initials(name);
   return (
     <div
@@ -275,15 +284,19 @@ function ProfilePopup({ name, email, role, isRestaurant, isAdmin, onClose, onLog
             <MenuItem icon={<IconProfile />} label="View Profile" />
           </Link>
 
+          <Link to="/my-bookings" onClick={onClose}>
+            <MenuItem icon={<IconCalendar />} label="My Bookings" />
+          </Link>
+
           {isRestaurant && (
             <Link to="/restaurant-dashboard" onClick={onClose}>
-              <MenuItem icon={<IconSwitchView />} label="Switch to Partner Portal" />
+              <MenuItem icon={<IconSwitchView />} label="Partner Portal" />
             </Link>
           )}
 
           {isAdmin && (
             <Link to="/admin" onClick={onClose}>
-              <MenuItem icon={<IconSwitchView />} label="Switch to Admin Console" />
+              <MenuItem icon={<IconSwitchView />} label="Admin Console" />
             </Link>
           )}
         </div>
@@ -304,7 +317,7 @@ function ProfilePopup({ name, email, role, isRestaurant, isAdmin, onClose, onLog
 }
 
 export default function Navbar() {
-  const { isAuthenticated, email, isAdmin, isRestaurant, profile, displayName, logout } = useAuth();
+  const { isAuthenticated, email, isAdmin, isRestaurant, isCustomer, profile, displayName, logout } = useAuth();
   const { unreadCount } = useNotifications();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -395,11 +408,16 @@ export default function Navbar() {
         </Link>
 
         {/* Center links */}
-        <div className="hidden items-center md:flex" style={{ gap: '1.75rem' }}>
-          <span className="h-1 w-1 rounded-full bg-luxury-gold/20" />
+        <div className="hidden items-center md:flex" style={{ gap: '1.5rem' }}>
           <NavLink to="/restaurants" className={navLinkClass}>Restaurants</NavLink>
 
-          <span className="h-1 w-1 rounded-full bg-luxury-gold/20" />
+          {isRestaurant && (
+            <NavLink to="/restaurant-dashboard" className={navLinkClass}>Partner Portal</NavLink>
+          )}
+
+          {isAdmin && (
+            <NavLink to="/admin" className={navLinkClass}>Admin Console</NavLink>
+          )}
         </div>
 
         {/* Right Actions & Profile Pill */}
@@ -477,6 +495,7 @@ export default function Navbar() {
                     name={userName}
                     email={email}
                     role={displayRole}
+                    isCustomer={isCustomer}
                     isRestaurant={isRestaurant}
                     isAdmin={isAdmin}
                     onClose={() => setOpen(false)}
@@ -503,8 +522,10 @@ export default function Navbar() {
           <NavLink to="/restaurants" className={navLinkClass}>Venues</NavLink>
           {isAuthenticated && (
             <>
+              <NavLink to="/my-bookings" className={navLinkClass}>Bookings</NavLink>
               <NavLink to="/profile" className={navLinkClass}>Profile</NavLink>
               {isRestaurant && <NavLink to="/restaurant-dashboard" className={navLinkClass}>Partner</NavLink>}
+              {isAdmin && <NavLink to="/admin" className={navLinkClass}>Admin</NavLink>}
             </>
           )}
         </div>

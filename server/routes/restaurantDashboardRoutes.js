@@ -27,14 +27,7 @@ const router = Router();
 const sanitizeRestaurant = createSanitizationMiddleware('restaurant');
 
 // Protect routes for admin and restaurant roles
-router.use((req, res, next) => {
-  if (req.headers.authorization) {
-    return verifyCognitoToken(req, res, () => {
-      requireRole(['admin', 'restaurant'])(req, res, next);
-    });
-  }
-  next();
-});
+router.use(verifyCognitoToken, requireRole(['admin', 'restaurant']));
 
 // Stats
 router.get('/stats', asyncHandler(getDashboardStats));

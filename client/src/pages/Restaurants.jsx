@@ -151,14 +151,14 @@ const RATING_OPTIONS = [
   { value: '4.5', label: '4.5+ ★' },
 ];
 const SORT_OPTIONS = [
-  { value: 'newest', label: 'Newest' },
-  { value: 'rating', label: 'Top rated' },
-  { value: 'price_asc', label: 'Price: low to high' },
-  { value: 'price_desc', label: 'Price: high to low' },
+  { value: 'newest', label: 'Newest First' },
+  { value: 'rating', label: 'Top Rated' },
+  { value: 'price_asc', label: 'Price: Low to High' },
+  { value: 'price_desc', label: 'Price: High to Low' },
 ];
 const CATEGORY_OPTIONS = [
   { value: '', label: 'All cuisines' },
-  ...['Indian','Italian','Chinese','Japanese','Continental','Cafe','Fine dining','Multi-cuisine']
+  ...['Indian','Italian','Chinese','Japanese','Continental','Mexican','Thai','Mediterranean','Multi-cuisine']
     .map((c) => ({ value: c, label: c })),
 ];
 
@@ -166,7 +166,7 @@ const inputClass =
   'h-11 w-full min-w-0 rounded-xl border border-white/8 bg-white/[0.04] pl-10 pr-4 font-sans text-sm text-white placeholder:text-white/25 transition focus:border-luxury-gold/50 focus:outline-none focus:ring-1 focus:ring-luxury-gold/20 hover:border-white/15';
 
 function sortLabel(v) {
-  const m = { newest: 'Newest', rating: 'Top rated', price_asc: 'Price ↑', price_desc: 'Price ↓' };
+  const m = { newest: 'Newest First', rating: 'Top Rated', price_asc: 'Price: Low to High', price_desc: 'Price: High to Low' };
   return m[v] || v;
 }
 function priceTicks(n) {
@@ -390,9 +390,9 @@ export default function Restaurants() {
                   </div>
                 </div>
 
-                {/* Min price */}
+                {/* Min price tier */}
                 <div>
-                  <p className="mb-2 font-sans text-[0.6rem] font-semibold uppercase tracking-widest text-luxury-gold/50">Min price</p>
+                  <p className="mb-2 font-sans text-[0.6rem] font-semibold uppercase tracking-widest text-luxury-gold/50">Min Price Tier</p>
                   <LuxurySelect
                     value={minPrice}
                     onChange={(v) => setFilter('minPrice', v)}
@@ -401,9 +401,9 @@ export default function Restaurants() {
                   />
                 </div>
 
-                {/* Max price */}
+                {/* Max price tier */}
                 <div>
-                  <p className="mb-2 font-sans text-[0.6rem] font-semibold uppercase tracking-widest text-luxury-gold/50">Max price</p>
+                  <p className="mb-2 font-sans text-[0.6rem] font-semibold uppercase tracking-widest text-luxury-gold/50">Max Price Tier</p>
                   <LuxurySelect
                     value={maxPrice}
                     onChange={(v) => setFilter('maxPrice', v)}

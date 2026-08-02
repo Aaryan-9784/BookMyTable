@@ -44,7 +44,11 @@ export function requireRole(allowedRoles = [], { strict = false } = {}) {
     }
 
     const normalizedAllowed = allowedRoles.map((r) => r.toLowerCase());
-    const isAllowed = normalizedAllowed.includes(userRole);
+    const isAllowed =
+      (normalizedAllowed.includes('restaurant') && isRestaurantPartner) ||
+      (normalizedAllowed.includes('customer') && (userRole === 'customer' || userRole === 'user')) ||
+      (normalizedAllowed.includes('user') && (userRole === 'customer' || userRole === 'user')) ||
+      normalizedAllowed.includes(userRole);
 
     if (!isAllowed) {
       return res.status(403).json({

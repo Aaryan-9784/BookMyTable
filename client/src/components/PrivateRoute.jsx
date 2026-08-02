@@ -10,7 +10,7 @@ export default function PrivateRoute({ children }) {
   const location = useLocation();
 
   if (profileLoading) {
-    return null;
+    return <Loader fullScreen message="Verifying authorization..." />;
   }
 
   if (!isAuthenticated) {

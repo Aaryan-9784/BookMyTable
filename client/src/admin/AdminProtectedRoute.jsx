@@ -9,7 +9,7 @@ export default function AdminProtectedRoute({ children }) {
   const { isAuthenticated, isAdmin, profileLoading } = useAuth();
 
   if (profileLoading) {
-    return null;
+    return <Loader fullScreen message="Authenticating admin session..." />;
   }
 
   if (!isAuthenticated) {

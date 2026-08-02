@@ -167,10 +167,12 @@ export async function getBookingById(req, res, next) {
       });
     }
 
-    const booking = await Booking.findOne({
-      _id: req.params.id,
-      userId: req.user._id,
-    }).populate('restaurantId');
+    const query = { _id: req.params.id };
+    if (req.user.role !== 'admin') {
+      query.userId = req.user._id;
+    }
+
+    const booking = await Booking.findOne(query).populate('restaurantId');
 
     if (!booking) {
       return res.status(404).json({
