@@ -6,13 +6,14 @@ import { useAuth } from './AuthContext.jsx';
 const WishlistContext = createContext(null);
 
 export function WishlistProvider({ children }) {
-  const { user, isCustomer } = useAuth();
+  const { idToken, email } = useAuth();
+  const isAuthenticated = Boolean(idToken || email || localStorage.getItem('bookmytable_id_token'));
   const [wishlist, setWishlist] = useState([]);
   const [wishlistedIds, setWishlistedIds] = useState(new Set());
   const [loading, setLoading] = useState(false);
 
   const fetchWishlist = useCallback(async () => {
-    if (!user) {
+    if (!isAuthenticated) {
       setWishlist([]);
       setWishlistedIds(new Set());
       return;
@@ -31,7 +32,7 @@ export function WishlistProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     fetchWishlist();
@@ -39,7 +40,7 @@ export function WishlistProvider({ children }) {
 
   const toggleWishlist = useCallback(
     async (restaurant) => {
-      if (!user) {
+      if (!isAuthenticated) {
         toast.error('Please log in to save restaurants to your wishlist');
         return false;
       }
@@ -75,7 +76,7 @@ export function WishlistProvider({ children }) {
         return wasWishlisted;
       }
     },
-    [user, wishlistedIds, fetchWishlist]
+    [isAuthenticated, wishlistedIds, fetchWishlist]
   );
 
   const isWishlisted = useCallback(
