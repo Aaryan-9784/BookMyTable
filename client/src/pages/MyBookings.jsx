@@ -234,9 +234,18 @@ export default function MyBookings() {
                       </div>
                     </div>
 
-                    {/* RIGHT — cancel */}
-                    {canCancel && (
-                      <div className="shrink-0">
+                    {/* RIGHT — actions */}
+                    <div className="shrink-0 flex items-center gap-3 flex-wrap">
+                      {!isCancelled && (
+                        <Link
+                          to={`/booking-confirmation/${b._id}`}
+                          className="rounded-full border border-luxury-gold/40 px-4 py-2 font-sans text-xs font-semibold text-luxury-gold transition-all duration-200 hover:bg-luxury-gold/10 hover:border-luxury-gold"
+                        >
+                          Receipt 🧾
+                        </Link>
+                      )}
+
+                      {canCancel && (
                         <button
                           type="button"
                           onClick={() => setCancelId(b._id)}
@@ -258,8 +267,8 @@ export default function MyBookings() {
                         >
                           Cancel booking
                         </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </li>
               );

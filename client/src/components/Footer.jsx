@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 export default function Footer() {
   return (
     <footer
+      className="print:hidden"
       style={{
         background: 'linear-gradient(180deg, #0b0b0c 0%, #080808 100%)',
         borderTop: '1px solid rgba(212,175,55,0.1)',

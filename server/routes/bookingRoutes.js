@@ -9,6 +9,7 @@ import {
   createBooking,
   createBookingValidators,
   listMyBookings,
+  getBookingById,
   cancelBooking,
   cancelBookingValidators,
 } from '../controllers/bookingController.js';
@@ -25,8 +26,9 @@ const sanitizeBooking = createSanitizationMiddleware('booking');
 
 router.use(verifyCognitoToken);
 
-// Safe method - no CSRF needed
+// Safe methods - no CSRF needed
 router.get('/my', asyncHandler(listMyBookings));
+router.get('/:id', asyncHandler(getBookingById));
 
 // State-changing operations - CSRF protection in production
 router.patch('/:id/cancel', conditionalCsrfProtection, cancelBookingValidators, asyncHandler(cancelBooking));

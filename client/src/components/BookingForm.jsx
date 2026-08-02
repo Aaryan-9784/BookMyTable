@@ -310,15 +310,7 @@ export default function BookingForm({
       },
       modal: {
         ondismiss: function () {
-          toast('Payment window closed. Completing reservation test flow...', { icon: '💳' });
-          onSubmit({
-            date,
-            time: selectedTime,
-            guests,
-            couponCode: appliedCoupon?.code || null,
-            discountAmount,
-            finalPayable,
-          });
+          toast('Payment window closed before completing transaction.', { icon: 'ℹ️' });
         },
       },
     };

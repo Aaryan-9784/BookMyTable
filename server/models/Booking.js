@@ -28,7 +28,23 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 1,
-      max: 50,
+      max: 500,
+    },
+    paymentId: {
+      type: String,
+      default: null,
+    },
+    couponCode: {
+      type: String,
+      default: null,
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
+    },
+    finalPayable: {
+      type: Number,
+      default: 0,
     },
     status: {
       type: String,

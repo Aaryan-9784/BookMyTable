@@ -59,7 +59,7 @@ export default function BookTable() {
     }
     setSubmitting(true);
     try {
-      const { data } = await api.post('/api/bookings', {
+      const res = await api.post('/api/bookings', {
         restaurantId: id,
         date,
         time,
@@ -70,7 +70,11 @@ export default function BookTable() {
         finalPayable,
       });
 
-      const delivery = data?.emailDelivery;
+      const resData = res.data;
+      const createdBooking = resData?.data || resData;
+      const bookingId = createdBooking?._id;
+
+      const delivery = resData?.emailDelivery;
       if (delivery?.ok) {
         toast.success(
           delivery.sandboxRedirect
@@ -80,7 +84,12 @@ export default function BookTable() {
       } else {
         toast.success('🎉 Table reserved successfully!');
       }
-      navigate('/my-bookings');
+
+      if (bookingId) {
+        navigate(`/booking-confirmation/${bookingId}`);
+      } else {
+        navigate('/my-bookings');
+      }
     } catch (e) {
       toast.error(e.message || 'Failed to create booking');
     } finally {

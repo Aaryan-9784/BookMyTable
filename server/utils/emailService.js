@@ -84,13 +84,34 @@ async function sendMail({ to, subject, html, text }) {
 /**
  * Send Booking Confirmation Email
  */
-export async function sendBookingEmail({ toEmail, restaurantName, date, time, guests }) {
+export async function sendBookingEmail({
+  toEmail,
+  restaurantName,
+  date,
+  time,
+  guests,
+  bookingId,
+  paymentId,
+  finalPayable,
+  discountAmount,
+  couponCode,
+}) {
   const to = (toEmail || '').trim().toLowerCase();
   if (!to) return { ok: false, reason: 'Invalid recipient email' };
 
-  const subject = `BookMyTable — Reservation Confirmed: ${restaurantName}`;
-  const text = `Reservation Confirmed at ${restaurantName} for ${date} at ${time} (${guests} guests).`;
-  const html = generateBookingEmailTemplate({ restaurantName, date, time, guests });
+  const subject = `BookMyTable — Reservation & Payment Receipt Confirmed: ${restaurantName}`;
+  const text = `Reservation & Payment Confirmed at ${restaurantName} for ${date} at ${time} (${guests} guests). Total Paid: ₹${finalPayable || 0}. Payment Ref: ${paymentId || 'N/A'}`;
+  const html = generateBookingEmailTemplate({
+    restaurantName,
+    date,
+    time,
+    guests,
+    bookingId,
+    paymentId,
+    finalPayable,
+    discountAmount,
+    couponCode,
+  });
 
   return await sendMail({ to, subject, text, html });
 }

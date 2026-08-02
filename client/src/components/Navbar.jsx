@@ -364,7 +364,7 @@ export default function Navbar() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
+      className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 print:hidden"
       style={{
         background: transparent ? 'transparent' : 'rgba(6,6,7,0.96)',
         backdropFilter: transparent ? 'none' : 'blur(28px)',

@@ -29,6 +29,7 @@ import Restaurants from './pages/Restaurants.jsx';
 import RestaurantDetails from './pages/RestaurantDetails.jsx';
 import BookTable from './pages/BookTable.jsx';
 import MyBookings from './pages/MyBookings.jsx';
+import BookingConfirmation from './pages/BookingConfirmation.jsx';
 import Profile from './pages/Profile.jsx';
 import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
@@ -141,6 +142,18 @@ export default function App() {
               <UserProtectedRoute>
                 <RouteErrorBoundary routeName="My Bookings">
                   <MyBookings />
+                </RouteErrorBoundary>
+              </UserProtectedRoute>
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/booking-confirmation/:id"
+          element={
+            <PublicLayout>
+              <UserProtectedRoute>
+                <RouteErrorBoundary routeName="Booking Confirmation">
+                  <BookingConfirmation />
                 </RouteErrorBoundary>
               </UserProtectedRoute>
             </PublicLayout>

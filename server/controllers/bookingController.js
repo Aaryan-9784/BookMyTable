@@ -1,6 +1,7 @@
 /**
  * Bookings — create, list mine, cancel (owner); comprehensive validation.
  */
+import mongoose from 'mongoose';
 import { validationResult, body, param } from 'express-validator';
 import Booking from '../models/Booking.js';
 import { sendBookingEmail, sendCancellationEmail } from '../utils/resendEmail.js';
@@ -15,7 +16,7 @@ export const createBookingValidators = [
   body('restaurantId').notEmpty().withMessage('restaurantId is required').isMongoId().withMessage('Invalid restaurant ID'),
   body('date').matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('date must be YYYY-MM-DD'),
   body('time').matches(/^([01]\d|2[0-3]):([0-5]\d)$/).withMessage('time must be HH:MM (24-hour format)'),
-  body('guests').isInt({ min: 1, max: 50 }).withMessage('guests must be between 1 and 50'),
+  body('guests').isInt({ min: 1, max: 500 }).withMessage('guests must be between 1 and 500'),
   body('specialRequests').optional().isString().isLength({ max: 500 }).withMessage('Special requests cannot exceed 500 characters'),
 ];
 
@@ -37,7 +38,7 @@ export async function createBooking(req, res, next) {
       });
     }
 
-    const { restaurantId, date, time, guests, specialRequests } = req.body;
+    const { restaurantId, date, time, guests, specialRequests, paymentId, couponCode, discountAmount, finalPayable } = req.body;
 
     logger.info('Creating booking', {
       userId: String(req.user._id),
@@ -46,6 +47,7 @@ export async function createBooking(req, res, next) {
       date,
       time,
       guests,
+      paymentId,
     });
 
     // Run comprehensive validation
@@ -60,6 +62,10 @@ export async function createBooking(req, res, next) {
     const booking = await Booking.create({
       userId: req.user._id,
       ...validatedData,
+      paymentId: paymentId || `pay_sim_${Date.now()}`,
+      couponCode: couponCode || null,
+      discountAmount: Number(discountAmount) || 0,
+      finalPayable: Number(finalPayable) || 0,
       status: 'confirmed',
     });
 
@@ -71,7 +77,7 @@ export async function createBooking(req, res, next) {
     // Populate restaurant details for response
     const populatedBooking = await booking.populate('restaurantId');
 
-    // Send confirmation email
+    // Send confirmation email with full payment details
     logger.info('Sending booking confirmation email');
     let emailDelivery;
     try {
@@ -81,6 +87,11 @@ export async function createBooking(req, res, next) {
         date: validatedData.date,
         time: validatedData.time,
         guests: validatedData.guests,
+        bookingId: String(booking._id),
+        paymentId: booking.paymentId,
+        finalPayable: booking.finalPayable,
+        discountAmount: booking.discountAmount,
+        couponCode: booking.couponCode,
       });
 
       if (emailDelivery.ok) {
@@ -108,7 +119,7 @@ export async function createBooking(req, res, next) {
       id: Date.now(),
       type: 'booking_confirmed',
       title: 'Booking Confirmed ✓',
-      desc: `Your table at ${restaurant.name} is confirmed for ${date} at ${time} (${guests} guest${guests > 1 ? 's' : ''}).`,
+      desc: `Your table at ${restaurant.name} is confirmed for ${date} at ${time} (${guests} guest${guests > 1 ? 's' : ''}). Payment Ref: ${booking.paymentId}.`,
       time: 'Just now',
       unread: true,
     });
@@ -119,6 +130,39 @@ export async function createBooking(req, res, next) {
       success: true,
       data: payload,
       emailDelivery 
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+/**
+ * GET /api/bookings/:id — single booking details by ID.
+ */
+export async function getBookingById(req, res, next) {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid booking ID',
+      });
+    }
+
+    const booking = await Booking.findOne({
+      _id: req.params.id,
+      userId: req.user._id,
+    }).populate('restaurantId');
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: booking,
     });
   } catch (e) {
     next(e);

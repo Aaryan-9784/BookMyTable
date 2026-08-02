@@ -142,12 +142,17 @@ export function generateBookingEmailTemplate({
   date,
   time,
   guests,
+  bookingId = '',
+  paymentId = '',
+  finalPayable = 0,
+  discountAmount = 0,
+  couponCode = '',
   recipientNote = '',
   clientUrl = process.env.CLIENT_URL || 'http://localhost:5173',
 }) {
   const messageHtml = `We are delighted to confirm your reservation at <strong>${escapeHtml(
     restaurantName
-  )}</strong>. Your table is saved and ready for an exceptional dining experience.`;
+  )}</strong>. Your table is reserved and your deposit payment has been successfully processed.`;
 
   const detailsBoxHtml = `
     <div style="background-color: #07070a; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 12px; padding: 22px; margin-bottom: 24px;">
@@ -168,8 +173,20 @@ export function generateBookingEmailTemplate({
           </td>
         </tr>
         <tr>
+          <td style="padding-bottom: 12px; font-size: 14px; color: #d4af37;">
+            👥 <strong>Guests:</strong> <span style="color: #ffffff;">${guests} Guest(s)</span>
+          </td>
+        </tr>
+        ${paymentId ? `
+        <tr>
+          <td style="padding-bottom: 12px; font-size: 14px; color: #d4af37;">
+            💳 <strong>Payment Ref (Razorpay):</strong> <span style="color: #4ade80; font-family: monospace;">${escapeHtml(paymentId)}</span>
+          </td>
+        </tr>` : ''}
+        <tr>
           <td style="font-size: 14px; color: #d4af37;">
-            👥 <strong>Guests:</strong> <span style="color: #ffffff;">${guests} Person(s)</span>
+            💰 <strong>Deposit Amount Paid:</strong> <span style="color: #ffffff; font-weight: bold;">₹${finalPayable}</span>
+            ${discountAmount > 0 ? `<span style="color: #4ade80; font-size: 12px; margin-left: 8px;">(Applied ${escapeHtml(couponCode)} - Saved ₹${discountAmount})</span>` : ''}
           </td>
         </tr>
       </table>
