@@ -9,6 +9,8 @@ import { createLogger } from './logger.js';
 
 const logger = createLogger('Email');
 
+const ADMIN_EMAIL = process.env.GMAIL_USER || 'aaryanpatel9784@gmail.com';
+
 /**
  * Check if email service is properly configured
  */
@@ -18,7 +20,6 @@ function isEmailConfigured() {
 }
 
 const getTransporter = () => {
-  const user = process.env.GMAIL_USER || 'aaryanpatel9784@gmail.com';
   const pass = process.env.GMAIL_APP_PASSWORD;
 
   if (!pass) {
@@ -27,16 +28,15 @@ const getTransporter = () => {
 
   return nodemailer.createTransport({
     service: 'gmail',
-    auth: { user, pass },
+    auth: { user: ADMIN_EMAIL, pass },
   });
 };
 
 /**
- * Send email helper
+ * Send email helper — always sends from the admin email
  */
 async function sendMail({ to, subject, html, text }) {
-  const user = process.env.GMAIL_USER || 'aaryanpatel9784@gmail.com';
-  const from = `BookMyTable <${user}>`;
+  const from = `BookMyTable <${ADMIN_EMAIL}>`;
 
   const transporter = getTransporter();
 
