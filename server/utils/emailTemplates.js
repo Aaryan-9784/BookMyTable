@@ -274,9 +274,18 @@ export function generateWelcomeEmailTemplate({
   const messageHtml = `We're thrilled to welcome you to BookMyTable, your gateway to handpicked fine dining experiences and instant table reservations.`;
 
   const detailsBoxHtml = `
-    <div style="background-color: #07070a; border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 12px; padding: 22px; margin-bottom: 24px;">
-      <p style="margin: 0 0 12px 0; font-size: 14px; color: #d4af37; font-weight: 700;">✨ Here's what you can do with BookMyTable:</p>
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size: 14px; color: #c0c0c8; line-height: 1.8;">
+    <div style="background-color: #07070a; border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 14px; padding: 22px; margin-bottom: 24px; text-align: center;">
+      <p style="margin: 0 0 6px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #d4af37; font-weight: 700;">🎁 EXCLUSIVE WELCOME GIFT</p>
+      <h3 style="margin: 0 0 8px 0; font-size: 20px; color: #ffffff; font-family: Georgia, serif;">Get ₹100 OFF On Your Table Reservation</h3>
+      <div style="display: inline-block; background: rgba(212, 175, 55, 0.15); border: 2px dashed #d4af37; border-radius: 8px; padding: 10px 24px; font-size: 22px; font-weight: 700; color: #f5e27a; letter-spacing: 4px; font-family: monospace; margin: 10px 0;">
+        WELCOME100
+      </div>
+      <p style="margin: 8px 0 0 0; font-size: 12px; color: #a0a0a5;">Use promo code <strong style="color: #d4af37;">WELCOME100</strong> at checkout to claim your ₹100 discount!</p>
+    </div>
+
+    <div style="background-color: #07070a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+      <p style="margin: 0 0 12px 0; font-size: 13px; color: #d4af37; font-weight: 700;">✨ What you can do with BookMyTable:</p>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size: 13px; color: #c0c0c8; line-height: 1.8;">
         <tr><td style="padding-bottom: 6px;">🥂 Discover top-rated luxury & gourmet restaurants</td></tr>
         <tr><td style="padding-bottom: 6px;">📅 Reserve tables in real-time with instant confirmation</td></tr>
         <tr><td style="padding-bottom: 6px;">⭐ Filter by cuisine type, location, and guest ratings</td></tr>
@@ -286,14 +295,14 @@ export function generateWelcomeEmailTemplate({
   `;
 
   return renderEmailLayout({
-    preheaderText: `Welcome to BookMyTable, ${name}! Explore luxury dining.`,
+    preheaderText: `Welcome to BookMyTable, ${name}! Your ₹100 welcome coupon code is WELCOME100.`,
     categoryBadge: 'Welcome to BookMyTable',
     badgeColor: '#d4af37',
     title: `Welcome, ${escapeHtml(name)}! 🎉`,
     titleColor: '#f5e27a',
     messageHtml,
     detailsBoxHtml,
-    ctaText: 'Browse Luxury Restaurants',
+    ctaText: 'Claim Your ₹100 Discount',
     ctaUrl: `${clientUrl}/restaurants`,
     recipientNoteHtml: recipientNote ? escapeHtml(recipientNote) : '',
   });

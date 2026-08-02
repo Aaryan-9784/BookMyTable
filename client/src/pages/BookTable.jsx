@@ -1,5 +1,5 @@
 /**
- * Authenticated booking — posts to POST /api/bookings; SES email is triggered server-side.
+ * Authenticated booking page — upgraded 2-column layout, venue summary card, Razorpay gateway & promo discounts.
  */
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -8,6 +8,7 @@ import api from '../services/api.js';
 import BookingForm from '../components/BookingForm.jsx';
 import Loader from '../components/Loader.jsx';
 import { restaurantTimeSlots } from '../utils/timeSlots.js';
+import { getFallbackRestaurantImage } from '../utils/imageUtils.js';
 
 function todayISO() {
   const d = new Date();
@@ -31,7 +32,6 @@ export default function BookTable() {
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const slots = restaurantTimeSlots();
   const minDate = todayISO();
 
   useEffect(() => {
@@ -50,30 +50,39 @@ export default function BookTable() {
     return () => { cancelled = true; };
   }, [id]);
 
-  const handleBook = async ({ date, time, guests }) => {
+  const slots = restaurantTimeSlots(restaurant?.openingHours);
+
+  const handleBook = async ({ date, time, guests, paymentId, couponCode, discountAmount, finalPayable }) => {
     if (isPastDateStr(date)) {
       toast.error('Choose today or a future date');
       return;
     }
     setSubmitting(true);
     try {
-      const { data } = await api.post('/api/bookings', { restaurantId: id, date, time, guests });
+      const { data } = await api.post('/api/bookings', {
+        restaurantId: id,
+        date,
+        time,
+        guests,
+        paymentId,
+        couponCode,
+        discountAmount,
+        finalPayable,
+      });
+
       const delivery = data?.emailDelivery;
       if (delivery?.ok) {
         toast.success(
           delivery.sandboxRedirect
-            ? `Reservation saved. Confirmation emailed to ${delivery.deliveredTo || 'your verified sender inbox'} (customer: ${delivery.intendedRecipient || '—'}).`
-            : 'Reservation saved. Check your email for confirmation.'
+            ? `Reservation confirmed! Receipt emailed to ${delivery.deliveredTo || 'your email'}.`
+            : '🎉 Reservation confirmed! Email receipt sent.'
         );
       } else {
-        toast.success('Reservation saved in the app.');
-        const why = delivery?.reason || 'Confirmation email was not sent.';
-        toast.error(why, { duration: 6000 });
-        if (delivery?.hint) toast(delivery.hint, { duration: 10000, icon: 'ℹ️' });
+        toast.success('🎉 Table reserved successfully!');
       }
       navigate('/my-bookings');
     } catch (e) {
-      toast.error(e.message);
+      toast.error(e.message || 'Failed to create booking');
     } finally {
       setSubmitting(false);
     }
@@ -85,79 +94,133 @@ export default function BookTable() {
 
   if (!restaurant) {
     return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center font-sans text-white/40">
+      <div className="mx-auto max-w-lg px-4 py-20 text-center font-sans text-white/40">
         Invalid restaurant.{' '}
         <Link className="text-luxury-gold hover:underline" to="/restaurants">Browse all</Link>
       </div>
     );
   }
 
+  const heroImage = restaurant.imageUrl || getFallbackRestaurantImage(restaurant);
+
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen text-white"
       style={{ background: 'linear-gradient(180deg, #0b0b0c 0%, #111111 60%, #1a1a1a 100%)' }}
     >
-      {/* Ambient glow */}
+      {/* Ambient Glow */}
       <div
         className="pointer-events-none fixed inset-0 z-0"
         style={{
-          background: 'radial-gradient(ellipse 60% 50% at 50% 20%, rgba(212,175,55,0.05) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse 60% 50% at 50% 20%, rgba(212,175,55,0.06) 0%, transparent 70%)',
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-lg px-4 py-14 md:px-6 md:py-20">
+      <div className="relative z-10 mx-auto max-w-5xl px-4 py-10 md:px-8 md:py-14">
 
-        {/* Back link */}
+        {/* Back Link */}
         <Link
           to={`/restaurants/${id}`}
-          className="mb-10 inline-flex items-center gap-2 font-sans text-sm text-white/30 transition-colors hover:text-luxury-gold"
+          className="mb-8 inline-flex items-center gap-2 font-sans text-xs font-semibold uppercase tracking-wider text-white/40 transition-colors hover:text-luxury-gold"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
-          Back to restaurant
+          Back to venue details
         </Link>
 
-        {/* Header */}
-        <div className="mb-10">
-          <div className="mb-3 flex items-center gap-2">
-            <svg className="h-3.5 w-3.5 text-luxury-gold/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-            </svg>
-            <p className="font-sans text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-luxury-gold/70">
-              {restaurant.location}
-            </p>
-          </div>
-          <h1 className="font-display text-4xl font-light text-white md:text-5xl">
-            Reserve at<br />
-            <span
+        {/* 2-Column Responsive Layout */}
+        <div className="grid gap-8 lg:grid-cols-[42%_58%] items-start">
+
+          {/* ── LEFT COLUMN: VENUE SUMMARY CARD ── */}
+          <div className="space-y-6">
+            <div
+              className="overflow-hidden rounded-3xl"
               style={{
-                background: 'linear-gradient(135deg, #c9a84c, #f5e6a3, #c9a84c)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                background: 'linear-gradient(160deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.01) 100%)',
+                border: '1px solid rgba(212,175,55,0.22)',
+                boxShadow: '0 16px 48px rgba(0,0,0,0.65)',
               }}
             >
-              {restaurant.name}
-            </span>
-          </h1>
-          <div className="mt-4 h-px w-12" style={{ background: 'linear-gradient(90deg, #d4af37, transparent)' }} />
-          <p className="mt-3 font-sans text-sm text-white/30">
-            Reserve your table in seconds
-          </p>
-        </div>
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <img src={heroImage} alt={restaurant.name} className="h-full w-full object-cover" />
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(12,12,14,0.85) 0%, transparent 60%)' }} />
+                <div className="absolute bottom-4 left-4 right-4">
+                  <span className="rounded-full px-3 py-1 font-sans text-[11px] font-bold text-luxury-gold backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(212,175,55,0.3)' }}>
+                    {restaurant.category || 'Multi-cuisine'}
+                  </span>
+                </div>
+              </div>
 
-        {/* Form card */}
-        <BookingForm
-          onSubmit={handleBook}
-          submitting={submitting}
-          defaultDate={minDate}
-          defaultTime="19:00"
-          defaultGuests={2}
-          minDate={minDate}
-          timeSlots={slots}
-        />
+              <div className="p-6 space-y-4">
+                <div>
+                  <p className="font-sans text-xs font-bold uppercase tracking-[0.2em] text-luxury-gold">
+                    📍 {restaurant.location}
+                  </p>
+                  <h1 className="mt-1 font-display text-3xl font-light text-white">
+                    {restaurant.name}
+                  </h1>
+                </div>
+
+                <div className="h-px bg-white/10" />
+
+                <div className="grid grid-cols-2 gap-3 text-xs font-sans">
+                  <div className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-white/30">Rating</p>
+                    <p className="mt-1 font-bold text-luxury-gold">★ {Number(restaurant.rating || 4.8).toFixed(1)} / 5.0</p>
+                  </div>
+                  <div className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-white/30">Token Fee</p>
+                    <p className="mt-1 font-bold text-white">₹{restaurant.tokenFee ?? 150} / Seat</p>
+                  </div>
+                </div>
+
+                {restaurant.openingHours && (
+                  <div className="rounded-xl p-3 font-sans text-xs" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-luxury-gold">Opening Hours</p>
+                    <p className="mt-1 font-semibold text-white/90">🕒 {restaurant.openingHours}</p>
+                  </div>
+                )}
+
+                <div
+                  className="rounded-2xl p-5 space-y-3 font-sans"
+                  style={{
+                    background: 'rgba(212,175,55,0.06)',
+                    border: '1px solid rgba(212,175,55,0.25)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  <p className="font-bold text-luxury-gold flex items-center gap-1.5 uppercase tracking-[0.16em] text-[11px]">
+                    <span>✨</span> Reservation Guarantee
+                  </p>
+                  <div className="space-y-2 text-xs text-white/80 leading-relaxed">
+                    <div className="flex items-start gap-2.5">
+                      <span className="text-luxury-gold font-bold shrink-0">✓</span>
+                      <span><strong className="text-white font-semibold">100% Refundable Deposit:</strong> Free cancellation up to 2 hours prior.</span>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <span className="text-luxury-gold font-bold shrink-0">✓</span>
+                      <span><strong className="text-white font-semibold">Instant Table Lock:</strong> Priority seating upon arrival.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── RIGHT COLUMN: RAZORPAY FORM & PROMO DISCOUNTS ── */}
+          <BookingForm
+            restaurant={restaurant}
+            onSubmit={handleBook}
+            submitting={submitting}
+            defaultDate={minDate}
+            defaultTime={slots[0] || "19:00"}
+            defaultGuests={2}
+            minDate={minDate}
+            timeSlots={slots}
+          />
+
+        </div>
       </div>
     </div>
   );
