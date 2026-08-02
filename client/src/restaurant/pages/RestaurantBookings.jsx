@@ -3,6 +3,7 @@ import toast from '../../utils/toast.js';
 import { restaurantApi } from '../services/restaurantApi.js';
 import Loader from '../../components/Loader.jsx';
 import { downloadCSV, fmt, fmtDate, today } from '../utils/exportCSV.js';
+import RestaurantHeader from '../components/RestaurantHeader.jsx';
 
 /* ── ICONS ──────────────────────────────────────────────────── */
 function IconRefresh() {
@@ -157,15 +158,16 @@ const FILTER_TABS = ['all', 'confirmed', 'cancelled'];
 
 /* ── MAIN COMPONENT ─────────────────────────────────────────── */
 export default function RestaurantBookings() {
-  const [restaurant, setRestaurant] = useState(null);
-  const [bookings,   setBookings]   = useState([]);
-  const [loading,    setLoading]    = useState(true);
+  const cachedBookingsRes = restaurantApi.getCache('bookings_default')?.data;
+  const [restaurant, setRestaurant] = useState(() => cachedBookingsRes?.restaurant || restaurantApi.getActiveRestaurant() || null);
+  const [bookings,   setBookings]   = useState(() => cachedBookingsRes?.bookings || []);
+  const [loading,    setLoading]    = useState(() => !cachedBookingsRes);
   const [refreshing, setRefreshing] = useState(false);
   const [filter,     setFilter]     = useState('all');
   const [updatingId, setUpdatingId] = useState(null);
 
   const fetchBookings = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
+    if (!silent && !restaurantApi.getCache('bookings_default')) setLoading(true);
     else setRefreshing(true);
     try {
       const res = await restaurantApi.getBookings();
@@ -233,80 +235,83 @@ export default function RestaurantBookings() {
     <div className="max-w-[1100px] mx-auto pb-12">
 
       {/* ── Page Header Row ─────────────────────────────────── */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between anim-fade-up">
-        <div>
-          <h1
-            className="font-display leading-none text-luxury-white font-bold"
-            style={{ fontSize: 'clamp(2rem, 4.5vw, 3.2rem)' }}
-          >
-            Manage Bookings
-          </h1>
-          <p className="mt-2 font-sans text-sm text-luxury-muted">
-            Approve, track, and manage all table reservations for {restaurant?.name || 'your restaurant'}
-          </p>
-          <div
-            className="mt-4 h-px w-20"
-            style={{ background: 'linear-gradient(90deg, #d4af37, rgba(212,175,55,0.15), transparent)' }}
-          />
-        </div>
+      <RestaurantHeader
+        restaurant={restaurant}
+        title="Bookings & Reservations"
+        description={`Approve, track, and manage all table reservations for ${restaurant?.name || 'your restaurant'}`}
+        extraMeta={
+          <>
+            <span className="text-white/20">·</span>
+            <span className="flex items-center gap-1.5 text-white/90 font-medium">
+              <span className="text-luxury-gold">💎</span> Base Token Fee:{' '}
+              <strong className="text-luxury-gold font-bold">₹{restaurant?.tokenFee || 200}</strong>
+            </span>
+            <span className="text-white/20">·</span>
+            <span className="flex items-center gap-1.5 text-white/90 font-medium">
+              <span className="text-luxury-gold">📅</span> Total Bookings:{' '}
+              <strong className="text-white font-semibold">{bookings.length} Reservations</strong>
+            </span>
+          </>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              disabled={refreshing}
+              onClick={() => { fetchBookings(true); toast.success('Bookings refreshed'); }}
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs text-luxury-muted hover:text-luxury-gold transition-all duration-200 disabled:opacity-50"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <span className={refreshing ? 'animate-spin' : ''}><IconRefresh /></span>
+              Refresh
+            </button>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            disabled={refreshing}
-            onClick={() => { fetchBookings(true); toast.success('Bookings refreshed'); }}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs text-luxury-muted hover:text-luxury-gold transition-all duration-200 disabled:opacity-50"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            <span className={refreshing ? 'animate-spin' : ''}><IconRefresh /></span>
-            Refresh
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              const activeBookings = bookings.filter((b) => b.status === 'confirmed' || b.status === 'checked-in');
-              downloadCSV(
-                `bookings_export_${today()}.csv`,
-                [
-                  {
-                    title: 'Summary',
-                    headers: ['Metric', 'Value'],
-                    rows: [
-                      ['Total Reservations', bookings.length],
-                      ['Confirmed',          bookings.filter((b) => b.status === 'confirmed' || b.status === 'checked-in').length],
-                      ['Cancelled',          bookings.filter((b) => b.status === 'cancelled').length],
-                      ['Token Revenue',      fmt(activeBookings.reduce((s, b) => s + getBookingTokenFee(b), 0))],
-                    ],
-                  },
-                  {
-                    title: 'All Reservations',
-                    headers: ['Customer Name', 'Email / Phone', 'Date', 'Time', 'Guests', 'Token Fee Paid', 'Status', 'Time Spent'],
-                    rows: bookings.map((b) => [
-                      b.userId?.name  || 'Guest',
-                      b.userId?.email || b.userId?.phone || '—',
-                      fmtDate(b.date), b.time,
-                      b.guests || 1,
-                      fmt(getBookingTokenFee(b)),
-                      b.status === 'cancelled' ? 'Cancelled' : 'Confirmed',
-                      b.timeSpentFormatted || '—',
-                    ]),
-                  },
-                ],
-              );
-              toast.success('Bookings exported as CSV!');
-            }}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-95"
-            style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)', boxShadow: '0 0 18px rgba(212,175,55,0.25)' }}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 1.5v7M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M1.5 10.5v1a1 1 0 001 1h9a1 1 0 001-1v-1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-            </svg>
-            Export Analytics
-          </button>
-        </div>
-      </div>
+            <button
+              type="button"
+              onClick={() => {
+                const activeBookings = bookings.filter((b) => b.status === 'confirmed' || b.status === 'checked-in');
+                downloadCSV(
+                  `bookings_export_${today()}.csv`,
+                  [
+                    {
+                      title: 'Summary',
+                      headers: ['Metric', 'Value'],
+                      rows: [
+                        ['Total Reservations', bookings.length],
+                        ['Confirmed',          bookings.filter((b) => b.status === 'confirmed' || b.status === 'checked-in').length],
+                        ['Cancelled',          bookings.filter((b) => b.status === 'cancelled').length],
+                        ['Token Revenue',      fmt(activeBookings.reduce((s, b) => s + getBookingTokenFee(b), 0))],
+                      ],
+                    },
+                    {
+                      title: 'All Reservations',
+                      headers: ['Customer Name', 'Email / Phone', 'Date', 'Time', 'Guests', 'Token Fee Paid', 'Status', 'Time Spent'],
+                      rows: bookings.map((b) => [
+                        b.userId?.name  || 'Guest',
+                        b.userId?.email || b.userId?.phone || '—',
+                        fmtDate(b.date), b.time,
+                        b.guests || 1,
+                        fmt(getBookingTokenFee(b)),
+                        b.status === 'cancelled' ? 'Cancelled' : 'Confirmed',
+                        b.timeSpentFormatted || '—',
+                      ]),
+                    },
+                  ],
+                );
+                toast.success('Bookings exported as CSV!');
+              }}
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)', boxShadow: '0 0 18px rgba(212,175,55,0.25)' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 1.5v7M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M1.5 10.5v1a1 1 0 001 1h9a1 1 0 001-1v-1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+              Export Analytics
+            </button>
+          </>
+        }
+      />
 
 
       {/* ── 4-KPI Stat Cards ────────────────────────────────── */}

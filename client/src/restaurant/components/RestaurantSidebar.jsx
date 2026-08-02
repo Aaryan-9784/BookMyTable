@@ -1,67 +1,73 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 
-/* ── NAV CONFIG ───────────────────────────────────────────── */
+/* ── NAV CONFIG (Priority Order & Professional Titles) ─────── */
 const NAV = [
-  { to: '/restaurant-dashboard',           label: 'Dashboard',           Icon: DashIcon,       end: true },
-  { to: '/restaurant-dashboard/bookings',  label: 'Bookings',            Icon: BookingIcon },
-  { to: '/restaurant-dashboard/tables',    label: 'Table Management',    Icon: TableIcon },
-  { to: '/restaurant-dashboard/analytics', label: 'Token Fee Analytics', Icon: AnalyticsIcon },
-  { to: '/restaurant-dashboard/settings',  label: 'Settings',            Icon: SettingsIcon },
+  { to: '/restaurant-dashboard',           label: 'Dashboard Overview',       Icon: DashIcon,       end: true },
+  { to: '/restaurant-dashboard/bookings',  label: 'Bookings & Reservations',  Icon: BookingIcon },
+  { to: '/restaurant-dashboard/tables',    label: 'Tables & Seating',         Icon: TableIcon },
+  { to: '/restaurant-dashboard/analytics', label: 'Token Fee Analytics',     Icon: AnalyticsIcon },
+  { to: '/restaurant-dashboard/settings',  label: 'Restaurant Settings',     Icon: SettingsIcon },
 ];
 
-/* ── SVG ICONS (stroke 1.35, matching Admin Sidebar) ─────── */
+/* ── SVG ICONS (Distinct 20x20 Vector Symbols) ──────────── */
 function DashIcon({ active }) {
-  const c = active ? '#d4af37' : '#505050';
+  const c = active ? '#d4af37' : '#606060';
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.4" stroke={c} strokeWidth="1.35" />
-      <rect x="9" y="1.5" width="5.5" height="5.5" rx="1.4" stroke={c} strokeWidth="1.35" />
-      <rect x="1.5" y="9" width="5.5" height="5.5" rx="1.4" stroke={c} strokeWidth="1.35" />
-      <rect x="9" y="9" width="5.5" height="5.5" rx="1.4" stroke={c} strokeWidth="1.35" />
-    </svg>
-  );
-}
-
-function TableIcon({ active }) {
-  const c = active ? '#d4af37' : '#505050';
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <rect x="2" y="4" width="12" height="8" rx="2" stroke={c} strokeWidth="1.35" />
-      <path d="M4 12v2.5M12 12v2.5M4 1.5v2.5M12 1.5v2.5" stroke={c} strokeWidth="1.35" strokeLinecap="round" />
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+      <rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1.8" stroke={c} strokeWidth="1.5" />
+      <rect x="11" y="2.5" width="6.5" height="6.5" rx="1.8" stroke={c} strokeWidth="1.5" />
+      <rect x="2.5" y="11" width="6.5" height="6.5" rx="1.8" stroke={c} strokeWidth="1.5" />
+      <rect x="11" y="11" width="6.5" height="6.5" rx="1.8" stroke={c} strokeWidth="1.5" />
     </svg>
   );
 }
 
 function BookingIcon({ active }) {
-  const c = active ? '#d4af37' : '#505050';
+  const c = active ? '#d4af37' : '#606060';
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <rect x="1.5" y="3" width="13" height="11.5" rx="2" stroke={c} strokeWidth="1.35" />
-      <path d="M5.5 1.5v3M10.5 1.5v3" stroke={c} strokeWidth="1.35" strokeLinecap="round" />
-      <path d="M1.5 7h13" stroke={c} strokeWidth="1.35" />
-      <circle cx="5.5" cy="10.5" r="0.9" fill={c} />
-      <circle cx="8" cy="10.5" r="0.9" fill={c} />
-      <circle cx="10.5" cy="10.5" r="0.9" fill={c} />
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+      <rect x="2.5" y="3.5" width="15" height="14" rx="2.2" stroke={c} strokeWidth="1.5" />
+      <path d="M6 1.8v3.4M14 1.8v3.4" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M2.5 7.5h15" stroke={c} strokeWidth="1.3" />
+      <path d="M6.5 12l2.2 2.2 4.8-4.8" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function TableIcon({ active }) {
+  const c = active ? '#d4af37' : '#606060';
+  return (
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+      <rect x="4.5" y="6.5" width="11" height="7" rx="1.8" stroke={c} strokeWidth="1.5" />
+      <path d="M6 13.5v3M14 13.5v3" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M6.5 3.5h7M6.5 16.5h7" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M10 3.5v3M10 13.5v3" stroke={c} strokeWidth="1.3" />
     </svg>
   );
 }
 
 function AnalyticsIcon({ active }) {
-  const c = active ? '#d4af37' : '#505050';
+  const c = active ? '#d4af37' : '#606060';
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M2 13.5h12M3.5 10.5l3-4 3 2.5 4-5.5" stroke={c} strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+      <rect x="2.5" y="11.5" width="3" height="6" rx="0.8" fill={c} fillOpacity={active ? "0.85" : "0.5"} />
+      <rect x="8.5" y="7.5" width="3" height="10" rx="0.8" fill={c} fillOpacity={active ? "0.85" : "0.5"} />
+      <rect x="14.5" y="3.5" width="3" height="14" rx="0.8" fill={c} stroke={c} strokeWidth="0.5" />
+      <path d="M2.5 10l5.5-5 4 3 5.5-5" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M14.5 3h3v3" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
 function SettingsIcon({ active }) {
-  const c = active ? '#d4af37' : '#505050';
+  const c = active ? '#d4af37' : '#606060';
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="2.5" stroke={c} strokeWidth="1.35" />
-      <path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4" stroke={c} strokeWidth="1.35" strokeLinecap="round" />
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+      <path d="M3 5h14M3 10h14M3 15h14" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="7" cy="5" r="2" fill="#181818" stroke={c} strokeWidth="1.5" />
+      <circle cx="13" cy="10" r="2" fill="#181818" stroke={c} strokeWidth="1.5" />
+      <circle cx="8" cy="15" r="2" fill="#181818" stroke={c} strokeWidth="1.5" />
     </svg>
   );
 }

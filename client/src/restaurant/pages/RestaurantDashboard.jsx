@@ -4,6 +4,7 @@ import toast from '../../utils/toast.js';
 import { restaurantApi } from '../services/restaurantApi.js';
 import Loader from '../../components/Loader.jsx';
 import { downloadCSV, fmt, fmtDate, today } from '../utils/exportCSV.js';
+import RestaurantHeader from '../components/RestaurantHeader.jsx';
 
 /* ── DATE & TIME FORMATTERS ──────────────────────────────────── */
 function formatBookingDate(rawDate) {
@@ -280,13 +281,14 @@ function DirectCancelBtn({ booking, onUpdated }) {
 
 /* ── MAIN DASHBOARD ─────────────────────────────────────────── */
 export default function RestaurantDashboard() {
-  const [data, setData]       = useState(null);
-  const [loading, setLoading] = useState(true);
+  const cachedStatsRes = restaurantApi.getCache('stats_default')?.data;
+  const [data, setData]       = useState(() => cachedStatsRes || null);
+  const [loading, setLoading] = useState(() => !cachedStatsRes);
   const [refreshing, setRefreshing] = useState(false);
-  const [bookings, setBookings] = useState([]);
+  const [bookings, setBookings] = useState(() => cachedStatsRes?.recentBookings || []);
 
   const fetchData = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
+    if (!silent && !restaurantApi.getCache('stats_default')) setLoading(true);
     else setRefreshing(true);
     try {
       const res = await restaurantApi.getStats();
@@ -386,13 +388,7 @@ export default function RestaurantDashboard() {
     }
   };
 
-  if (loading && !data) {
-    return (
-      <div className="flex h-[70vh] items-center justify-center">
-        <Loader />
-      </div>
-    );
-  }
+
 
   const stats        = data?.stats      || {};
   const restaurant   = data?.restaurant || {};
@@ -412,50 +408,52 @@ export default function RestaurantDashboard() {
     <div className="max-w-[1100px] mx-auto pb-12">
 
       {/* ── Page Header Row ─────────────────────────────────── */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between anim-fade-up">
-        <div>
-          <h1
-            className="font-display leading-none text-luxury-white font-bold"
-            style={{ fontSize: 'clamp(2rem, 4.5vw, 3.2rem)' }}
-          >
-            Dashboard
-          </h1>
-          <p className="mt-2 font-sans text-sm text-luxury-muted">
-            {restaurant.name || 'Restaurant'} — performance & seating metrics
-          </p>
-          <div
-            className="mt-4 h-px w-20"
-            style={{ background: 'linear-gradient(90deg, #d4af37, rgba(212,175,55,0.15), transparent)' }}
-          />
-        </div>
+      <RestaurantHeader
+        restaurant={restaurant}
+        title="Dashboard Overview"
+        description={`${restaurant.name || 'Restaurant'} — performance & seating metrics`}
+        extraMeta={
+          <>
+            <span className="text-white/20">·</span>
+            <span className="flex items-center gap-1.5 text-white/90 font-medium">
+              <span className="text-luxury-gold">💎</span> Base Token Fee:{' '}
+              <strong className="text-luxury-gold font-bold">₹{restaurant.tokenFee || 200}</strong>
+            </span>
+            <span className="text-white/20">·</span>
+            <span className="flex items-center gap-1.5 text-white/90 font-medium">
+              <span className="text-luxury-gold">🪑</span> Total Seating:{' '}
+              <strong className="text-white font-semibold">{stats.totalSeatingCapacity || 50} Guests</strong>
+            </span>
+          </>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              disabled={refreshing}
+              onClick={() => { fetchData(true); toast.success('Dashboard refreshed'); }}
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs text-luxury-muted hover:text-luxury-gold transition-all duration-200 disabled:opacity-50"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <span className={refreshing ? 'animate-spin' : ''}><IconRefresh /></span>
+              Refresh
+            </button>
 
-        {/* Quick Actions */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            disabled={refreshing}
-            onClick={() => { fetchData(true); toast.success('Dashboard refreshed'); }}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs text-luxury-muted hover:text-luxury-gold transition-all duration-200 disabled:opacity-50"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            <span className={refreshing ? 'animate-spin' : ''}><IconRefresh /></span>
-            Refresh
-          </button>
-
-          <button
-            type="button"
-            onClick={exportAnalytics}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-95"
-            style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)', boxShadow: '0 0 18px rgba(212,175,55,0.25)' }}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 1.5v7M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M1.5 10.5v1a1 1 0 001 1h9a1 1 0 001-1v-1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-            </svg>
-            Export Analytics
-          </button>
-        </div>
-      </div>
+            <button
+              type="button"
+              onClick={exportAnalytics}
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)', boxShadow: '0 0 18px rgba(212,175,55,0.25)' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 1.5v7M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M1.5 10.5v1a1 1 0 001 1h9a1 1 0 001-1v-1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+              Export Analytics
+            </button>
+          </>
+        }
+      />
 
       {/* ── 5-KPI Stat Cards ────────────────────────────────── */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-6">

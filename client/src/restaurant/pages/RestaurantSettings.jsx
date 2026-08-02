@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import toast from '../../utils/toast.js';
 import { restaurantApi } from '../services/restaurantApi.js';
 import LuxurySelect from '../../components/LuxurySelect.jsx';
+import RestaurantHeader from '../components/RestaurantHeader.jsx';
 
 const EXPERIENCE_OPTIONS = [
   { id: 'Fine Dining', label: 'Fine Dining', icon: '🕯️' },
@@ -104,27 +105,30 @@ function StatCard({ label, value, sub, Icon, accent = false }) {
 }
 
 export default function RestaurantSettings() {
-  const [restaurant, setRestaurant] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const cachedSettingsRes = restaurantApi.getCache('settings_default')?.data;
+  const initialRest = cachedSettingsRes?.restaurant || restaurantApi.getActiveRestaurant() || null;
+
+  const [restaurant, setRestaurant] = useState(initialRest);
+  const [loading, setLoading] = useState(() => !initialRest);
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   // Form fields
-  const [name, setName] = useState('');
-  const [location, setLocation] = useState('');
-  const [description, setDescription] = useState('');
-  const [tokenFee, setTokenFee] = useState('150');
-  const [capacity, setCapacity] = useState('40');
-  const [openingHours, setOpeningHours] = useState('11:00 AM - 11:00 PM');
-  const [priceRange, setPriceRange] = useState(2);
-  const [category, setCategory] = useState('Multi-cuisine');
-  const [experiences, setExperiences] = useState(['Fine Dining', 'Outdoor Terrace']);
-  const [imageUrls, setImageUrls] = useState([]);
+  const [name, setName] = useState(initialRest?.name || '');
+  const [location, setLocation] = useState(initialRest?.location || '');
+  const [description, setDescription] = useState(initialRest?.description || '');
+  const [tokenFee, setTokenFee] = useState(String(initialRest?.tokenFee ?? 150));
+  const [capacity, setCapacity] = useState(String(initialRest?.totalSeatingCapacity ?? 40));
+  const [openingHours, setOpeningHours] = useState(initialRest?.openingHours || '11:00 AM - 11:00 PM');
+  const [priceRange, setPriceRange] = useState(initialRest?.priceRange || 2);
+  const [category, setCategory] = useState(initialRest?.category || 'Multi-cuisine');
+  const [experiences, setExperiences] = useState(Array.isArray(initialRest?.experiences) && initialRest.experiences.length ? initialRest.experiences : ['Fine Dining', 'Outdoor Terrace']);
+  const [imageUrls, setImageUrls] = useState(Array.isArray(initialRest?.imageUrls) && initialRest.imageUrls.length ? initialRest.imageUrls : initialRest?.imageUrl ? [initialRest.imageUrl] : []);
   const [imageUrlInput, setImageUrlInput] = useState('');
 
   const fetchSettings = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
+    if (!silent && !restaurantApi.getCache('settings_default')) setLoading(true);
     else setRefreshing(true);
     try {
       const res = await restaurantApi.getSettings();
@@ -230,25 +234,25 @@ export default function RestaurantSettings() {
   return (
     <div className="max-w-[1100px] mx-auto pb-16">
       {/* ── Page Header Row ─────────────────────────────────── */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between anim-fade-up">
-        <div>
-          <h1
-            className="font-display leading-none text-luxury-white font-bold"
-            style={{ fontSize: 'clamp(2rem, 4.5vw, 3.2rem)' }}
-          >
-            Settings & Profile
-          </h1>
-          <p className="mt-2 font-sans text-sm text-luxury-muted">
-            Manage seating capacity, base token fees per seat, operating hours, and photo gallery
-          </p>
-          <div
-            className="mt-4 h-px w-20"
-            style={{ background: 'linear-gradient(90deg, #d4af37, rgba(212,175,55,0.15), transparent)' }}
-          />
-        </div>
-
-        {/* Quick Actions */}
-        <div className="flex items-center gap-2 flex-wrap">
+      <RestaurantHeader
+        restaurant={restaurant}
+        title="Restaurant Settings"
+        description="Manage seating capacity, base token fees per seat, operating hours, and photo gallery"
+        extraMeta={
+          <>
+            <span className="text-white/20">·</span>
+            <span className="flex items-center gap-1.5 text-white/90 font-medium">
+              <span className="text-luxury-gold">⏰</span> Hours:{' '}
+              <strong className="text-white font-medium">{openingHours || '11:00 AM - 11:00 PM'}</strong>
+            </span>
+            <span className="text-white/20">·</span>
+            <span className="flex items-center gap-1.5 text-white/90 font-medium">
+              <span className="text-luxury-gold">💎</span> Base Token Fee:{' '}
+              <strong className="text-luxury-gold font-bold">₹{tokenFee || 200}</strong>
+            </span>
+          </>
+        }
+        actions={
           <button
             type="button"
             disabled={refreshing}
@@ -259,8 +263,8 @@ export default function RestaurantSettings() {
             <span className={refreshing ? 'animate-spin' : ''}><IconRefresh /></span>
             Refresh
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* ── 4-KPI Stat Cards Row ───────────────────────────── */}
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 mb-8">

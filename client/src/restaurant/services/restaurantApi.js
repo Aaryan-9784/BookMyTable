@@ -5,15 +5,24 @@ const base = '/api/restaurant-dashboard';
 // In-memory cache for fast fallback
 const cache = new Map();
 
+function saveActiveRestaurant(res) {
+  if (res?.data?.restaurant) {
+    cache.set('active_restaurant', res.data.restaurant);
+  }
+  return res;
+}
+
 export const restaurantApi = {
   getCache: (key) => cache.get(key),
   setCache: (key, data) => cache.set(key, data),
   clearCache: () => cache.clear(),
+  getActiveRestaurant: () => cache.get('active_restaurant'),
 
   getStats: async (restaurantId) => {
     const key = `stats_${restaurantId || 'default'}`;
     const res = await api.get(`${base}/stats`, { params: { restaurantId } });
     cache.set(key, res);
+    saveActiveRestaurant(res);
     return res;
   },
 
@@ -21,21 +30,19 @@ export const restaurantApi = {
     const key = `tables_${restaurantId || 'default'}`;
     const res = await api.get(`${base}/tables`, { params: { restaurantId } });
     cache.set(key, res);
+    saveActiveRestaurant(res);
     return res;
   },
 
   createTable: async (data) => {
-    cache.clear();
     return api.post(`${base}/tables`, data);
   },
 
   updateTable: async (id, data) => {
-    cache.clear();
     return api.put(`${base}/tables/${id}`, data);
   },
 
   deleteTable: async (id) => {
-    cache.clear();
     return api.delete(`${base}/tables/${id}`);
   },
 
@@ -43,11 +50,11 @@ export const restaurantApi = {
     const key = `bookings_${restaurantId || 'default'}`;
     const res = await api.get(`${base}/bookings`, { params: { restaurantId } });
     cache.set(key, res);
+    saveActiveRestaurant(res);
     return res;
   },
 
   updateBookingStatus: async (id, status) => {
-    cache.clear();
     return api.put(`${base}/bookings/${id}/status`, { status });
   },
 
@@ -55,6 +62,7 @@ export const restaurantApi = {
     const key = `analytics_${restaurantId || 'default'}`;
     const res = await api.get(`${base}/analytics`, { params: { restaurantId } });
     cache.set(key, res);
+    saveActiveRestaurant(res);
     return res;
   },
 
@@ -62,6 +70,7 @@ export const restaurantApi = {
     const key = `settings_${restaurantId || 'default'}`;
     const res = await api.get(`${base}/settings`, { params: { restaurantId } });
     cache.set(key, res);
+    saveActiveRestaurant(res);
     return res;
   },
 

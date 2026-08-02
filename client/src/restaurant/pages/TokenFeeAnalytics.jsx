@@ -3,6 +3,7 @@ import toast from '../../utils/toast.js';
 import { restaurantApi } from '../services/restaurantApi.js';
 import Loader from '../../components/Loader.jsx';
 import { downloadCSV, fmt, today } from '../utils/exportCSV.js';
+import RestaurantHeader from '../components/RestaurantHeader.jsx';
 
 /* ── ICONS ──────────────────────────────────────────────────── */
 function IconRevenue() {
@@ -190,16 +191,22 @@ function EmptyState({ icon, title, sub }) {
 
 /* ── MAIN COMPONENT ─────────────────────────────────────────── */
 export default function TokenFeeAnalytics() {
-  const [data,       setData]       = useState(null);
-  const [loading,    setLoading]    = useState(true);
+  const cachedAnalyticsRes = restaurantApi.getCache('analytics_default')?.data;
+  const [data,       setData]       = useState(() => cachedAnalyticsRes?.analytics || null);
+  const [restaurant, setRestaurant] = useState(() => cachedAnalyticsRes?.restaurant || restaurantApi.getActiveRestaurant() || {});
+  const [loading,    setLoading]    = useState(() => !cachedAnalyticsRes);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
+    if (!silent && !restaurantApi.getCache('analytics_default')) setLoading(true);
     else setRefreshing(true);
     try {
-      const res = await restaurantApi.getAnalytics();
-      setData(res.data.analytics || {});
+      const [analyticsRes, settingsRes] = await Promise.all([
+        restaurantApi.getAnalytics(),
+        restaurantApi.getSettings(),
+      ]);
+      setData(analyticsRes.data.analytics || {});
+      setRestaurant(settingsRes.data.restaurant || {});
     } catch (err) {
       toast.error(err.message || 'Failed to load analytics');
     } finally {
@@ -221,87 +228,90 @@ export default function TokenFeeAnalytics() {
     <div className="max-w-[1100px] mx-auto">
 
       {/* ── Page Header Row ─────────────────────────────────── */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between anim-fade-up">
-        <div>
-          <h1
-            className="font-display leading-none text-luxury-white font-bold"
-            style={{ fontSize: 'clamp(2rem, 4.5vw, 3.2rem)' }}
-          >
-            Token Fee Analysis
-          </h1>
-          <p className="mt-2 font-sans text-sm text-luxury-muted">
-            Financial breakdown by seating capacity, dining zones, and individual tables
-          </p>
-          <div
-            className="mt-4 h-px w-20"
-            style={{ background: 'linear-gradient(90deg, #d4af37, rgba(212,175,55,0.15), transparent)' }}
-          />
-        </div>
+      <RestaurantHeader
+        restaurant={restaurant}
+        title="Token Fee Analytics"
+        description="Financial breakdown by seating capacity, dining zones, and individual tables"
+        extraMeta={
+          <>
+            <span className="text-white/20">·</span>
+            <span className="flex items-center gap-1.5 text-white/90 font-medium">
+              <span className="text-luxury-gold">💎</span> Token Rate:{' '}
+              <strong className="text-luxury-gold font-bold">₹{analytics.tokenFeeRate || restaurant?.tokenFee || 200}</strong>
+            </span>
+            <span className="text-white/20">·</span>
+            <span className="flex items-center gap-1.5 text-white/90 font-medium">
+              <span className="text-luxury-gold">💰</span> Token Revenue:{' '}
+              <strong className="text-emerald-400 font-bold">{fmt(analytics.totalTokenRevenue || 0)}</strong>
+            </span>
+          </>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              disabled={refreshing}
+              onClick={() => { fetchData(true); toast.success('Analytics refreshed'); }}
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs text-luxury-muted hover:text-luxury-gold transition-all duration-200 disabled:opacity-50"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <span className={refreshing ? 'animate-spin' : ''}><IconRefresh /></span>
+              Refresh
+            </button>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            disabled={refreshing}
-            onClick={() => { fetchData(true); toast.success('Analytics refreshed'); }}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs text-luxury-muted hover:text-luxury-gold transition-all duration-200 disabled:opacity-50"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            <span className={refreshing ? 'animate-spin' : ''}><IconRefresh /></span>
-            Refresh
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              downloadCSV(
-                `token_fee_analytics_${today()}.csv`,
-                [
-                  {
-                    title: 'Performance Metrics',
-                    headers: ['Metric', 'Value'],
-                    rows: [
-                      ['Total Token Revenue',      fmt(analytics.totalTokenRevenue)],
-                      ['Total Confirmed Bookings', analytics.totalConfirmedBookings || 0],
-                      ['Avg Fee / Reservation',    fmt(analytics.avgTokenFeePerBooking)],
-                      ['Avg Guests / Booking',     analytics.avgGuestsPerBooking || 0],
-                      ['Total Guests Served',      analytics.totalGuestsServed || 0],
-                      ['Standard Token Rate',      fmt(analytics.tokenFeeRate || 150)],
-                    ],
-                  },
-                  {
-                    title: 'Dining Zone Distribution',
-                    headers: ['Zone', 'Tables'],
-                    rows: Object.entries(zoneBreakdown).map(([z, c]) => [z, c]),
-                  },
-                  {
-                    title: 'Capacity Breakdown',
-                    headers: ['Capacity', 'Tables', 'Total Seats', 'Avg Token Fee'],
-                    rows: Object.entries(capacityBreakdown).map(([cap, item]) => [
-                      cap, item.count, item.totalCapacity, fmt(item.avgTokenFee),
-                    ]),
-                  },
-                  {
-                    title: 'Table Inventory',
-                    headers: ['Table Number', 'Capacity', 'Zone', 'Status', 'Token Fee'],
-                    rows: tableLeaderboard.map((t) => [
-                      t.tableNumber, `${t.capacity}-Seater`, t.zone, t.status, fmt(t.tokenFee),
-                    ]),
-                  },
-                ],
-              );
-              toast.success('Analytics exported as CSV!');
-            }}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-95"
-            style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)', boxShadow: '0 0 18px rgba(212,175,55,0.25)' }}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 1.5v7M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M1.5 10.5v1a1 1 0 001 1h9a1 1 0 001-1v-1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-            </svg>
-            Export Analytics
-          </button>
-        </div>
-      </div>
+            <button
+              type="button"
+              onClick={() => {
+                downloadCSV(
+                  `token_fee_analytics_${today()}.csv`,
+                  [
+                    {
+                      title: 'Performance Metrics',
+                      headers: ['Metric', 'Value'],
+                      rows: [
+                        ['Total Token Revenue',      fmt(analytics.totalTokenRevenue)],
+                        ['Total Confirmed Bookings', analytics.totalConfirmedBookings || 0],
+                        ['Avg Fee / Reservation',    fmt(analytics.avgTokenFeePerBooking)],
+                        ['Avg Guests / Booking',     analytics.avgGuestsPerBooking || 0],
+                        ['Total Guests Served',      analytics.totalGuestsServed || 0],
+                        ['Standard Token Rate',      fmt(analytics.tokenFeeRate || 150)],
+                      ],
+                    },
+                    {
+                      title: 'Dining Zone Distribution',
+                      headers: ['Zone', 'Tables'],
+                      rows: Object.entries(zoneBreakdown).map(([z, c]) => [z, c]),
+                    },
+                    {
+                      title: 'Capacity Breakdown',
+                      headers: ['Capacity', 'Tables', 'Total Seats', 'Avg Token Fee'],
+                      rows: Object.entries(capacityBreakdown).map(([cap, item]) => [
+                        cap, item.count, item.totalCapacity, fmt(item.avgTokenFee),
+                      ]),
+                    },
+                    {
+                      title: 'Table Inventory',
+                      headers: ['Table Number', 'Capacity', 'Zone', 'Status', 'Token Fee'],
+                      rows: tableLeaderboard.map((t) => [
+                        t.tableNumber, `${t.capacity}-Seater`, t.zone, t.status, fmt(t.tokenFee),
+                      ]),
+                    },
+                  ],
+                );
+                toast.success('Analytics exported as CSV!');
+              }}
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)', boxShadow: '0 0 18px rgba(212,175,55,0.25)' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 1.5v7M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M1.5 10.5v1a1 1 0 001 1h9a1 1 0 001-1v-1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+              Export Analytics
+            </button>
+          </>
+        }
+      />
 
 
       {/* ── 4-KPI Stat Cards ────────────────────────────────── */}

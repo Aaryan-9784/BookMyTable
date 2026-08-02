@@ -66,6 +66,30 @@ async function ensureDefaultTables(restaurantId, tokenFee = 150) {
   }
 }
 
+const DEFAULT_RESTAURANT_IMAGE = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80';
+
+function formatRestaurantResponse(r) {
+  if (!r) return null;
+  const img = r.imageUrl || (Array.isArray(r.imageUrls) && r.imageUrls[0]) || DEFAULT_RESTAURANT_IMAGE;
+  const imgList = Array.isArray(r.imageUrls) && r.imageUrls.length ? r.imageUrls : [img];
+  return {
+    id: r._id,
+    _id: r._id,
+    name: r.name || 'The Grand Thakar',
+    location: r.location || 'Odhav, Ahmedabad',
+    category: r.category || 'Multi-cuisine',
+    description: r.description || '',
+    imageUrl: img,
+    imageUrls: imgList,
+    tokenFee: r.tokenFee || 200,
+    openingHours: r.openingHours || '11:00 AM - 11:00 PM',
+    totalSeatingCapacity: r.totalSeatingCapacity || 50,
+    priceRange: r.priceRange || 2,
+    experiences: Array.isArray(r.experiences) && r.experiences.length ? r.experiences : ['Fine Dining', 'Outdoor Terrace'],
+    approvalStatus: 'approved',
+  };
+}
+
 /**
  * GET /api/restaurant-dashboard/stats
  */
@@ -103,23 +127,14 @@ export async function getDashboardStats(req, res) {
 
   res.json({
     ok: true,
-    restaurant: {
-      id: restaurant._id,
-      name: restaurant.name,
-      location: restaurant.location,
-      category: restaurant.category,
-      description: restaurant.description,
-      imageUrl: restaurant.imageUrl,
-      tokenFee: tokenFeeRate,
-      openingHours: restaurant.openingHours || '11:00 AM - 11:00 PM',
-      approvalStatus: 'approved',
-    },
+    restaurant: formatRestaurantResponse(restaurant),
     allRestaurants,
     stats: {
       totalTables,
       totalCapacity,
       activeBookings,
       totalBookings: bookings.length,
+      totalGuestsInBookings,
       totalTokenFees,
       availableTablesCount: tables.filter((t) => t.status === 'Available').length,
       reservedTablesCount: tables.filter((t) => t.status === 'Reserved').length,
@@ -139,7 +154,7 @@ export async function getTables(req, res) {
   await ensureDefaultTables(restaurant._id, restaurant.tokenFee || 150);
 
   const tables = await Table.find({ restaurantId: restaurant._id }).sort({ tableNumber: 1 });
-  res.json({ ok: true, tables });
+  res.json({ ok: true, restaurant: formatRestaurantResponse(restaurant), tables });
 }
 
 /**
@@ -215,11 +230,7 @@ export async function getBookings(req, res) {
 
   res.json({
     ok: true,
-    restaurant: {
-      id: restaurant._id,
-      name: restaurant.name,
-      tokenFee: restaurant.tokenFee || 150,
-    },
+    restaurant: formatRestaurantResponse(restaurant),
     bookings,
   });
 }
@@ -361,6 +372,7 @@ export async function getAnalytics(req, res) {
 
   res.json({
     ok: true,
+    restaurant: formatRestaurantResponse(restaurant),
     analytics: {
       tokenFeeRate,
       totalTokenRevenue,
@@ -385,7 +397,7 @@ export async function getSettings(req, res) {
   const restaurant = await getTargetRestaurant(req);
   if (!restaurant) return res.status(404).json({ ok: false, error: 'Restaurant not found' });
 
-  res.json({ ok: true, restaurant });
+  res.json({ ok: true, restaurant: formatRestaurantResponse(restaurant) });
 }
 
 /**

@@ -6,6 +6,7 @@ import ConfirmModal from '../../admin/components/ConfirmModal.jsx';
 import { downloadCSV, fmt, today } from '../utils/exportCSV.js';
 import LuxurySelect from '../../components/LuxurySelect.jsx';
 import LuxuryNumberInput from '../../components/LuxuryNumberInput.jsx';
+import RestaurantHeader from '../components/RestaurantHeader.jsx';
 
 /* ── OPTION CONFIGURATIONS ─────────────────────────────────── */
 const CAPACITY_OPTIONS = [
@@ -331,9 +332,10 @@ function StyledSelect({ value, onChange, options, children }) {
 
 /* ── MAIN COMPONENT ─────────────────────────────────────────── */
 export default function TablesManagement() {
-  const [tables,     setTables]     = useState([]);
-  const [restaurant, setRestaurant] = useState(null);
-  const [loading,    setLoading]    = useState(true);
+  const cachedTablesRes = restaurantApi.getCache('tables_default')?.data;
+  const [tables,     setTables]     = useState(() => cachedTablesRes?.tables || []);
+  const [restaurant, setRestaurant] = useState(() => cachedTablesRes?.restaurant || restaurantApi.getActiveRestaurant() || null);
+  const [loading,    setLoading]    = useState(() => !cachedTablesRes);
   const [refreshing, setRefreshing] = useState(false);
 
   /* Filters */
@@ -369,7 +371,7 @@ export default function TablesManagement() {
 
   /* ── Data fetching ── */
   const fetchData = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
+    if (!silent && !restaurantApi.getCache('tables_default')) setLoading(true);
     else setRefreshing(true);
     try {
       const [tRes, sRes] = await Promise.all([
@@ -512,101 +514,96 @@ export default function TablesManagement() {
     <div className="max-w-[1100px] mx-auto">
 
       {/* ── Page Header Row ─────────────────────────────────── */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between anim-fade-up">
-        <div>
-          <h1
-            className="font-display leading-none text-luxury-white font-bold"
-            style={{ fontSize: 'clamp(2rem, 4.5vw, 3.2rem)' }}
-          >
-            {restaurant?.name || 'Add Tables'}
-          </h1>
-          <p className="mt-2 font-sans text-sm text-luxury-muted flex items-center gap-2 flex-wrap">
-            <span>📍 {restaurant?.location || 'Set location'}</span>
+      <RestaurantHeader
+        restaurant={restaurant}
+        title="Tables & Seating"
+        description="Configure dining tables, seating capacities, zones, and token fees"
+        extraMeta={
+          <>
             <span className="text-white/20">·</span>
-            <span>{restaurant?.category || 'Category'}</span>
-            <span className="text-white/20">·</span>
-            <span>
-              Base Token Fee:{' '}
-              <strong className="text-luxury-gold/80">₹{restaurant?.tokenFee || 150}</strong>
+            <span className="flex items-center gap-1.5 text-white/90 font-medium">
+              <span className="text-luxury-gold">🪑</span> Tables Inventory:{' '}
+              <strong className="text-white font-semibold">{tables.length} Tables</strong>
             </span>
-          </p>
-          <div
-            className="mt-4 h-px w-20"
-            style={{ background: 'linear-gradient(90deg, #d4af37, rgba(212,175,55,0.15), transparent)' }}
-          />
-        </div>
+            <span className="text-white/20">·</span>
+            <span className="flex items-center gap-1.5 text-white/90 font-medium">
+              <span className="text-luxury-gold">👥</span> Total Capacity:{' '}
+              <strong className="text-white font-semibold">{totalCapacity} Guests</strong>
+            </span>
+          </>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              disabled={refreshing}
+              onClick={() => { fetchData(true); toast.success('Data refreshed'); }}
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs text-luxury-muted hover:text-luxury-gold transition-all duration-200 disabled:opacity-50"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <span className={refreshing ? 'animate-spin' : ''}><IconRefresh /></span>
+              Refresh
+            </button>
 
-        {/* Header Actions */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            disabled={refreshing}
-            onClick={() => { fetchData(true); toast.success('Data refreshed'); }}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs text-luxury-muted hover:text-luxury-gold transition-all duration-200 disabled:opacity-50"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            <span className={refreshing ? 'animate-spin' : ''}><IconRefresh /></span>
-            Refresh
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              downloadCSV(
-                `${(restaurant?.name || 'restaurant').replace(/\s+/g, '_')}_tables_${today()}.csv`,
-                [
+            <button
+              type="button"
+              onClick={() => {
+                downloadCSV(
+                  `${(restaurant?.name || 'restaurant').replace(/\s+/g, '_')}_tables_${today()}.csv`,
+                  [
+                    {
+                      title: 'Restaurant Profile',
+                      headers: ['Field', 'Value'],
+                      rows: [
+                        ['Approval Status', restaurant?.approvalStatus || '—'],
+                        ['Opening Hours',   restaurant?.openingHours  || '—'],
+                        ['Base Token Fee',  fmt(restaurant?.tokenFee || 150)],
+                        ['Description',     restaurant?.description   || '—'],
+                      ],
+                    },
+                    {
+                      title: 'Table Inventory',
+                      headers: ['Table Number', 'Capacity', 'Zone', 'Status', 'Token Fee'],
+                      rows: tables.map((t) => [
+                        t.tableNumber,
+                        `${t.capacity} Guests`,
+                        t.zone,
+                        t.status,
+                        fmt(t.tokenFee || restaurant?.tokenFee || 150),
+                      ]),
+                    },
+                    {
+                      title: 'Seating Summary',
+                      headers: ['Metric', 'Value'],
+                      rows: [
+                        ['Total Tables',    tables.length],
+                        ['Total Capacity',  tables.reduce((s, t) => s + (t.capacity || 0), 0) + ' Guests'],
+                        ['Available',       tables.filter((t) => t.status === 'Available').length],
+                        ['Reserved',        tables.filter((t) => t.status === 'Reserved').length],
+                        ['Maintenance',     tables.filter((t) => t.status === 'Maintenance').length],
+                      ],
+                    },
+                  ],
                   {
-                    title: 'Restaurant Profile',
-                    headers: ['Field', 'Value'],
-                    rows: [
-                      ['Approval Status', restaurant?.approvalStatus || '—'],
-                      ['Opening Hours',   restaurant?.openingHours  || '—'],
-                      ['Base Token Fee',  fmt(restaurant?.tokenFee || 150)],
-                      ['Description',     restaurant?.description   || '—'],
-                    ],
+                    Restaurant: restaurant?.name     || '—',
+                    Location:   restaurant?.location || '—',
+                    Category:   restaurant?.category || '—',
                   },
-                  {
-                    title: 'Table Inventory',
-                    headers: ['Table Number', 'Capacity', 'Zone', 'Status', 'Token Fee'],
-                    rows: tables.map((t) => [
-                      t.tableNumber,
-                      `${t.capacity}-Seater (${t.capacity} Guests)`,
-                      t.zone,
-                      t.status,
-                      fmt(t.tokenFee || restaurant?.tokenFee || 150),
-                    ]),
-                  },
-                  {
-                    title: 'Seating Summary',
-                    headers: ['Metric', 'Value'],
-                    rows: [
-                      ['Total Tables',    tables.length],
-                      ['Total Capacity',  tables.reduce((s, t) => s + (t.capacity || 0), 0) + ' Guests'],
-                      ['Available',       tables.filter((t) => t.status === 'Available').length],
-                      ['Reserved',        tables.filter((t) => t.status === 'Reserved').length],
-                      ['Maintenance',     tables.filter((t) => t.status === 'Maintenance').length],
-                    ],
-                  },
-                ],
-                {
-                  Restaurant: restaurant?.name     || '—',
-                  Location:   restaurant?.location || '—',
-                  Category:   restaurant?.category || '—',
-                },
-              );
-              toast.success('Table inventory exported!');
-            }}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-95"
-            style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)', boxShadow: '0 0 18px rgba(212,175,55,0.25)' }}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 1.5v7M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M1.5 10.5v1a1 1 0 001 1h9a1 1 0 001-1v-1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-            </svg>
-            Export Analytics
-          </button>
-        </div>
-      </div>
+                );
+                toast.success('Table inventory exported!');
+              }}
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)', boxShadow: '0 0 18px rgba(212,175,55,0.25)' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 1.5v7M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M1.5 10.5v1a1 1 0 001 1h9a1 1 0 001-1v-1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+              Export Analytics
+            </button>
+          </>
+        }
+      />
 
       {/* ── 3-KPI Stat Cards ────────────────────────────────── */}
       <div className="grid gap-5 sm:grid-cols-3 mb-8">
@@ -647,7 +644,7 @@ export default function TablesManagement() {
             Manage individual table configurations, zones, and token fees
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <span
             className="rounded-full px-3 py-1 font-sans text-[11px] font-semibold text-luxury-muted"
             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
@@ -658,8 +655,23 @@ export default function TablesManagement() {
           <button
             type="button"
             onClick={() => setShowBulkModal(true)}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs text-white/70 hover:text-white transition-all duration-200"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+            className="group flex items-center gap-2 rounded-xl px-5 py-2.5 font-sans text-xs font-semibold transition-all duration-300 hover:-translate-y-[1px] active:scale-[0.97]"
+            style={{
+              background: 'linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(212,175,55,0.03) 100%)',
+              border: '1px solid rgba(212,175,55,0.22)',
+              color: '#d4af37',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(212,175,55,0.5)';
+              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.35), 0 0 16px rgba(212,175,55,0.12)';
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(212,175,55,0.14) 0%, rgba(212,175,55,0.06) 100%)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(212,175,55,0.22)';
+              e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.25)';
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(212,175,55,0.03) 100%)';
+            }}
           >
             <IconBulk />
             Bulk Add
@@ -668,44 +680,162 @@ export default function TablesManagement() {
           <button
             type="button"
             onClick={openAddTable}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-[#0b0b0c] transition-all duration-200 hover:brightness-110"
-            style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)' }}
+            className="group relative flex items-center gap-2 rounded-xl px-5 py-2.5 font-sans text-xs font-bold uppercase tracking-wider text-[#0b0b0c] transition-all duration-300 hover:-translate-y-[1px] hover:shadow-lg active:scale-[0.97] overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 40%, #e8c84a 70%, #c9a84c 100%)',
+              boxShadow: '0 4px 20px rgba(212,175,55,0.30), 0 0 0 1px rgba(212,175,55,0.15)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 6px 28px rgba(212,175,55,0.45), 0 0 24px rgba(212,175,55,0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 20px rgba(212,175,55,0.30), 0 0 0 1px rgba(212,175,55,0.15)';
+            }}
           >
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-              <path d="M6.5 1.5v10M1.5 6.5h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            {/* Shimmer overlay */}
+            <div
+              className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+              style={{
+                background: 'linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.25) 50%, transparent 65%)',
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 1.6s ease-in-out infinite',
+              }}
+            />
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" className="relative z-[1]">
+              <path d="M6.5 1.5v10M1.5 6.5h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
-            Add Table
+            <span className="relative z-[1]">Add Table</span>
           </button>
         </div>
       </div>
 
       {/* Filter Controls Bar */}
       {tables.length > 0 && (
-        <div className="mb-6 grid gap-3 sm:grid-cols-3">
-          <div className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search table number (e.g. T-01)..."
-              className="w-full rounded-xl border bg-black/40 px-4 py-2 text-xs text-white outline-none transition-colors focus:border-luxury-gold/60 placeholder:text-white/30 min-h-[42px]"
-              style={{ borderColor: 'rgba(255,255,255,0.12)' }}
+        <div
+          className="mb-7 rounded-2xl p-4 sm:p-5"
+          style={{
+            background: 'linear-gradient(160deg, rgba(26,26,28,0.95) 0%, rgba(18,18,20,0.95) 100%)',
+            border: '1px solid rgba(212,175,55,0.14)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)',
+          }}
+        >
+          {/* Filter header row */}
+          <div className="flex items-center justify-between mb-3.5">
+            <div className="flex items-center gap-2.5">
+              <div
+                className="flex h-7 w-7 items-center justify-center rounded-lg shrink-0"
+                style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.2)' }}
+              >
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                  <circle cx="5.5" cy="5.5" r="4" stroke="#d4af37" strokeWidth="1.3" />
+                  <path d="M8.5 8.5L11.5 11.5" stroke="#d4af37" strokeWidth="1.3" strokeLinecap="round" />
+                </svg>
+              </div>
+              <span className="font-sans text-[11px] font-bold uppercase tracking-[0.16em] text-luxury-muted">
+                Filter & Search
+              </span>
+            </div>
+            {(searchQuery || selectedZoneFilter !== 'All' || selectedStatusFilter !== 'All') && (
+              <button
+                type="button"
+                onClick={() => { setSearchQuery(''); setSelectedZoneFilter('All'); setSelectedStatusFilter('All'); }}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-sans text-[10px] font-semibold uppercase tracking-wider text-luxury-gold/80 hover:text-luxury-gold transition-all duration-200"
+                style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.18)' }}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                </svg>
+                Clear Filters
+              </button>
+            )}
+          </div>
+
+          {/* Filter inputs row */}
+          <div className="grid gap-3 sm:grid-cols-3">
+            {/* Search Input */}
+            <div className="relative group">
+              <div className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/25 group-focus-within:text-luxury-gold/70 transition-colors duration-200">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" />
+                  <path d="M9.5 9.5L12.5 12.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by table ID…"
+                className="w-full rounded-xl border bg-black/30 pl-10 pr-4 py-2.5 text-xs text-white outline-none transition-all duration-200 focus:border-luxury-gold/50 focus:shadow-[0_0_12px_rgba(212,175,55,0.1)] placeholder:text-white/25 min-h-[42px]"
+                style={{ borderColor: 'rgba(255,255,255,0.08)' }}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/60 transition-colors"
+                >
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Zone Filter */}
+            <LuxurySelect
+              size="md"
+              value={selectedZoneFilter}
+              onChange={(val) => setSelectedZoneFilter(val)}
+              options={FILTER_ZONE_OPTIONS}
+              placeholder="Filter by Zone"
+            />
+
+            {/* Status Filter */}
+            <LuxurySelect
+              size="md"
+              value={selectedStatusFilter}
+              onChange={(val) => setSelectedStatusFilter(val)}
+              options={FILTER_STATUS_OPTIONS}
+              placeholder="Filter by Status"
             />
           </div>
-          <LuxurySelect
-            size="md"
-            value={selectedZoneFilter}
-            onChange={(val) => setSelectedZoneFilter(val)}
-            options={FILTER_ZONE_OPTIONS}
-            placeholder="Filter by Zone"
-          />
-          <LuxurySelect
-            size="md"
-            value={selectedStatusFilter}
-            onChange={(val) => setSelectedStatusFilter(val)}
-            options={FILTER_STATUS_OPTIONS}
-            placeholder="Filter by Status"
-          />
+
+          {/* Active filters summary */}
+          {(searchQuery || selectedZoneFilter !== 'All' || selectedStatusFilter !== 'All') && (
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              <span className="font-sans text-[10px] text-luxury-muted uppercase tracking-wider">Active:</span>
+              {searchQuery && (
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-sans text-[10px] font-semibold text-luxury-gold"
+                  style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.2)' }}
+                >
+                  "{searchQuery}"
+                  <button type="button" onClick={() => setSearchQuery('')} className="hover:text-white transition-colors">×</button>
+                </span>
+              )}
+              {selectedZoneFilter !== 'All' && (
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-sans text-[10px] font-semibold text-luxury-gold"
+                  style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.2)' }}
+                >
+                  {selectedZoneFilter}
+                  <button type="button" onClick={() => setSelectedZoneFilter('All')} className="hover:text-white transition-colors">×</button>
+                </span>
+              )}
+              {selectedStatusFilter !== 'All' && (
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-sans text-[10px] font-semibold text-luxury-gold"
+                  style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.2)' }}
+                >
+                  {selectedStatusFilter}
+                  <button type="button" onClick={() => setSelectedStatusFilter('All')} className="hover:text-white transition-colors">×</button>
+                </span>
+              )}
+              <span className="ml-auto font-sans text-[10px] text-luxury-muted">
+                {filteredTables.length} result{filteredTables.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
         </div>
       )}
 
@@ -786,7 +916,7 @@ export default function TablesManagement() {
                 <div className="flex items-center justify-between">
                   <span className="font-sans text-[11px] text-luxury-muted">Seating</span>
                   <span className="font-sans text-xs font-semibold text-white">
-                    {t.capacity} Guests ({t.capacity}-Seater)
+                    {t.capacity} Guests
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -884,11 +1014,13 @@ export default function TablesManagement() {
                 </Field>
 
                 <Field label="Token Fee (₹)">
-                  <LuxuryNumberInput
-                    min={0}
-                    step={25}
+                  <input
+                    type="number"
+                    min="0"
                     value={tokenFee}
-                    onChange={(val) => setTokenFee(val)}
+                    onChange={(e) => setTokenFee(e.target.value)}
+                    className={inputCls}
+                    style={inputStyle}
                   />
                 </Field>
               </div>
@@ -919,11 +1051,14 @@ export default function TablesManagement() {
           <form onSubmit={handleBulkSubmit}>
             <div className="space-y-4 px-6 py-5">
               <Field label="Number of Tables to Create">
-                <LuxuryNumberInput
-                  min={1}
-                  max={20}
+                <input
+                  type="number"
+                  min="1"
+                  max="20"
                   value={bulkCount}
-                  onChange={(val) => setBulkCount(val)}
+                  onChange={(e) => setBulkCount(e.target.value)}
+                  className={inputCls}
+                  style={inputStyle}
                   required
                 />
               </Field>
@@ -938,11 +1073,13 @@ export default function TablesManagement() {
                 </Field>
 
                 <Field label="Token Fee (₹)">
-                  <LuxuryNumberInput
-                    min={0}
-                    step={25}
+                  <input
+                    type="number"
+                    min="0"
                     value={bulkTokenFee}
-                    onChange={(val) => setBulkTokenFee(val)}
+                    onChange={(e) => setBulkTokenFee(e.target.value)}
+                    className={inputCls}
+                    style={inputStyle}
                   />
                 </Field>
               </div>
@@ -1032,11 +1169,13 @@ export default function TablesManagement() {
                   </Field>
 
                   <Field label="Base Token Fee (₹)">
-                    <LuxuryNumberInput
-                      min={0}
-                      step={25}
+                    <input
+                      type="number"
+                      min="0"
                       value={restForm.tokenFee}
-                      onChange={(val) => setRestForm({ ...restForm, tokenFee: val })}
+                      onChange={(e) => setRestForm({ ...restForm, tokenFee: e.target.value })}
+                      className={inputCls}
+                      style={inputStyle}
                     />
                   </Field>
                 </div>

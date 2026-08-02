@@ -68,33 +68,6 @@ export default function LuxuryNumberInput({
         required={required}
         className="w-full bg-transparent px-4 py-2.5 font-sans text-sm font-semibold text-white outline-none placeholder:text-white/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />
-      {/* Custom Luxury Up / Down Spinner Controls */}
-      <div className="flex flex-col border-l border-white/10 pr-1 shrink-0 my-1">
-        <button
-          type="button"
-          tabIndex={-1}
-          onClick={handleIncrement}
-          disabled={disabled || (max !== undefined && numValue !== '' && numValue >= max)}
-          className="flex h-4 w-6 items-center justify-center text-white/40 hover:text-luxury-gold hover:bg-luxury-gold/15 active:scale-90 disabled:opacity-20 rounded-t transition-all"
-          title="Increase"
-        >
-          <svg width="9" height="6" viewBox="0 0 9 6" fill="none">
-            <path d="M1.5 4.5L4.5 1.5L7.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          tabIndex={-1}
-          onClick={handleDecrement}
-          disabled={disabled || (min !== undefined && numValue !== '' && numValue <= min)}
-          className="flex h-4 w-6 items-center justify-center text-white/40 hover:text-luxury-gold hover:bg-luxury-gold/15 active:scale-90 disabled:opacity-20 rounded-b transition-all"
-          title="Decrease"
-        >
-          <svg width="9" height="6" viewBox="0 0 9 6" fill="none">
-            <path d="M1.5 1.5L4.5 4.5L7.5 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-      </div>
     </div>
   );
 }

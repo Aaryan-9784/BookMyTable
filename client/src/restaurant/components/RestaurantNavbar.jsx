@@ -5,9 +5,9 @@ import { useNotifications } from '../../context/NotificationContext.jsx';
 
 /* ── PAGE TITLES (Matching Partner Console format) ───────────── */
 const PAGE_TITLES = {
-  '/restaurant-dashboard':           'Dashboard',
-  '/restaurant-dashboard/bookings':  'Bookings Management',
-  '/restaurant-dashboard/tables':    'Table Management',
+  '/restaurant-dashboard':           'Dashboard Overview',
+  '/restaurant-dashboard/bookings':  'Bookings & Reservations',
+  '/restaurant-dashboard/tables':    'Tables & Seating',
   '/restaurant-dashboard/analytics': 'Token Fee Analytics',
   '/restaurant-dashboard/settings':  'Restaurant Settings',
 };
