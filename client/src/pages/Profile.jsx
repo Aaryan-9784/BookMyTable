@@ -202,7 +202,6 @@ export default function Profile() {
                         boxShadow: '0 0 24px rgba(212,175,55,0.3)',
                       }}
                     >
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#0b0b0c]" />
                       Admin Console →
                     </button>
                   ) : isRestaurant ? (
@@ -215,7 +214,6 @@ export default function Profile() {
                         boxShadow: '0 0 24px rgba(212,175,55,0.3)',
                       }}
                     >
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#0b0b0c]" />
                       Partner Console →
                     </button>
                   ) : (
@@ -228,7 +226,6 @@ export default function Profile() {
                         boxShadow: '0 0 24px rgba(212,175,55,0.3)',
                       }}
                     >
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#0b0b0c]" />
                       My Bookings <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
                     </button>
                   )}

@@ -5,6 +5,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
 import { getFallbackRestaurantImage } from '../utils/imageUtils.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const fieldBase = [
   'w-full rounded-xl border bg-white/[0.04] px-4 py-3.5 font-sans text-sm text-white',
@@ -178,6 +179,7 @@ export default function BookingForm({
   minDate = '',
   timeSlots = null,
 }) {
+  const { email: authEmail, profile, displayName } = useAuth();
   const resolvedDefault = timeSlots?.length
     ? (defaultTime && timeSlots.includes(defaultTime) ? defaultTime : timeSlots[0])
     : defaultTime;
@@ -280,6 +282,26 @@ export default function BookingForm({
       return;
     }
 
+    /* Extract user database details for Razorpay prefill */
+    const userFullName =
+      profile?.name?.trim() ||
+      profile?.fullName?.trim() ||
+      displayName?.trim() ||
+      localStorage.getItem('bookmytable_full_name')?.trim() ||
+      'Guest User';
+
+    const userEmail =
+      profile?.email?.trim() ||
+      authEmail?.trim() ||
+      localStorage.getItem('bookmytable_email')?.trim() ||
+      'customer@bookmytable.me';
+
+    const userPhone =
+      profile?.phone?.trim() ||
+      profile?.phoneNumber?.trim() ||
+      localStorage.getItem('bookmytable_phone')?.trim() ||
+      '8238012515';
+
     /* Configure Razorpay Modal */
     const options = {
       key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_bookmytable',
@@ -301,9 +323,9 @@ export default function BookingForm({
         });
       },
       prefill: {
-        name: 'Guest User',
-        email: 'customer@bookmytable.me',
-        contact: '9876543210',
+        name: userFullName,
+        email: userEmail,
+        contact: userPhone,
       },
       theme: {
         color: '#d4af37',

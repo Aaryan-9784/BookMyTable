@@ -18,10 +18,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <App />
           <Toaster
             position="top-right"
-            gutter={10}
-            containerStyle={{ top: 24, right: 24 }}
+            gutter={8}
+            reverseOrder={false}
+            containerStyle={{ top: 20, right: 20 }}
             toastOptions={{
-              duration: 2200,
+              duration: 1400,
               style: {
                 background: 'rgba(18, 18, 20, 0.96)',
                 color: '#ffffff',
@@ -30,13 +31,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 borderRadius: '16px',
-                padding: '12px 18px',
+                padding: '10px 16px',
                 fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 fontSize: '13px',
                 fontWeight: 500,
-                maxWidth: '400px',
+                maxWidth: '380px',
               },
               success: {
+                duration: 1400,
                 iconTheme: {
                   primary: '#d4af37',
                   secondary: '#0b0b0c',
@@ -46,7 +48,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 },
               },
               error: {
-                duration: 2500,
+                duration: 1600,
                 iconTheme: {
                   primary: '#f87171',
                   secondary: '#0b0b0c',

@@ -208,15 +208,20 @@ input[type="search"]::-webkit-search-results-decoration {
   background: transparent;
 }
 
-/* ─── Luxury Toast Popups Animation & Overrides ────────────── */
+/* ─── Luxury Toast Popups Animation & Single Active Toast Enforcement ────────────── */
 [data-react-hot-toast] {
-  animation: luxuryToastIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+  animation: luxuryToastIn 0.20s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+}
+
+/* Hide older toasts when a new toast appears so ONLY ONE message shows at a time */
+body [data-react-hot-toast]:not(:last-child) {
+  display: none !important;
 }
 
 @keyframes luxuryToastIn {
   from {
     opacity: 0;
-    transform: translateY(-14px) scale(0.94);
+    transform: translateY(-10px) scale(0.96);
   }
   to {
     opacity: 1;
