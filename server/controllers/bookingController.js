@@ -44,6 +44,7 @@ export async function createBooking(req, res, next) {
       time,
       guests,
       specialRequests,
+      tableId,
       paymentId,
       couponCode,
       discountAmount,
@@ -61,12 +62,13 @@ export async function createBooking(req, res, next) {
       date,
       time,
       guests,
+      tableId,
       paymentId,
     });
 
     // Run comprehensive validation
     const validation = await validateBooking(
-      { restaurantId, date, time, guests, specialRequests },
+      { restaurantId, date, time, guests, specialRequests, tableId },
       req.user._id
     );
 
@@ -103,12 +105,13 @@ export async function createBooking(req, res, next) {
     logger.info('Booking created successfully', {
       bookingId: String(booking._id),
       restaurant: restaurant.name,
+      assignedTable: booking.tableNumber,
     });
 
     // Populate restaurant details for response
     const populatedBooking = await booking.populate('restaurantId');
 
-    // Send confirmation email with full payment details
+    // Send confirmation email with full payment & table details
     logger.info('Sending booking confirmation email');
     let emailDelivery;
     try {
@@ -118,6 +121,9 @@ export async function createBooking(req, res, next) {
         date: validatedData.date,
         time: validatedData.time,
         guests: validatedData.guests,
+        tableNumber: booking.tableNumber,
+        tableZone: booking.tableZone,
+        tableCapacity: booking.tableCapacity,
         bookingId: String(booking._id),
         paymentId: booking.paymentId,
         finalPayable: booking.finalPayable,
@@ -145,12 +151,14 @@ export async function createBooking(req, res, next) {
       };
     }
 
+    const tableBadgeStr = booking.tableNumber ? ` (Table ${booking.tableNumber}${booking.tableZone ? ` - ${booking.tableZone}` : ''})` : '';
+
     // Send real-time notification to customer
     pushToUser(String(req.user._id), {
       id: Date.now(),
       type: 'booking_confirmed',
       title: 'Booking Confirmed ✓',
-      desc: `Your table at ${restaurant.name} is confirmed for ${date} at ${time} (${guests} guest${guests > 1 ? 's' : ''}). Payment Ref: ${booking.paymentId}.`,
+      desc: `Your table at ${restaurant.name}${tableBadgeStr} is confirmed for ${date} at ${time} (${guests} guest${guests > 1 ? 's' : ''}). Payment Ref: ${booking.paymentId}.`,
       time: 'Just now',
       unread: true,
     });

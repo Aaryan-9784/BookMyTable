@@ -62,6 +62,24 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    tableId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Table',
+      default: null,
+      index: true,
+    },
+    tableNumber: {
+      type: String,
+      default: null,
+    },
+    tableCapacity: {
+      type: Number,
+      default: null,
+    },
+    tableZone: {
+      type: String,
+      default: null,
+    },
     status: {
       type: String,
       enum: ['confirmed', 'checked-in', 'completed', 'cancelled'],

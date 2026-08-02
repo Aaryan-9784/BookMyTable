@@ -4,6 +4,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
+import api from '../services/api.js';
 import { getFallbackRestaurantImage } from '../utils/imageUtils.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -207,6 +208,63 @@ export default function BookingForm({
   });
   const [guests, setGuests] = useState(defaultGuests);
 
+  /* Table Selection & Availability State */
+  const [tablesList, setTablesList] = useState([]);
+  const [loadingTables, setLoadingTables] = useState(false);
+  const [selectedTableId, setSelectedTableId] = useState('');
+  const [tableError, setTableError] = useState('');
+
+  useEffect(() => {
+    if (!restaurant?._id || !date || !selectedTime) return;
+    let cancelled = false;
+    setLoadingTables(true);
+    setTableError('');
+
+    api.get(`/api/restaurants/${restaurant._id}/tables`, {
+      params: { date, time: selectedTime, guests: Number(guests) || 1 }
+    }).then(({ data }) => {
+      if (cancelled) return;
+      const allTables = data?.tables || [];
+      setTablesList(allTables);
+
+      if (allTables.length > 0) {
+        const numG = Number(guests) || 1;
+        const availableTables = allTables.filter((t) => t.isAvailable);
+
+        if (availableTables.length === 0) {
+          setTableError(`No tables available at ${selectedTime} on ${date}. All tables are reserved.`);
+          setSelectedTableId('');
+        } else {
+          // Find available tables that fit party size
+          const fittingTables = availableTables
+            .filter((t) => Number(t.capacity) >= numG)
+            .sort((a, b) => Number(a.capacity) - Number(b.capacity));
+
+          if (fittingTables.length > 0) {
+            // Auto-select best matching table if current selected is invalid or not in fittingTables
+            if (!selectedTableId || !fittingTables.some((t) => String(t._id) === String(selectedTableId))) {
+              setSelectedTableId(fittingTables[0]._id);
+            }
+            setTableError('');
+          } else {
+            const maxCap = Math.max(...availableTables.map((t) => Number(t.capacity) || 0), 0);
+            setTableError(`No single table available for ${numG} guests. Maximum available single table capacity is ${maxCap} seats.`);
+            setSelectedTableId('');
+          }
+        }
+      } else {
+        setSelectedTableId('');
+        setTableError('');
+      }
+    }).catch(() => {
+      if (!cancelled) setTablesList([]);
+    }).finally(() => {
+      if (!cancelled) setLoadingTables(false);
+    });
+
+    return () => { cancelled = true; };
+  }, [restaurant?._id, date, selectedTime, guests]);
+
   // Auto adjust checkOutTime when selectedTime (check-in) changes
   useEffect(() => {
     if (!selectedTime) return;
@@ -325,6 +383,11 @@ export default function BookingForm({
       return;
     }
 
+    if (tableError) {
+      toast.error(tableError);
+      return;
+    }
+
     const payloadTimes = {
       checkInTime: date && selectedTime ? `${date}T${selectedTime}:00` : null,
       checkOutTime: date && checkOutTime ? `${date}T${checkOutTime}:00` : null,
@@ -339,6 +402,7 @@ export default function BookingForm({
         date,
         time: selectedTime,
         guests,
+        tableId: selectedTableId || null,
         couponCode: appliedCoupon?.code || null,
         discountAmount,
         finalPayable,
@@ -381,6 +445,7 @@ export default function BookingForm({
           date,
           time: selectedTime,
           guests,
+          tableId: selectedTableId || null,
           paymentId: response.razorpay_payment_id,
           couponCode: appliedCoupon?.code || null,
           discountAmount,
@@ -411,6 +476,7 @@ export default function BookingForm({
         date,
         time: selectedTime,
         guests,
+        tableId: selectedTableId || null,
         couponCode: appliedCoupon?.code || null,
         discountAmount,
         finalPayable,
@@ -571,6 +637,78 @@ export default function BookingForm({
               </button>
             </div>
           </div>
+
+          {/* ── Table Allocation & Seating Capacity Guard ── */}
+          {loadingTables ? (
+            <div className="rounded-2xl border border-luxury-gold/20 bg-white/[0.03] p-4 flex items-center justify-center gap-3 font-sans text-xs text-luxury-gold animate-pulse">
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              Verifying live table availability & capacity...
+            </div>
+          ) : tableError ? (
+            <div className="rounded-2xl border border-red-500/40 bg-red-950/40 p-4 space-y-1 text-xs font-sans text-red-300">
+              <div className="flex items-center gap-2 font-bold text-red-400">
+                <span>⚠️</span> Table Capacity Notice
+              </div>
+              <p>{tableError}</p>
+            </div>
+          ) : tablesList.length > 0 ? (
+            <div className="space-y-2.5 pt-1">
+              <label className="flex items-center justify-between font-sans text-xs font-semibold text-white/80">
+                <span className="flex items-center gap-2">
+                  <span>🪑</span> Select Table / Zone *
+                </span>
+                <span className="text-luxury-gold text-[11px] font-bold uppercase tracking-wider">
+                  {tablesList.filter((t) => t.isAvailable && Number(t.capacity) >= (Number(guests) || 1)).length} Available
+                </span>
+              </label>
+
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                {tablesList.map((t) => {
+                  const isAvailable = t.isAvailable;
+                  const fits = Number(t.capacity) >= (Number(guests) || 1);
+                  const isSelected = String(t._id) === String(selectedTableId);
+                  const isDisabled = !isAvailable || !fits;
+
+                  return (
+                    <button
+                      key={t._id}
+                      type="button"
+                      disabled={isDisabled}
+                      onClick={() => setSelectedTableId(t._id)}
+                      className={`relative flex flex-col justify-between rounded-xl border p-3 text-left transition-all duration-200 ${
+                        isSelected
+                          ? 'border-luxury-gold bg-luxury-gold/15 shadow-[0_0_15px_rgba(212,175,55,0.25)]'
+                          : isDisabled
+                          ? 'border-white/5 bg-white/[0.01] opacity-40 cursor-not-allowed'
+                          : 'border-white/10 bg-white/[0.04] hover:border-luxury-gold/40 hover:bg-white/[0.08]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-display font-bold text-sm text-white">
+                          {t.tableNumber}
+                        </span>
+                        {isSelected && (
+                          <span className="text-luxury-gold font-bold text-xs">✓</span>
+                        )}
+                      </div>
+                      <div className="mt-1 flex items-center justify-between text-[11px] font-sans">
+                        <span className="text-luxury-muted font-medium">{t.zone || 'Main Hall'}</span>
+                        <span className="font-semibold text-amber-300">{t.capacity}-Seater</span>
+                      </div>
+                      {isDisabled && (
+                        <span className="mt-1 font-sans text-[10px] font-semibold text-red-400">
+                          {!isAvailable ? 'Reserved' : 'Too Small'}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* ── STEP 2: PROMO CODE & DISCOUNTS ── */}
@@ -690,7 +828,7 @@ export default function BookingForm({
 
             <div className="h-px bg-white/10 my-2" />
 
-            <div className="flex justify-between text-sm font-extrabold text-white">
+            <div className="flex justify-between text-sm font-extrabold text-[#ffffff]">
               <span>Total Amount Payable</span>
               <span className="text-luxury-gold text-base">₹{finalPayable}</span>
             </div>
@@ -700,8 +838,8 @@ export default function BookingForm({
         {/* ── UPGRADED PAY BUTTON ── */}
         <button
           type="submit"
-          disabled={submitting}
-          className="w-full rounded-2xl py-4 font-sans text-sm sm:text-base font-bold text-[#0a0a0a] transition-all duration-300 hover:brightness-110 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
+          disabled={submitting || !!tableError || loadingTables}
+          className="w-full rounded-2xl py-4 font-sans text-sm sm:text-base font-bold text-[#0a0a0a] transition-all duration-300 hover:brightness-110 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
             background: 'linear-gradient(135deg, #c9a84c 0%, #f5e6a3 50%, #c9a84c 100%)',
             boxShadow: '0 0 35px rgba(212,175,55,0.4), 0 4px 20px rgba(0,0,0,0.5)',

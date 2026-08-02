@@ -5,6 +5,7 @@ import { Router } from 'express';
 import {
   listRestaurants,
   getRestaurantById,
+  getRestaurantTables,
   createRestaurant,
   createRestaurantValidators,
 } from '../controllers/restaurantController.js';
@@ -20,6 +21,7 @@ const sanitizeRestaurant = createSanitizationMiddleware('restaurant');
 
 router.get('/', asyncHandler(listRestaurants));
 router.get('/:id', asyncHandler(getRestaurantById));
+router.get('/:id/tables', asyncHandler(getRestaurantTables));
 router.post(
   '/',
   verifyCognitoToken,

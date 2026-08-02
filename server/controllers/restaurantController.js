@@ -3,6 +3,8 @@
  */
 import { validationResult, body } from 'express-validator';
 import Restaurant from '../models/Restaurant.js';
+import Table from '../models/Table.js';
+import Booking from '../models/Booking.js';
 
 function escapeRegex(s) {
   return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -122,6 +124,61 @@ export async function createRestaurant(req, res, next) {
       imageUrls: imageUrl ? [imageUrl] : [],
     });
     res.status(201).json(r);
+  } catch (e) {
+    next(e);
+  }
+}
+
+/**
+ * GET /api/restaurants/:id/tables — public endpoint to list tables and their slot availability for customers.
+ * Query params: date (YYYY-MM-DD), time (HH:MM), guests (Number)
+ */
+export async function getRestaurantTables(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { date, time, guests } = req.query;
+
+    const tables = await Table.find({ restaurantId: id }).lean();
+    if (!tables || tables.length === 0) {
+      return res.json({ tables: [], totalAvailableCapacity: 0, availableCount: 0 });
+    }
+
+    let reservedTableIds = [];
+    if (date && time) {
+      const activeBookings = await Booking.find({
+        restaurantId: id,
+        date,
+        time,
+        status: { $in: ['confirmed', 'checked-in'] },
+      }).lean();
+      reservedTableIds = activeBookings
+        .map((b) => (b.tableId ? String(b.tableId) : null))
+        .filter(Boolean);
+    }
+
+    const numGuests = Number(guests) || 1;
+
+    const mappedTables = tables.map((t) => {
+      const isReserved = reservedTableIds.includes(String(t._id));
+      const fitsGuests = Number(t.capacity) >= numGuests;
+      const isAvailable = !isReserved && t.status !== 'Maintenance';
+      return {
+        ...t,
+        isReserved,
+        fitsGuests,
+        isAvailable,
+      };
+    });
+
+    const totalAvailableCapacity = mappedTables
+      .filter((t) => t.isAvailable)
+      .reduce((sum, t) => sum + (Number(t.capacity) || 0), 0);
+
+    res.json({
+      tables: mappedTables,
+      totalAvailableCapacity,
+      availableCount: mappedTables.filter((t) => t.isAvailable).length,
+    });
   } catch (e) {
     next(e);
   }

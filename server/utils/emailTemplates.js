@@ -191,6 +191,9 @@ export function generateBookingEmailTemplate({
   date,
   time,
   guests,
+  tableNumber = '',
+  tableZone = '',
+  tableCapacity = null,
   bookingId = '',
   paymentId = '',
   finalPayable = 0,
@@ -199,6 +202,10 @@ export function generateBookingEmailTemplate({
   recipientNote = '',
   clientUrl = process.env.CLIENT_URL || 'http://localhost:5173',
 }) {
+  const tableText = tableNumber
+    ? `Table ${escapeHtml(tableNumber)}${tableZone ? ` (${escapeHtml(tableZone)})` : ''}`
+    : null;
+
   const messageHtml = `
     Your reservation at <strong style="color:#ffffff;">${escapeHtml(restaurantName)}</strong> has been confirmed and your deposit payment was processed successfully.
     <span style="display:block;margin-top:6px;font-size:13px;color:#888890;">Please arrive 10 minutes before your reservation time.</span>`;
@@ -215,6 +222,7 @@ export function generateBookingEmailTemplate({
         ${detailRow('📅', 'Date', escapeHtml(date))}
         ${detailRow('⏰', 'Time', escapeHtml(time))}
         ${detailRow('👥', 'Guests', `${guests} Guest(s)`)}
+        ${tableText ? detailRow('🪑', 'Assigned Table', `<strong style="color:${BRAND_GOLD};">${tableText}</strong>`) : ''}
         ${paymentId ? detailRow('💳', 'Payment Ref', `<span style="font-family:monospace;color:#4ade80;font-size:12px;">${escapeHtml(paymentId)}</span>`, '') : ''}
         ${detailRow('💰', 'Amount Paid', `<span style="color:${BRAND_GOLD_LIGHT};font-size:16px;">₹${finalPayable}</span>${discountAmount > 0 ? `<br><span style="font-size:11px;color:#4ade80;font-weight:400;">Saved ₹${discountAmount} with ${escapeHtml(couponCode)}</span>` : ''}`, '')}
       </table>

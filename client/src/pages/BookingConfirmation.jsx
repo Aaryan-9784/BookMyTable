@@ -260,7 +260,7 @@ export default function BookingConfirmation() {
           </div>
 
           {/* Summary Info Grid */}
-          <div className="grid grid-cols-2 gap-5 px-6 py-5 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-5 px-6 py-5 sm:grid-cols-5">
             <div>
               <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-white/40">Date</p>
               <p className="mt-1 font-sans text-sm font-bold text-white">{booking.date}</p>
@@ -272,6 +272,12 @@ export default function BookingConfirmation() {
             <div>
               <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-white/40">Guests</p>
               <p className="mt-1 font-sans text-sm font-bold text-white">{numGuests} {numGuests === 1 ? 'Guest' : 'Guests'}</p>
+            </div>
+            <div>
+              <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-white/40">Assigned Table</p>
+              <p className="mt-1 font-sans text-sm font-bold text-amber-300">
+                {booking.tableNumber ? `Table ${booking.tableNumber}${booking.tableZone ? ` (${booking.tableZone})` : ''}` : 'T-01 (Main Hall)'}
+              </p>
             </div>
             <div>
               <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-white/40">Amount Paid</p>

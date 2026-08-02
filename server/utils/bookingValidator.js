@@ -12,6 +12,7 @@
 import { ValidationError } from './AppError.js';
 import Restaurant from '../models/Restaurant.js';
 import Booking from '../models/Booking.js';
+import Table from '../models/Table.js';
 import { createLogger } from './logger.js';
 
 const logger = createLogger('BookingValidator');
@@ -130,46 +131,131 @@ export async function validateRestaurantOperatingHours(restaurant, date, time) {
 /**
  * Check restaurant capacity for the given time slot
  */
-export async function validateRestaurantCapacity(restaurantId, date, time, guests) {
+/**
+ * Check restaurant capacity and table assignment for the given time slot
+ */
+export async function validateRestaurantCapacity(restaurantId, date, time, guests, preferredTableId = null) {
   const restaurant = await Restaurant.findById(restaurantId);
   
   if (!restaurant) {
     throw new ValidationError('Restaurant not found');
   }
 
-  // Get all confirmed bookings for this restaurant at this date/time
+  const requestedGuests = Number(guests) || 1;
+
+  // 1. Fetch registered table inventory for this restaurant
+  const tables = await Table.find({ restaurantId }).lean();
+
+  // 2. Fetch active bookings for this date & time
   const existingBookings = await Booking.find({
     restaurantId,
     date,
     time,
-    status: 'confirmed',
-  });
+    status: { $in: ['confirmed', 'checked-in'] },
+  }).lean();
 
   // Calculate total guests already booked
-  const totalGuestsBooked = existingBookings.reduce((sum, booking) => sum + booking.guests, 0);
-  
-  // Check if adding this booking would exceed capacity
-  const restaurantCapacity = restaurant.capacity || 100; // Default capacity if not set
-  const totalAfterBooking = totalGuestsBooked + Number(guests);
-  
-  if (totalAfterBooking > restaurantCapacity) {
-    const availableSeats = restaurantCapacity - totalGuestsBooked;
-    throw new ValidationError(
-      `Not enough capacity. Only ${availableSeats} seats available at this time`,
-      {
-        availableSeats,
-        requestedGuests: guests,
-        totalCapacity: restaurantCapacity,
-      }
-    );
-  }
+  const totalGuestsBooked = existingBookings.reduce((sum, b) => sum + (Number(b.guests) || 0), 0);
 
-  return {
-    available: true,
-    totalCapacity: restaurantCapacity,
-    bookedSeats: totalGuestsBooked,
-    availableSeats: restaurantCapacity - totalGuestsBooked,
-  };
+  // Reserved table IDs for this slot
+  const reservedTableIds = existingBookings
+    .map((b) => (b.tableId ? String(b.tableId) : null))
+    .filter(Boolean);
+
+  let assignedTable = null;
+
+  if (tables.length > 0) {
+    // Restaurant has configured physical tables
+    const availableTables = tables.filter(
+      (t) => !reservedTableIds.includes(String(t._id)) && t.status !== 'Maintenance'
+    );
+
+    const totalAvailableCapacity = availableTables.reduce(
+      (acc, t) => acc + (Number(t.capacity) || 0),
+      0
+    );
+    const totalInventoryCapacity = tables.reduce(
+      (acc, t) => acc + (Number(t.capacity) || 0),
+      0
+    );
+
+    if (totalAvailableCapacity < requestedGuests) {
+      throw new ValidationError(
+        `Not enough table capacity available. Only ${totalAvailableCapacity} seat(s) left for this time slot (Requested: ${requestedGuests} guests).`,
+        {
+          availableSeats: totalAvailableCapacity,
+          requestedGuests,
+          totalCapacity: totalInventoryCapacity,
+        }
+      );
+    }
+
+    if (preferredTableId) {
+      const targetTable = availableTables.find((t) => String(t._id) === String(preferredTableId));
+      if (!targetTable) {
+        throw new ValidationError('Selected table is no longer available for this time slot.');
+      }
+      if (Number(targetTable.capacity) < requestedGuests) {
+        throw new ValidationError(
+          `Selected table (${targetTable.tableNumber}, ${targetTable.capacity}-seater) cannot accommodate ${requestedGuests} guests.`
+        );
+      }
+      assignedTable = targetTable;
+    } else {
+      // Find candidate tables with capacity >= requestedGuests, sorted by capacity asc
+      const candidateTables = availableTables
+        .filter((t) => Number(t.capacity) >= requestedGuests)
+        .sort((a, b) => Number(a.capacity) - Number(b.capacity));
+
+      if (candidateTables.length > 0) {
+        assignedTable = candidateTables[0];
+      } else {
+        const maxSingleCap = Math.max(...availableTables.map((t) => Number(t.capacity) || 0), 0);
+        throw new ValidationError(
+          `No single table available for ${requestedGuests} guests. Maximum available single table capacity is ${maxSingleCap} seats.`
+        );
+      }
+    }
+
+    return {
+      available: true,
+      totalCapacity: totalInventoryCapacity,
+      bookedSeats: totalGuestsBooked,
+      availableSeats: totalAvailableCapacity,
+      assignedTable,
+    };
+  } else {
+    // Fallback if no tables in Table collection
+    const restaurantCapacity = Number(restaurant.totalSeatingCapacity || restaurant.capacity) || 100;
+    const totalAfterBooking = totalGuestsBooked + requestedGuests;
+
+    if (totalAfterBooking > restaurantCapacity) {
+      const availableSeats = Math.max(0, restaurantCapacity - totalGuestsBooked);
+      throw new ValidationError(
+        `Not enough capacity. Only ${availableSeats} seat(s) available at this time.`,
+        {
+          availableSeats,
+          requestedGuests,
+          totalCapacity: restaurantCapacity,
+        }
+      );
+    }
+
+    assignedTable = {
+      _id: null,
+      tableNumber: 'T-01',
+      capacity: restaurantCapacity,
+      zone: 'Main Hall',
+    };
+
+    return {
+      available: true,
+      totalCapacity: restaurantCapacity,
+      bookedSeats: totalGuestsBooked,
+      availableSeats: restaurantCapacity - totalGuestsBooked,
+      assignedTable,
+    };
+  }
 }
 
 /**
@@ -261,9 +347,9 @@ export function validateSpecialRequests(specialRequests) {
  * Runs all validation checks in sequence
  */
 export async function validateBooking(bookingData, userId) {
-  const { restaurantId, date, time, guests, specialRequests } = bookingData;
+  const { restaurantId, date, time, guests, specialRequests, tableId } = bookingData;
 
-  logger.info('Validating booking', { userId, restaurantId, date, time, guests });
+  logger.info('Validating booking', { userId, restaurantId, date, time, guests, tableId });
 
   // 1. Validate date format and range
   validateBookingDate(date);
@@ -289,8 +375,8 @@ export async function validateBooking(bookingData, userId) {
   // 7. Validate restaurant is open
   await validateRestaurantOperatingHours(restaurant, date, time);
 
-  // 8. Validate restaurant capacity
-  await validateRestaurantCapacity(restaurantId, date, time, guests);
+  // 8. Validate restaurant capacity & assign table
+  const capacityResult = await validateRestaurantCapacity(restaurantId, date, time, guests, tableId);
 
   // 9. Check for duplicate bookings
   const existingBooking = await validateNoDuplicateBooking(userId, restaurantId, date, time);
@@ -301,7 +387,13 @@ export async function validateBooking(bookingData, userId) {
   // 11. Validate special requests (if any)
   const validatedRequests = validateSpecialRequests(specialRequests);
 
-  logger.info('Booking validation passed', { userId, restaurantId });
+  const assignedTable = capacityResult.assignedTable || null;
+
+  logger.info('Booking validation passed', {
+    userId,
+    restaurantId,
+    assignedTable: assignedTable?.tableNumber,
+  });
 
   return {
     valid: true,
@@ -313,6 +405,10 @@ export async function validateBooking(bookingData, userId) {
       time,
       guests: Number(guests),
       specialRequests: validatedRequests,
+      tableId: assignedTable?._id || null,
+      tableNumber: assignedTable?.tableNumber || null,
+      tableCapacity: assignedTable?.capacity || null,
+      tableZone: assignedTable?.zone || null,
     },
   };
 }

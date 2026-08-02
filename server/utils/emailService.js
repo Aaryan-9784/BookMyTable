@@ -90,6 +90,9 @@ export async function sendBookingEmail({
   date,
   time,
   guests,
+  tableNumber,
+  tableZone,
+  tableCapacity,
   bookingId,
   paymentId,
   finalPayable,
@@ -99,13 +102,17 @@ export async function sendBookingEmail({
   const to = (toEmail || '').trim().toLowerCase();
   if (!to) return { ok: false, reason: 'Invalid recipient email' };
 
+  const tableStr = tableNumber ? ` [Table ${tableNumber}${tableZone ? ` - ${tableZone}` : ''}]` : '';
   const subject = `BookMyTable — Reservation & Payment Receipt Confirmed: ${restaurantName}`;
-  const text = `Reservation & Payment Confirmed at ${restaurantName} for ${date} at ${time} (${guests} guests). Total Paid: ₹${finalPayable || 0}. Payment Ref: ${paymentId || 'N/A'}`;
+  const text = `Reservation & Payment Confirmed at ${restaurantName}${tableStr} for ${date} at ${time} (${guests} guests). Total Paid: ₹${finalPayable || 0}. Payment Ref: ${paymentId || 'N/A'}`;
   const html = generateBookingEmailTemplate({
     restaurantName,
     date,
     time,
     guests,
+    tableNumber,
+    tableZone,
+    tableCapacity,
     bookingId,
     paymentId,
     finalPayable,

@@ -278,6 +278,10 @@ export default function MyBookings() {
                           <span className="text-luxury-gold/60"><IconGuests /></span>
                           {b.guests} {b.guests === 1 ? 'guest' : 'guests'}
                         </span>
+                        <span className="flex items-center gap-1.5 font-sans text-xs font-bold text-amber-300 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                          <span>🪑</span>
+                          {b.tableNumber ? `Table ${b.tableNumber}${b.tableZone ? ` (${b.tableZone})` : ''}` : 'Table T-01'}
+                        </span>
                       </div>
                     </div>
 
