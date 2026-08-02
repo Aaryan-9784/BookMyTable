@@ -33,18 +33,15 @@ export function validateBookingDate(dateStr) {
     throw new ValidationError('Invalid date');
   }
 
-  // Check if date is in the past
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  bookingDate.setHours(0, 0, 0, 0);
-  
-  if (bookingDate < today) {
+  // Check if date is in the past (use local date string comparison to avoid UTC timezone issues)
+  const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local timezone
+  if (dateStr < todayStr) {
     throw new ValidationError('Booking date cannot be in the past');
   }
 
   // Check if date is too far in the future (e.g., max 90 days)
   const maxDaysAhead = 90;
-  const maxDate = new Date(today);
+  const maxDate = new Date();
   maxDate.setDate(maxDate.getDate() + maxDaysAhead);
   
   if (bookingDate > maxDate) {
@@ -91,8 +88,8 @@ export function validateGuestCount(guests, restaurantCapacity = null) {
     throw new ValidationError('Number of guests must be at least 1');
   }
 
-  if (guestCount > 50) {
-    throw new ValidationError('Number of guests cannot exceed 50. Please contact the restaurant for large parties');
+  if (guestCount > 500) {
+    throw new ValidationError('Number of guests cannot exceed 500. Please contact the restaurant for very large parties');
   }
 
   if (restaurantCapacity && guestCount > restaurantCapacity) {
@@ -286,8 +283,8 @@ export async function validateBooking(bookingData, userId) {
   // 3. Validate date/time is not in the past
   validateDateTimeNotPast(date, time);
 
-  // 4. Validate minimum advance booking time (1 hour)
-  validateMinimumAdvanceTime(date, time, 1);
+  // 4. Validate minimum advance booking time (15 minutes minimum)
+  validateMinimumAdvanceTime(date, time, 0.25);
 
   // 5. Validate guest count
   validateGuestCount(guests);
@@ -308,7 +305,7 @@ export async function validateBooking(bookingData, userId) {
   await validateNoDuplicateBooking(userId, restaurantId, date, time);
 
   // 10. Check user booking limit
-  await validateUserBookingLimit(userId, 10);
+  await validateUserBookingLimit(userId, 50);
 
   // 11. Validate special requests (if any)
   const validatedRequests = validateSpecialRequests(specialRequests);

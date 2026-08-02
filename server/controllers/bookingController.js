@@ -132,6 +132,12 @@ export async function createBooking(req, res, next) {
       emailDelivery 
     });
   } catch (e) {
+    logger.error('createBooking failed', {
+      errorName: e.name,
+      errorMessage: e.message,
+      errorCode: e.code,
+      stack: e.stack?.split('\n').slice(0, 5).join(' | '),
+    });
     next(e);
   }
 }
