@@ -4,6 +4,50 @@ import { restaurantApi } from '../services/restaurantApi.js';
 import Loader from '../../components/Loader.jsx';
 import ConfirmModal from '../../admin/components/ConfirmModal.jsx';
 import { downloadCSV, fmt, today } from '../utils/exportCSV.js';
+import LuxurySelect from '../../components/LuxurySelect.jsx';
+import LuxuryNumberInput from '../../components/LuxuryNumberInput.jsx';
+
+/* ── OPTION CONFIGURATIONS ─────────────────────────────────── */
+const CAPACITY_OPTIONS = [
+  { value: 2, label: '2-Seater (Couple / Cozy Table)' },
+  { value: 4, label: '4-Seater (Family / Standard Table)' },
+  { value: 6, label: '6-Seater (Group Table)' },
+  { value: 8, label: '8-Seater (VIP Dining)' },
+  { value: 10, label: '10-Seater (Large Party)' },
+  { value: 12, label: '12-Seater (Executive Banquet)' },
+];
+
+const BULK_CAPACITY_OPTIONS = [
+  { value: 2, label: '2-Seater' },
+  { value: 4, label: '4-Seater' },
+  { value: 6, label: '6-Seater' },
+  { value: 8, label: '8-Seater (VIP)' },
+  { value: 10, label: '10-Seater' },
+];
+
+const ZONE_OPTIONS = [
+  { value: 'Main Hall', label: 'Main Hall' },
+  { value: 'Outdoor Terrace', label: 'Outdoor Terrace' },
+  { value: 'VIP Private Dining', label: 'VIP Private Dining' },
+  { value: 'Rooftop', label: 'Rooftop' },
+  { value: 'Bar Counter', label: 'Bar Counter' },
+];
+
+const STATUS_OPTIONS = [
+  { value: 'Available', label: 'Available' },
+  { value: 'Reserved', label: 'Reserved' },
+  { value: 'Maintenance', label: 'Maintenance' },
+];
+
+const FILTER_ZONE_OPTIONS = [
+  { value: 'All', label: 'All Zones' },
+  ...ZONE_OPTIONS,
+];
+
+const FILTER_STATUS_OPTIONS = [
+  { value: 'All', label: 'All Statuses' },
+  ...STATUS_OPTIONS,
+];
 
 /* ── ICONS ──────────────────────────────────────────────────── */
 function IconTable() {
@@ -254,16 +298,34 @@ function ZoneChip({ zone }) {
 }
 
 /* ── SELECT HELPER ──────────────────────────────────────────── */
-function StyledSelect({ value, onChange, children }) {
+function StyledSelect({ value, onChange, options, children }) {
+  if (options && options.length > 0) {
+    return <LuxurySelect value={value} onChange={onChange} options={options} />;
+  }
+
+  const parsedOptions = [];
+  if (children) {
+    const childrenArray = Array.isArray(children) ? children : [children];
+    childrenArray.forEach((child) => {
+      if (child && child.props) {
+        parsedOptions.push({
+          value: child.props.value !== undefined ? child.props.value : child.props.children,
+          label: child.props.children,
+        });
+      }
+    });
+  }
+
   return (
-    <select
+    <LuxurySelect
       value={value}
-      onChange={onChange}
-      className="w-full rounded-xl border px-4 py-2.5 font-sans text-sm text-white outline-none transition-colors duration-200 focus:border-luxury-gold/60"
-      style={{ background: '#101010', borderColor: 'rgba(255,255,255,0.1)' }}
-    >
-      {children}
-    </select>
+      onChange={(val) => {
+        if (typeof onChange === 'function') {
+          onChange({ target: { value: val } });
+        }
+      }}
+      options={parsedOptions}
+    />
   );
 }
 
@@ -273,6 +335,11 @@ export default function TablesManagement() {
   const [restaurant, setRestaurant] = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  /* Filters */
+  const [searchQuery,          setSearchQuery]          = useState('');
+  const [selectedZoneFilter,   setSelectedZoneFilter]   = useState('All');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState('All');
 
   /* Table modal */
   const [showTableModal, setShowTableModal] = useState(false);
@@ -425,7 +492,14 @@ export default function TablesManagement() {
     }
   };
 
-  /* ── Derived stats ── */
+  /* ── Derived stats & filtered tables ── */
+  const filteredTables = tables.filter((t) => {
+    const matchesZone = selectedZoneFilter === 'All' || t.zone === selectedZoneFilter;
+    const matchesStatus = selectedStatusFilter === 'All' || t.status === selectedStatusFilter;
+    const matchesSearch = !searchQuery || t.tableNumber.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesZone && matchesStatus && matchesSearch;
+  });
+
   const totalCapacity  = tables.reduce((s, t) => s + (t.capacity || 0), 0);
   const capacityCounts = tables.reduce((acc, t) => {
     const k = `${t.capacity}-Seater`;
@@ -563,7 +637,7 @@ export default function TablesManagement() {
         />
       </div>
 
-      {/* ── Table Grid ──────────────────────────────────────── */}
+      {/* ── Table Grid & Filters ─────────────────────────── */}
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-display text-xl font-semibold text-white">
@@ -578,7 +652,7 @@ export default function TablesManagement() {
             className="rounded-full px-3 py-1 font-sans text-[11px] font-semibold text-luxury-muted"
             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
           >
-            {tables.length} Table{tables.length !== 1 ? 's' : ''}
+            {filteredTables.length} / {tables.length} Table{tables.length !== 1 ? 's' : ''}
           </span>
 
           <button
@@ -604,6 +678,36 @@ export default function TablesManagement() {
           </button>
         </div>
       </div>
+
+      {/* Filter Controls Bar */}
+      {tables.length > 0 && (
+        <div className="mb-6 grid gap-3 sm:grid-cols-3">
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search table number (e.g. T-01)..."
+              className="w-full rounded-xl border bg-black/40 px-4 py-2 text-xs text-white outline-none transition-colors focus:border-luxury-gold/60 placeholder:text-white/30 min-h-[42px]"
+              style={{ borderColor: 'rgba(255,255,255,0.12)' }}
+            />
+          </div>
+          <LuxurySelect
+            size="md"
+            value={selectedZoneFilter}
+            onChange={(val) => setSelectedZoneFilter(val)}
+            options={FILTER_ZONE_OPTIONS}
+            placeholder="Filter by Zone"
+          />
+          <LuxurySelect
+            size="md"
+            value={selectedStatusFilter}
+            onChange={(val) => setSelectedStatusFilter(val)}
+            options={FILTER_STATUS_OPTIONS}
+            placeholder="Filter by Status"
+          />
+        </div>
+      )}
 
       {tables.length === 0 ? (
         /* Empty state */
@@ -632,9 +736,24 @@ export default function TablesManagement() {
             Create First Table
           </button>
         </div>
+      ) : filteredTables.length === 0 ? (
+        <div
+          className="flex flex-col items-center justify-center rounded-2xl py-12 gap-3 text-center"
+          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}
+        >
+          <p className="font-display text-white/60 font-light text-base">No matching tables found</p>
+          <p className="font-sans text-xs text-luxury-muted">Try resetting your search query or dropdown filters</p>
+          <button
+            type="button"
+            onClick={() => { setSearchQuery(''); setSelectedZoneFilter('All'); setSelectedStatusFilter('All'); }}
+            className="mt-1 font-sans text-xs text-luxury-gold underline hover:text-white"
+          >
+            Reset Filters
+          </button>
+        </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {tables.map((t) => (
+          {filteredTables.map((t) => (
             <div
               key={t._id}
               className="group relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:-translate-y-0.5"
@@ -740,43 +859,36 @@ export default function TablesManagement() {
               </Field>
 
               <Field label="Seating Capacity">
-                <StyledSelect value={capacity} onChange={(e) => setCapacity(e.target.value)}>
-                  <option value={2}>2-Seater (Couple / Cozy Table)</option>
-                  <option value={4}>4-Seater (Family / Standard Table)</option>
-                  <option value={6}>6-Seater (Group Table)</option>
-                  <option value={8}>8-Seater (VIP Dining)</option>
-                  <option value={10}>10-Seater (Large Party)</option>
-                  <option value={12}>12-Seater (Executive Banquet)</option>
-                </StyledSelect>
+                <LuxurySelect
+                  value={capacity}
+                  onChange={(val) => setCapacity(Number(val))}
+                  options={CAPACITY_OPTIONS}
+                />
               </Field>
 
               <Field label="Dining Zone">
-                <StyledSelect value={zone} onChange={(e) => setZone(e.target.value)}>
-                  <option>Main Hall</option>
-                  <option>Outdoor Terrace</option>
-                  <option>VIP Private Dining</option>
-                  <option>Rooftop</option>
-                  <option>Bar Counter</option>
-                </StyledSelect>
+                <LuxurySelect
+                  value={zone}
+                  onChange={(val) => setZone(val)}
+                  options={ZONE_OPTIONS}
+                />
               </Field>
 
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Table Status">
-                  <StyledSelect value={status} onChange={(e) => setStatus(e.target.value)}>
-                    <option>Available</option>
-                    <option>Reserved</option>
-                    <option>Maintenance</option>
-                  </StyledSelect>
+                  <LuxurySelect
+                    value={status}
+                    onChange={(val) => setStatus(val)}
+                    options={STATUS_OPTIONS}
+                  />
                 </Field>
 
                 <Field label="Token Fee (₹)">
-                  <input
-                    type="number"
-                    min="0"
+                  <LuxuryNumberInput
+                    min={0}
+                    step={25}
                     value={tokenFee}
-                    onChange={(e) => setTokenFee(e.target.value)}
-                    className={inputCls}
-                    style={inputStyle}
+                    onChange={(val) => setTokenFee(val)}
                   />
                 </Field>
               </div>
@@ -807,43 +919,40 @@ export default function TablesManagement() {
           <form onSubmit={handleBulkSubmit}>
             <div className="space-y-4 px-6 py-5">
               <Field label="Number of Tables to Create">
-                <input
-                  type="number" min="1" max="20"
+                <LuxuryNumberInput
+                  min={1}
+                  max={20}
                   value={bulkCount}
-                  onChange={(e) => setBulkCount(e.target.value)}
-                  className={inputCls} style={inputStyle} required
+                  onChange={(val) => setBulkCount(val)}
+                  required
                 />
               </Field>
 
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Seating Capacity">
-                  <StyledSelect value={bulkCapacity} onChange={(e) => setBulkCapacity(e.target.value)}>
-                    <option value={2}>2-Seater</option>
-                    <option value={4}>4-Seater</option>
-                    <option value={6}>6-Seater</option>
-                    <option value={8}>8-Seater (VIP)</option>
-                    <option value={10}>10-Seater</option>
-                  </StyledSelect>
+                  <LuxurySelect
+                    value={bulkCapacity}
+                    onChange={(val) => setBulkCapacity(Number(val))}
+                    options={BULK_CAPACITY_OPTIONS}
+                  />
                 </Field>
 
                 <Field label="Token Fee (₹)">
-                  <input
-                    type="number" min="0"
+                  <LuxuryNumberInput
+                    min={0}
+                    step={25}
                     value={bulkTokenFee}
-                    onChange={(e) => setBulkTokenFee(e.target.value)}
-                    className={inputCls} style={inputStyle}
+                    onChange={(val) => setBulkTokenFee(val)}
                   />
                 </Field>
               </div>
 
               <Field label="Dining Zone">
-                <StyledSelect value={bulkZone} onChange={(e) => setBulkZone(e.target.value)}>
-                  <option>Main Hall</option>
-                  <option>Outdoor Terrace</option>
-                  <option>VIP Private Dining</option>
-                  <option>Rooftop</option>
-                  <option>Bar Counter</option>
-                </StyledSelect>
+                <LuxurySelect
+                  value={bulkZone}
+                  onChange={(val) => setBulkZone(val)}
+                  options={ZONE_OPTIONS}
+                />
               </Field>
 
               <div
@@ -923,11 +1032,11 @@ export default function TablesManagement() {
                   </Field>
 
                   <Field label="Base Token Fee (₹)">
-                    <input
-                      type="number" min="0"
+                    <LuxuryNumberInput
+                      min={0}
+                      step={25}
                       value={restForm.tokenFee}
-                      onChange={(e) => setRestForm({ ...restForm, tokenFee: e.target.value })}
-                      className={inputCls} style={inputStyle}
+                      onChange={(val) => setRestForm({ ...restForm, tokenFee: val })}
                     />
                   </Field>
                 </div>

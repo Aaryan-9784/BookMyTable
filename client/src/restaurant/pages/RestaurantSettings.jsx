@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import toast from '../../utils/toast.js';
 import { restaurantApi } from '../services/restaurantApi.js';
+import LuxurySelect from '../../components/LuxurySelect.jsx';
 
 const EXPERIENCE_OPTIONS = [
   { id: 'Fine Dining', label: 'Fine Dining', icon: '🕯️' },
@@ -353,15 +354,11 @@ export default function RestaurantSettings() {
                 <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
                   Cuisine / Category *
                 </label>
-                <select
+                <LuxurySelect
                   value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-[#101010] px-4 py-3 font-sans text-sm text-white outline-none focus:border-luxury-gold/60"
-                >
-                  {['Multi-cuisine', 'Indian', 'North Indian', 'South Indian', 'Italian', 'Chinese', 'Japanese', 'Continental', 'Cafe', 'Fine dining', 'Mexican', 'Thai', 'Mediterranean', 'Bakery & Desserts'].map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setCategory(val)}
+                  options={['Multi-cuisine', 'Indian', 'North Indian', 'South Indian', 'Italian', 'Chinese', 'Japanese', 'Continental', 'Cafe', 'Fine dining', 'Mexican', 'Thai', 'Mediterranean', 'Bakery & Desserts']}
+                />
               </div>
             </div>
           </div>
@@ -436,16 +433,16 @@ export default function RestaurantSettings() {
               <span>⭐</span> Price Tier Level
             </h3>
             <div>
-              <select
+              <LuxurySelect
                 value={priceRange}
-                onChange={(e) => setPriceRange(Number(e.target.value))}
-                className="w-full rounded-xl border border-white/10 bg-[#101010] px-4 py-3 font-sans text-sm text-white outline-none focus:border-luxury-gold/60"
-              >
-                <option value={1}>Casual / Budget</option>
-                <option value={2}>Moderate Fine Dining</option>
-                <option value={3}>Premium Luxury</option>
-                <option value={4}>Ultra Luxury</option>
-              </select>
+                onChange={(val) => setPriceRange(Number(val))}
+                options={[
+                  { value: 1, label: 'Casual / Budget' },
+                  { value: 2, label: 'Moderate Fine Dining' },
+                  { value: 3, label: 'Premium Luxury' },
+                  { value: 4, label: 'Ultra Luxury' },
+                ]}
+              />
             </div>
           </div>
 

@@ -44,6 +44,16 @@ input[type="search"]::-webkit-search-results-decoration {
   display: none;
 }
 
+/* ─── Hide native browser number input white/grey spin buttons globally ───── */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 /* ─── Sidebar nav active ─────────────────────────────── */
 .admin-nav-active {
   background: linear-gradient(100deg, rgba(212,175,55,0.20) 0%, rgba(212,175,55,0.05) 100%);
