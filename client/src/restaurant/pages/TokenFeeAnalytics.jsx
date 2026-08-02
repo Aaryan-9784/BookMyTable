@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/toast.js';
 import { restaurantApi } from '../services/restaurantApi.js';
 import Loader from '../../components/Loader.jsx';
 import { downloadCSV, fmt, today } from '../utils/exportCSV.js';

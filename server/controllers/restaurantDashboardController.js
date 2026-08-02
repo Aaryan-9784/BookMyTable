@@ -95,6 +95,7 @@ export async function getDashboardStats(req, res) {
   const totalTokenFees = totalGuestsInBookings * tokenFeeRate;
 
   const wishlistCount = await Wishlist.countDocuments({ restaurantId: restaurant._id });
+  const allRestaurants = await Restaurant.find().select('_id name location category approvalStatus').lean();
 
   res.json({
     ok: true,

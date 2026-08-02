@@ -42,9 +42,9 @@ async function verifyToken(token) {
 }
 
 /**
- * Determine user role based on email and environment configuration
+ * Determine user role based on email, environment configuration, and existing database role
  */
-function determineUserRole(email) {
+function determineUserRole(email, existingRole = null) {
   const emailLower = email.toLowerCase().trim();
   
   // Admin role assignment
@@ -67,6 +67,11 @@ function determineUserRole(email) {
     return 'restaurant';
   }
   
+  // Preserve existing database role if set to restaurant or admin
+  if (existingRole && ['restaurant', 'admin'].includes(existingRole.toLowerCase())) {
+    return existingRole.toLowerCase();
+  }
+
   // Default customer role
   return 'customer';
 }
@@ -135,11 +140,11 @@ export async function verifyCognitoToken(req, res, next) {
     // Extract user information
     const { userId, email, name } = extractUserInfo(payload);
     
-    // Determine role based on environment configuration
-    const determinedRole = determineUserRole(email);
-    
     // Find or create user in database
     let user = await User.findOne({ email });
+    
+    // Determine role based on environment configuration or existing user role
+    const determinedRole = determineUserRole(email, user?.role);
     
     if (user) {
       // Update existing user

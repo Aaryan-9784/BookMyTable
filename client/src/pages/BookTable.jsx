@@ -3,7 +3,7 @@
  */
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import toast from '../utils/toast.js';
 import api from '../services/api.js';
 import BookingForm from '../components/BookingForm.jsx';
 import Loader from '../components/Loader.jsx';

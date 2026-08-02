@@ -6,7 +6,7 @@
  */
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import toast from '../utils/toast.js';
 import api from '../services/api.js';
 import Loader from '../components/Loader.jsx';
 import { getFallbackRestaurantImage } from '../utils/imageUtils.js';

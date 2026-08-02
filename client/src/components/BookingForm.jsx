@@ -365,10 +365,9 @@ export default function BookingForm({
     >
       <form onSubmit={handleRazorpayPayment} className="space-y-6 p-6 sm:p-8">
 
-        {/* ── STEP 1: RESERVATION DETAILS ── */}
+        {/* ── RESERVATION DETAILS ── */}
         <div className="space-y-5">
-          <div className="flex items-center gap-2 border-b border-white/10 pb-3">
-            <span className="text-luxury-gold font-extrabold text-sm">1.</span>
+          <div className="border-b border-white/10 pb-3">
             <h3 className="font-sans text-xs font-bold uppercase tracking-[0.2em] text-luxury-gold">
               Reservation Details
             </h3>

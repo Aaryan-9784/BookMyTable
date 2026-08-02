@@ -69,6 +69,15 @@ export async function toggleWishlist(req, res, next) {
       message: isWishlisted ? 'Saved to Wishlist' : 'Removed from Wishlist',
     });
   } catch (e) {
+    if (e.code === 11000) {
+      const totalSaves = await Wishlist.countDocuments({ restaurantId: req.params.restaurantId });
+      return res.json({
+        ok: true,
+        isWishlisted: true,
+        totalSaves,
+        message: 'Saved to Wishlist',
+      });
+    }
     next(e);
   }
 }
