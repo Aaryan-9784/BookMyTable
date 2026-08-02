@@ -130,23 +130,21 @@ export default function Profile() {
         <div
           className="overflow-hidden rounded-2xl transition-all duration-300"
           style={{
-            background: 'linear-gradient(165deg, rgba(30,30,35,0.7) 0%, rgba(14,14,16,0.95) 100%)',
-            backdropFilter: 'blur(32px)',
-            WebkitBackdropFilter: 'blur(32px)',
-            border: '1px solid rgba(212,175,55,0.22)',
-            boxShadow: '0 28px 84px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06)',
+            background: 'linear-gradient(180deg, #16161a 0%, #111114 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 24px 64px rgba(0, 0, 0, 0.7)',
           }}
         >
           <div className="flex">
             {/* Gold left accent bar */}
-            <div className="w-1.5 shrink-0" style={{ background: 'linear-gradient(180deg, #f5e27a 0%, #d4af37 50%, rgba(212,175,55,0.1) 100%)' }} />
+            <div className="w-1 shrink-0" style={{ background: 'linear-gradient(180deg, #f5e27a 0%, #d4af37 60%, rgba(212,175,55,0.2) 100%)' }} />
 
-            <div className="flex-1 p-6 sm:p-8 md:p-10">
+            <div className="flex-1 p-6 sm:p-8 md:p-9">
 
               {/* ── User identity row ── */}
               <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
 
-                {/* Avatar + Name + Email */}
+                {/* Avatar + Name + Email + Role */}
                 <div className="flex items-center gap-5">
                   <div
                     className="relative shrink-0 rounded-full"
@@ -155,16 +153,15 @@ export default function Profile() {
                       height: 64,
                       padding: '2px',
                       background: 'linear-gradient(135deg, #f5e27a 0%, #d4af37 50%, #997819 100%)',
-                      boxShadow: '0 0 28px rgba(212,175,55,0.35)',
+                      boxShadow: '0 0 24px rgba(212,175,55,0.3)',
                     }}
                   >
                     <div
-                      className="flex h-full w-full items-center justify-center rounded-full font-sans text-xl font-extrabold"
+                      className="flex h-full w-full items-center justify-center rounded-full font-serif text-xl font-bold"
                       style={{
-                        background: 'linear-gradient(145deg, #242424, #141414)',
+                        background: '#18181c',
                         color: '#f5e27a',
                         letterSpacing: '0.04em',
-                        textShadow: '0 0 10px rgba(212,175,55,0.4)',
                       }}
                     >
                       {(displayName || displayEmail)
@@ -177,20 +174,20 @@ export default function Profile() {
                     </div>
                     {/* Live Online status indicator */}
                     <span
-                      className="absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full border-2 border-[#121212] bg-emerald-400"
+                      className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-[#141417] bg-emerald-400"
                       title="Online"
                     />
                   </div>
 
                   {/* Name + email stack */}
                   <div className="space-y-1">
-                    <p className="font-display text-2xl font-light text-white leading-tight">
+                    <h2 className="font-serif text-2xl font-normal text-white leading-snug">
                       {displayName || '—'}
-                    </p>
+                    </h2>
                     <p className="break-all font-sans text-xs text-gray-400">{displayEmail}</p>
-                    <div className="pt-1.5">
+                    <div className="pt-1">
                       <span
-                        className="inline-flex items-center rounded-full px-3 py-1 font-sans text-[10px] font-bold uppercase tracking-wider"
+                        className="inline-flex items-center rounded-full px-3 py-0.5 font-sans text-[10px] font-bold uppercase tracking-wider"
                         style={{
                           background: 'rgba(212,175,55,0.12)',
                           border: '1px solid rgba(212,175,55,0.30)',
@@ -209,10 +206,10 @@ export default function Profile() {
                     <button
                       type="button"
                       onClick={() => navigate('/admin')}
-                      className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-sans text-xs font-bold uppercase tracking-wider text-[#0b0b0c] transition-all duration-300 hover:brightness-110 active:scale-95"
+                      className="inline-flex items-center gap-2 rounded-full px-6 py-2.5 font-sans text-xs font-bold uppercase tracking-wider text-black transition-all duration-300 hover:scale-[1.02] active:scale-95"
                       style={{
-                        background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)',
-                        boxShadow: '0 0 24px rgba(212,175,55,0.3)',
+                        background: 'linear-gradient(135deg, #e5c158 0%, #f0d060 50%, #d4af37 100%)',
+                        boxShadow: '0 0 24px rgba(212,175,55,0.4)',
                       }}
                     >
                       Admin Console →
@@ -221,10 +218,10 @@ export default function Profile() {
                     <button
                       type="button"
                       onClick={() => navigate('/restaurant-dashboard')}
-                      className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-sans text-xs font-bold uppercase tracking-wider text-[#0b0b0c] transition-all duration-300 hover:brightness-110 hover:scale-[1.02] active:scale-95"
+                      className="inline-flex items-center gap-2 rounded-full px-6 py-2.5 font-sans text-xs font-bold uppercase tracking-wider text-black transition-all duration-300 hover:scale-[1.02] active:scale-95"
                       style={{
-                        background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)',
-                        boxShadow: '0 0 24px rgba(212,175,55,0.3)',
+                        background: 'linear-gradient(135deg, #e5c158 0%, #f0d060 50%, #d4af37 100%)',
+                        boxShadow: '0 0 24px rgba(212,175,55,0.4)',
                       }}
                     >
                       Partner Console →
@@ -233,10 +230,10 @@ export default function Profile() {
                     <button
                       type="button"
                       onClick={() => navigate('/my-bookings')}
-                      className="group inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-sans text-xs font-bold uppercase tracking-wider text-[#0b0b0c] transition-all duration-300 hover:brightness-110 hover:scale-[1.02] active:scale-95"
+                      className="group inline-flex items-center gap-2 rounded-full px-6 py-2.5 font-sans text-xs font-bold uppercase tracking-wider text-black transition-all duration-300 hover:scale-[1.02] active:scale-95"
                       style={{
-                        background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)',
-                        boxShadow: '0 0 24px rgba(212,175,55,0.3)',
+                        background: 'linear-gradient(135deg, #e5c158 0%, #f0d060 50%, #d4af37 100%)',
+                        boxShadow: '0 0 24px rgba(212,175,55,0.4)',
                       }}
                     >
                       My Bookings <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
@@ -245,48 +242,51 @@ export default function Profile() {
                 </div>
               </div>
 
-              {/* Account Quick Info Cards */}
-              <div className="my-8 h-px" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.04) 100%)' }} />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {/* First Divider */}
+              <div className="my-6 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
+
+              {/* Account Quick Info Cards Grid */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {(isRestaurant ? [
-                  { label: 'Mobile Number', value: displayPhone, icon: '📱', highlight: 'amber' },
-                  { label: 'Partner Status', value: 'Active & Verified', icon: '🟢', highlight: 'emerald' },
+                  { label: 'MOBILE NUMBER', value: displayPhone, icon: '📱', highlight: 'amber' },
+                  { label: 'SYSTEM ACCESS', value: 'Partner Administrator', icon: '👑', highlight: 'emerald' },
                 ] : isAdmin ? [
-                  { label: 'Mobile Number', value: displayPhone, icon: '📱', highlight: 'amber' },
-                  { label: 'System Access', value: 'Root Administrator', icon: '👑', highlight: 'emerald' },
+                  { label: 'MOBILE NUMBER', value: displayPhone, icon: '📱', highlight: 'amber' },
+                  { label: 'SYSTEM ACCESS', value: 'Root Administrator', icon: '👑', highlight: 'emerald' },
                 ] : [
-                  { label: 'Total bookings', value: profile?.stats?.totalBookings ?? 0, icon: '📊', highlight: 'white' },
-                  { label: 'Saved Wishlist', value: wishlistCount ?? 0, icon: '❤️', highlight: 'amber', link: '/wishlist' },
-                  { label: 'Upcoming', value: profile?.stats?.upcomingConfirmed ?? 0, icon: '📅', highlight: 'amber' },
+                  { label: 'MOBILE NUMBER', value: displayPhone, icon: '📱', highlight: 'amber' },
+                  { label: 'TOTAL BOOKINGS', value: profile?.stats?.totalBookings ?? 0, icon: '📊', highlight: 'white' },
+                  { label: 'SAVED WISHLIST', value: wishlistCount ?? 0, icon: '❤️', highlight: 'amber', link: '/wishlist' },
                 ]).map(({ label, value, icon, highlight, link }) => {
                   const content = (
                     <div
                       key={label}
                       className="group rounded-xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5"
                       style={{
-                        background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(212,175,55,0.04) 100%)',
-                        border: '1px solid rgba(212,175,55,0.14)',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                        background: '#18181c',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
                       }}
                     >
                       <div className="flex items-center justify-between">
-                        <p className="font-sans text-[0.65rem] font-bold uppercase tracking-[0.22em] text-white/40 group-hover:text-luxury-gold/80 transition-colors">
+                        <p className="font-sans text-[0.68rem] font-bold uppercase tracking-[0.18em] text-gray-400">
                           {label}
                         </p>
-                        <span className="text-sm opacity-70 group-hover:scale-110 transition-transform">{icon}</span>
+                        <span className="text-sm opacity-80">{icon}</span>
                       </div>
-                      <p className={`mt-2 font-sans ${typeof value === 'number' ? 'font-display text-3xl font-light tabular-nums' : 'text-sm font-semibold'} ${highlight === 'emerald' ? 'text-emerald-400' : highlight === 'amber' ? 'text-amber-300' : 'text-white'}`}>
+                      <p className={`mt-3 font-sans ${typeof value === 'number' ? 'font-display text-2xl font-bold tabular-nums' : 'text-base font-bold'} ${highlight === 'emerald' ? 'text-emerald-400' : highlight === 'amber' ? 'text-amber-400' : 'text-white'}`}>
                         {value}
                       </p>
                     </div>
                   );
                   return link ? <Link key={label} to={link}>{content}</Link> : <div key={label}>{content}</div>;
                 })}
-
               </div>
 
-              {/* Divider & Actions Toolbar */}
-              <div className="my-8 h-px" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.18) 0%, transparent 100%)' }} />
+              {/* Second Divider */}
+              <div className="my-6 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
+
+              {/* Bottom Toolbar Actions */}
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
                 {/* Left Account Settings Actions */}
@@ -294,21 +294,21 @@ export default function Profile() {
                   <button
                     type="button"
                     onClick={() => setEditOpen(true)}
-                    className="flex items-center justify-center gap-2 rounded-full border px-5 py-2.5 font-sans text-xs font-semibold uppercase tracking-wider text-gray-300 transition-all duration-200 hover:text-amber-300 hover:border-amber-500/40 hover:bg-amber-500/10 active:scale-[0.97]"
-                    style={{ borderColor: 'rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.03)' }}
+                    className="flex items-center justify-center gap-2 rounded-full border px-5 py-2 font-sans text-xs font-bold uppercase tracking-wider text-gray-300 transition-all duration-200 hover:text-white hover:border-white/40 active:scale-95"
+                    style={{ borderColor: 'rgba(255,255,255,0.18)', background: '#18181c' }}
                   >
                     <IconPencil />
-                    Edit Profile
+                    EDIT PROFILE
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setChangePassOpen(true)}
-                    className="flex items-center justify-center gap-2 rounded-full border px-5 py-2.5 font-sans text-xs font-semibold uppercase tracking-wider text-amber-400/90 transition-all duration-200 hover:text-amber-300 hover:border-amber-400/60 hover:bg-amber-500/15 active:scale-[0.97]"
-                    style={{ borderColor: 'rgba(212,175,55,0.30)', background: 'rgba(212,175,55,0.06)' }}
+                    className="flex items-center justify-center gap-2 rounded-full border px-5 py-2 font-sans text-xs font-bold uppercase tracking-wider text-amber-400 transition-all duration-200 hover:text-amber-300 hover:border-amber-400/60 active:scale-95"
+                    style={{ borderColor: 'rgba(212,175,55,0.4)', background: '#1c1913' }}
                   >
                     <IconKey />
-                    Change Password
+                    CHANGE PASSWORD
                   </button>
                 </div>
 
@@ -316,11 +316,11 @@ export default function Profile() {
                 <button
                   type="button"
                   onClick={() => logout()}
-                  className="flex items-center justify-center gap-2 rounded-full border px-6 py-2.5 font-sans text-xs font-semibold uppercase tracking-wider text-red-400/90 hover:text-red-300 hover:bg-red-500/10 hover:border-red-500/40 transition-all duration-200 active:scale-[0.97]"
-                  style={{ borderColor: 'rgba(239,68,68,0.25)', background: 'rgba(239,68,68,0.04)' }}
+                  className="flex items-center justify-center gap-2 rounded-full border px-6 py-2 font-sans text-xs font-bold uppercase tracking-wider text-red-400 transition-all duration-200 hover:text-red-300 hover:border-red-500/50 active:scale-95"
+                  style={{ borderColor: 'rgba(239,68,68,0.3)', background: '#221517' }}
                 >
                   <IconLogout />
-                  Log out
+                  LOG OUT
                 </button>
               </div>
 

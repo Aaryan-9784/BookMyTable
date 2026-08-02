@@ -70,12 +70,8 @@ export function renderEmailLayout({
           <!-- ▬▬▬ HEADER ▬▬▬ -->
           <tr>
             <td style="padding:36px 40px 24px 40px;text-align:center;background:linear-gradient(180deg,#16161e 0%,${CARD_BG} 100%);">
-              <!-- Logo Mark -->
-              <div style="display:inline-block;width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,rgba(212,175,55,0.15) 0%,rgba(212,175,55,0.05) 100%);border:1px solid rgba(212,175,55,0.3);line-height:52px;text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:700;color:${BRAND_GOLD_LIGHT};margin-bottom:14px;">
-                B
-              </div>
               <!-- Brand Name -->
-              <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:28px;margin:12px 0 4px 0;color:#ffffff;letter-spacing:-0.3px;font-weight:400;">
+              <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:28px;margin:0 0 4px 0;color:#ffffff;letter-spacing:-0.3px;font-weight:400;">
                 Book<span style="color:${BRAND_GOLD};font-weight:700;">My</span>Table
               </h1>
               <!-- Category Badge -->
@@ -134,44 +130,23 @@ export function renderEmailLayout({
                 <tr><td style="height:1px;background:linear-gradient(90deg,transparent 0%,rgba(212,175,55,0.25) 50%,transparent 100%);"></td></tr>
               </table>
 
-              <div style="padding:28px 40px 24px 40px;background:linear-gradient(180deg,${CARD_BG} 0%,#0d0d14 100%);text-align:center;">
-
-                <!-- Brand Promise -->
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 16px auto;">
-                  <tr>
-                    <td style="padding:0 10px;text-align:center;">
-                      <span style="font-size:14px;">✨</span><br>
-                      <span style="font-size:10px;color:${BRAND_GOLD};font-weight:600;letter-spacing:0.5px;">Instant<br>Confirmation</span>
-                    </td>
-                    <td style="width:1px;background:rgba(212,175,55,0.15);"></td>
-                    <td style="padding:0 10px;text-align:center;">
-                      <span style="font-size:14px;">🍽️</span><br>
-                      <span style="font-size:10px;color:${BRAND_GOLD};font-weight:600;letter-spacing:0.5px;">Curated<br>Fine Dining</span>
-                    </td>
-                    <td style="width:1px;background:rgba(212,175,55,0.15);"></td>
-                    <td style="padding:0 10px;text-align:center;">
-                      <span style="font-size:14px;">💺</span><br>
-                      <span style="font-size:10px;color:${BRAND_GOLD};font-weight:600;letter-spacing:0.5px;">Guaranteed<br>Seating</span>
-                    </td>
-                  </tr>
-                </table>
+              <div style="padding:24px 40px 22px 40px;background:linear-gradient(180deg,${CARD_BG} 0%,#0d0d14 100%);text-align:center;">
 
                 <!-- Contact -->
-                <p style="font-size:12px;color:#666672;margin:0 0 4px 0;line-height:1.6;">
+                <p style="font-size:12px;color:#666672;margin:0 0 4px 0;line-height:1.5;">
                   Questions? Reach us at
                 </p>
-                <a href="mailto:${ADMIN_EMAIL}" style="color:${BRAND_GOLD};text-decoration:none;font-size:13px;font-weight:600;letter-spacing:0.3px;">${ADMIN_EMAIL}</a>
+                <a href="mailto:${ADMIN_EMAIL}" style="color:${BRAND_GOLD};text-decoration:none;font-size:13px;font-weight:600;">${ADMIN_EMAIL}</a>
 
-                <!-- Dashed Divider -->
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:18px 0;">
-                  <tr><td style="border-top:1px dashed rgba(255,255,255,0.08);"></td></tr>
+                <!-- Divider -->
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:14px 0;">
+                  <tr><td style="border-top:1px dashed rgba(255,255,255,0.06);"></td></tr>
                 </table>
 
                 <!-- Copyright -->
-                <p style="font-size:11px;color:#444452;margin:0;line-height:1.6;">
-                  © ${currentYear} BookMyTable — Fine dining reserved in seconds.<br>
-                  Sent from <span style="color:#666672;">${ADMIN_EMAIL}</span><br>
-                  This is an automated message. Please do not reply to this email.
+                <p style="font-size:11px;color:#444452;margin:0;line-height:1.55;">
+                  © ${currentYear} BookMyTable. All rights reserved.<br>
+                  This is an automated message. Please do not reply.
                 </p>
               </div>
             </td>

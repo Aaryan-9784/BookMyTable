@@ -522,28 +522,31 @@ export default function BookingForm({
           {/* Unlocked Group Discount Banner */}
           {unlockedGroupCoupon && (
             <div
-              className="rounded-2xl p-4 space-y-2 transition-all duration-300"
+              className="rounded-2xl p-4 sm:p-5 transition-all duration-300"
               style={{
-                background: 'linear-gradient(135deg, rgba(212,175,55,0.14) 0%, rgba(212,175,55,0.03) 100%)',
-                border: '1px solid rgba(212,175,55,0.4)',
-                boxShadow: '0 4px 20px rgba(212,175,55,0.12)',
+                background: 'linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(212,175,55,0.02) 100%)',
+                border: '1px solid rgba(212,175,55,0.35)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
               }}
             >
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <p className="font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-gold flex items-center gap-1.5">
-                    <span>🎉</span> Group Discount Unlocked ({guests} Guests)
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="space-y-1">
+                  <p className="font-sans text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                    <span>🎉</span> GROUP DISCOUNT UNLOCKED ({guests} GUESTS)
                   </p>
-                  <p className="font-sans text-xs text-white/80 mt-0.5">
-                    Promo Code: <strong className="text-luxury-gold font-mono tracking-widest">{unlockedGroupCoupon.code}</strong> ({unlockedGroupCoupon.desc})
+                  <p className="font-sans text-xs text-gray-300">
+                    Promo Code: <strong className="text-amber-400 font-bold tracking-wide">{unlockedGroupCoupon.code}</strong> ({unlockedGroupCoupon.desc})
                   </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => applyCouponCode(unlockedGroupCoupon.code)}
-                  className="rounded-xl px-4 py-2 font-sans text-xs font-bold text-black transition-all hover:brightness-110 active:scale-95"
-                  style={{ background: 'linear-gradient(135deg, #c9a84c, #f5e6a3)' }}
+                  className="rounded-full px-5 py-2 font-sans text-xs font-bold text-black transition-all hover:scale-[1.02] active:scale-95 shrink-0"
+                  style={{
+                    background: 'linear-gradient(135deg, #e6c86e 0%, #d4af37 100%)',
+                    boxShadow: '0 2px 10px rgba(212,175,55,0.25)',
+                  }}
                 >
                   {appliedCoupon?.code === unlockedGroupCoupon.code ? '✓ Applied' : 'Apply Discount'}
                 </button>
@@ -551,12 +554,19 @@ export default function BookingForm({
             </div>
           )}
 
+          {/* Applied Promo Code Green Alert Box */}
           {appliedCoupon && (
-            <div className="rounded-xl p-3 flex items-center justify-between" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
-              <span className="font-sans text-xs font-semibold text-green-400">
+            <div
+              className="rounded-2xl px-4 py-3.5 sm:px-5 flex items-center justify-between gap-3 transition-all duration-300"
+              style={{
+                background: 'rgba(16, 185, 129, 0.08)',
+                border: '1px solid rgba(16, 185, 129, 0.35)',
+              }}
+            >
+              <span className="font-sans text-xs sm:text-sm font-medium text-emerald-400">
                 ✓ Promo Code "{appliedCoupon.code}" Applied! ({appliedCoupon.desc})
               </span>
-              <span className="font-sans text-xs font-bold text-green-400">
+              <span className="font-sans text-xs sm:text-sm font-bold text-emerald-400 shrink-0">
                 -₹{discountAmount}
               </span>
             </div>
