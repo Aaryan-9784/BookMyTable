@@ -83,7 +83,7 @@ export async function getDashboardStats(req, res) {
 
   const bookings = await Booking.find({ restaurantId: restaurant._id })
     .populate('userId', 'name email phone')
-    .sort({ createdAt: -1 });
+    .sort({ date: -1, time: -1, createdAt: -1 });
 
   const activeBookings = bookings.filter((b) => b.status === 'confirmed').length;
 
@@ -92,7 +92,11 @@ export async function getDashboardStats(req, res) {
     .reduce((acc, b) => acc + (b.guests || 1), 0);
 
   const tokenFeeRate = restaurant.tokenFee || 150;
-  const totalTokenFees = totalGuestsInBookings * tokenFeeRate;
+  const confirmedBookings = bookings.filter((b) => b.status === 'confirmed');
+  const totalTokenFees = confirmedBookings.reduce((acc, b) => {
+    const fee = b.finalPayable > 0 ? b.finalPayable : (b.guests || 1) * tokenFeeRate;
+    return acc + fee;
+  }, 0);
 
   const wishlistCount = await Wishlist.countDocuments({ restaurantId: restaurant._id });
   const allRestaurants = await Restaurant.find().select('_id name location category approvalStatus').lean();

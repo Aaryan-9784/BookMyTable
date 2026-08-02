@@ -5,6 +5,28 @@ import { restaurantApi } from '../services/restaurantApi.js';
 import Loader from '../../components/Loader.jsx';
 import { downloadCSV, fmt, fmtDate, today } from '../utils/exportCSV.js';
 
+/* ── DATE & TIME FORMATTERS ──────────────────────────────────── */
+function formatBookingDate(rawDate) {
+  if (!rawDate) return '—';
+  const d = new Date(rawDate.length === 10 ? `${rawDate}T00:00:00` : rawDate);
+  if (isNaN(d.getTime())) return rawDate;
+  return d.toLocaleDateString('en-US', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+}
+
+function formatBookingTime(timeStr) {
+  if (!timeStr) return '—';
+  const [hStr, mStr] = timeStr.split(':');
+  let h = parseInt(hStr, 10);
+  if (isNaN(h)) return timeStr;
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h}:${mStr || '00'} ${ampm}`;
+}
+
 /* ── SVG ICONS ──────────────────────────────────────────────── */
 function IconTables() {
   return (
@@ -14,6 +36,7 @@ function IconTables() {
     </svg>
   );
 }
+
 function IconSeating() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -23,6 +46,7 @@ function IconSeating() {
     </svg>
   );
 }
+
 function IconActiveBookings() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -33,6 +57,7 @@ function IconActiveBookings() {
     </svg>
   );
 }
+
 function IconRevenue() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -41,6 +66,7 @@ function IconRevenue() {
     </svg>
   );
 }
+
 function IconRefresh() {
   return (
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
@@ -52,15 +78,33 @@ function IconRefresh() {
 }
 
 /* ── KPI STAT CARD ──────────────────────────────────────────── */
-function StatCard({ label, value, sub, Icon, accent = false }) {
+function StatCard({ line1, line2, label, value, sub, Icon, accent = false }) {
+  let l1 = line1;
+  let l2 = line2;
+  if (!l1 && label) {
+    const parts = label.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      if (parts.length === 3 && parts[0].toLowerCase() === 'token') {
+        l1 = `${parts[0]} ${parts[1]}`;
+        l2 = parts[2];
+      } else {
+        l1 = parts[0];
+        l2 = parts.slice(1).join(' ');
+      }
+    } else {
+      l1 = label;
+      l2 = '';
+    }
+  }
+
   return (
     <div
       className="relative overflow-hidden rounded-2xl p-6 transition-all duration-300 group"
       style={{
         background: accent
-          ? 'linear-gradient(150deg, #1e1b0f 0%, #181507 60%, #151300 100%)'
+          ? 'linear-gradient(150deg, #1f1b0d 0%, #161408 60%, #121003 100%)'
           : 'linear-gradient(150deg, #1c1c1c 0%, #161616 55%, #131313 100%)',
-        border: accent ? '1px solid rgba(212,175,55,0.28)' : '1px solid rgba(212,175,55,0.13)',
+        border: accent ? '1px solid rgba(212,175,55,0.32)' : '1px solid rgba(212,175,55,0.13)',
         boxShadow: accent
           ? '0 4px 40px rgba(0,0,0,0.55), 0 0 24px rgba(212,175,55,0.08)'
           : '0 4px 40px rgba(0,0,0,0.55)',
@@ -70,12 +114,15 @@ function StatCard({ label, value, sub, Icon, accent = false }) {
       {accent && (
         <div
           className="pointer-events-none absolute -top-6 -right-6 h-24 w-24 rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%)' }}
         />
       )}
 
       <div className="flex items-start justify-between mb-4">
-        <p className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted">{label}</p>
+        <div className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted font-semibold leading-[1.3] flex flex-col justify-center min-h-[2.4rem]">
+          <span>{l1}</span>
+          {l2 && <span>{l2}</span>}
+        </div>
         <div
           className="flex h-9 w-9 items-center justify-center rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-110"
           style={{
@@ -89,21 +136,21 @@ function StatCard({ label, value, sub, Icon, accent = false }) {
 
       <p
         className="font-display leading-none text-white font-bold"
-        style={{ fontSize: '2.6rem' }}
+        style={{ fontSize: '2.4rem' }}
       >
         {value}
       </p>
 
       {sub && (
-        <p className="mt-2 font-sans text-xs text-luxury-muted">{sub}</p>
+        <p className="mt-2.5 font-sans text-xs text-luxury-muted truncate">{sub}</p>
       )}
 
       {/* Bottom accent bar */}
       <div
         className="absolute bottom-0 left-0 right-0 h-[2px] transition-opacity duration-300 group-hover:opacity-100"
         style={{
-          background: 'linear-gradient(90deg, rgba(212,175,55,0.55) 0%, transparent 100%)',
-          opacity: accent ? 0.8 : 0.5,
+          background: 'linear-gradient(90deg, rgba(212,175,55,0.6) 0%, transparent 100%)',
+          opacity: accent ? 0.85 : 0.45,
         }}
       />
     </div>
@@ -127,11 +174,11 @@ function OccupancyCard({ available, reserved, total }) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted">Table Occupancy</p>
-          <p className="mt-1 font-display text-white font-semibold text-lg">{total} Total Tables</p>
+          <p className="mt-1 font-display text-white font-semibold text-lg">{total} Total Tables Configured</p>
         </div>
         <div className="text-right">
           <p className="font-display text-3xl font-bold text-white">{pctAvail}%</p>
-          <p className="font-sans text-[10px] text-emerald-400 uppercase tracking-wider">Available</p>
+          <p className="font-sans text-[10px] text-emerald-400 uppercase tracking-wider font-semibold">Available Now</p>
         </div>
       </div>
 
@@ -158,14 +205,14 @@ function OccupancyCard({ available, reserved, total }) {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-5 mt-4">
+      <div className="flex items-center gap-6 mt-4">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          <span className="font-sans text-xs text-luxury-muted">{available} Available</span>
+          <span className="font-sans text-xs text-luxury-muted font-medium">{available} Available</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full" style={{ background: 'rgba(212,175,55,0.7)' }} />
-          <span className="font-sans text-xs text-luxury-muted">{reserved} Reserved</span>
+          <span className="font-sans text-xs text-luxury-muted font-medium">{reserved} Reserved</span>
         </div>
       </div>
     </div>
@@ -185,7 +232,7 @@ function StatusBadge({ status }) {
 
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold"
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold select-none"
       style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
     >
       {cfg.dot && <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: cfg.color }} />}
@@ -225,7 +272,7 @@ function StatusSelector({ bookingId, currentStatus, onUpdated }) {
         type="button"
         disabled={loading}
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 rounded-xl px-2 py-1 font-sans text-[10px] text-luxury-muted hover:text-luxury-gold transition-all duration-200"
+        className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 font-sans text-[11px] text-luxury-muted hover:text-luxury-gold transition-all duration-200"
         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
         title="Change status"
       >
@@ -297,6 +344,7 @@ export default function RestaurantDashboard() {
   const exportAnalytics = useCallback(() => {
     const stats = data?.stats      || {};
     const rest  = data?.restaurant || {};
+    const tokenFee = rest.tokenFee || 200;
 
     downloadCSV(
       `${(rest.name || 'restaurant').replace(/\s+/g, '_')}_dashboard_analytics_${today()}.csv`,
@@ -312,8 +360,9 @@ export default function RestaurantDashboard() {
             ['Token Fees Earned', fmt(stats.totalTokenFees)],
             ['Available Tables',  stats.availableTablesCount ?? 0],
             ['Reserved Tables',   stats.reservedTablesCount  ?? 0],
-            ['Base Token Fee',    fmt(rest.tokenFee || 150)],
-            ['Approval Status',   rest.approvalStatus || '—'],
+            ['Wishlist Bookmarks', stats.wishlistCount       ?? 0],
+            ['Base Token Fee',    fmt(tokenFee)],
+            ['Approval Status',   rest.approvalStatus || 'Approved'],
           ],
         },
         {
@@ -322,9 +371,10 @@ export default function RestaurantDashboard() {
           rows: bookings.map((b) => [
             b.userId?.name  || 'Guest',
             b.userId?.email || b.userId?.phone || '—',
-            fmtDate(b.date), b.time,
+            fmtDate(b.date),
+            formatBookingTime(b.time),
             b.guests || 1,
-            fmt((b.guests || 1) * (b.tokenFee || 150)),
+            fmt(b.finalPayable > 0 ? b.finalPayable : (b.guests || 1) * tokenFee),
             b.status,
           ]),
         },
@@ -345,16 +395,23 @@ export default function RestaurantDashboard() {
     );
   }, []);
 
+  if (loading && !data) {
+    return (
+      <div className="flex h-[70vh] items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
+
   const stats        = data?.stats      || {};
   const restaurant   = data?.restaurant || {};
-  const approvalStatus = restaurant.approvalStatus || 'approved';
 
   const availableCount = stats.availableTablesCount ?? 0;
   const reservedCount  = stats.reservedTablesCount  ?? 0;
   const totalTables    = stats.totalTables          ?? 0;
 
   return (
-    <div className="max-w-[1100px] mx-auto">
+    <div className="max-w-[1100px] mx-auto pb-12">
 
       {/* ── Page Header Row ─────────────────────────────────── */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between anim-fade-up">
@@ -405,35 +462,40 @@ export default function RestaurantDashboard() {
       {/* ── 5-KPI Stat Cards ────────────────────────────────── */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-6">
         <StatCard
-          label="Total Tables"
+          line1="Total"
+          line2="Tables"
           value={totalTables}
           sub={`${availableCount} available · ${reservedCount} reserved`}
           Icon={IconTables}
         />
         <StatCard
-          label="Seating Capacity"
+          line1="Seating"
+          line2="Capacity"
           value={stats.totalCapacity ?? 0}
           sub="Total seats configured"
           Icon={IconSeating}
         />
         <StatCard
-          label="Active Bookings"
+          line1="Active"
+          line2="Bookings"
           value={stats.activeBookings ?? 0}
           sub={`${stats.totalBookings ?? 0} total reservations`}
           Icon={IconActiveBookings}
         />
         <StatCard
-          label="Wishlist Bookmarks"
+          line1="Wishlist"
+          line2="Bookmarks"
           value={stats.wishlistCount ?? 0}
           sub="Saved by dining guests"
           Icon={() => (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="1.8">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.8">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
             </svg>
           )}
         />
         <StatCard
-          label="Token Fees Earned"
+          line1="Token Fees"
+          line2="Earned"
           value={`₹${(stats.totalTokenFees ?? 0).toLocaleString()}`}
           sub="From confirmed bookings"
           Icon={IconRevenue}
@@ -472,16 +534,17 @@ export default function RestaurantDashboard() {
         {/* Column headers */}
         {bookings.length > 0 && (
           <div
-            className="grid px-6 py-2.5 font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted"
+            className="grid px-6 py-3 font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted"
             style={{
-              gridTemplateColumns: '1fr 1fr 1fr auto',
-              borderBottom: '1px solid rgba(255,255,255,0.04)',
+              gridTemplateColumns: '1.4fr 1.2fr 1.1fr 1fr 90px',
+              borderBottom: '1px solid rgba(255,255,255,0.06)',
             }}
           >
             <span>Customer</span>
             <span>Date & Time</span>
+            <span>Party & Fee</span>
             <span>Status</span>
-            <span />
+            <span className="text-right">Action</span>
           </div>
         )}
 
@@ -505,7 +568,7 @@ export default function RestaurantDashboard() {
               <div
                 key={b._id || i}
                 className="grid items-center gap-4 px-6 py-4 transition-colors duration-150 hover:bg-white/[0.025]"
-                style={{ gridTemplateColumns: '1fr 1fr 1fr auto' }}
+                style={{ gridTemplateColumns: '1.4fr 1.2fr 1.1fr 1fr 90px' }}
               >
                 {/* Customer */}
                 <div className="min-w-0">
@@ -517,11 +580,23 @@ export default function RestaurantDashboard() {
                   </p>
                 </div>
 
-                {/* Date & Guests */}
+                {/* Date & Time */}
                 <div>
-                  <p className="font-sans text-sm text-white/80">{b.date} at {b.time}</p>
+                  <p className="font-sans text-sm text-white/90 font-medium">
+                    {formatBookingDate(b.date)}
+                  </p>
                   <p className="font-sans text-[11px] text-luxury-muted mt-0.5">
+                    at {formatBookingTime(b.time)}
+                  </p>
+                </div>
+
+                {/* Party & Fee */}
+                <div>
+                  <p className="font-sans text-sm text-white/90 font-medium">
                     {b.guests || 1} {(b.guests || 1) === 1 ? 'Guest' : 'Guests'}
+                  </p>
+                  <p className="font-sans text-[11px] text-luxury-gold mt-0.5 font-semibold">
+                    ₹{((b.finalPayable > 0 ? b.finalPayable : (b.guests || 1) * (restaurant.tokenFee || 200))).toLocaleString()}
                   </p>
                 </div>
 
@@ -531,13 +606,15 @@ export default function RestaurantDashboard() {
                 </div>
 
                 {/* Actions */}
-                <div className="shrink-0">
-                  {b.status !== 'cancelled' && b.status !== 'completed' && (
+                <div className="flex justify-end">
+                  {b.status !== 'cancelled' && b.status !== 'completed' ? (
                     <StatusSelector
                       bookingId={b._id}
                       currentStatus={b.status}
                       onUpdated={handleBookingStatusUpdate}
                     />
+                  ) : (
+                    <span className="font-sans text-[10px] text-luxury-muted uppercase tracking-wider">—</span>
                   )}
                 </div>
               </div>

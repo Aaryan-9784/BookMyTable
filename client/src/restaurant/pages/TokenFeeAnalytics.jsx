@@ -49,7 +49,25 @@ function IconRefresh() {
 }
 
 /* ── STAT CARD (matches Dashboard/TablesManagement) ─────────── */
-function StatCard({ label, value, sub, Icon, accent = false }) {
+function StatCard({ line1, line2, label, value, sub, Icon, accent = false }) {
+  let l1 = line1;
+  let l2 = line2;
+  if (!l1 && label) {
+    const parts = label.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      if (parts.length === 3 && parts[0].toLowerCase() === 'token') {
+        l1 = `${parts[0]} ${parts[1]}`;
+        l2 = parts[2];
+      } else {
+        l1 = parts[0];
+        l2 = parts.slice(1).join(' ');
+      }
+    } else {
+      l1 = label;
+      l2 = '';
+    }
+  }
+
   return (
     <div
       className="relative overflow-hidden rounded-2xl p-6 transition-all duration-300 group"
@@ -70,7 +88,10 @@ function StatCard({ label, value, sub, Icon, accent = false }) {
         />
       )}
       <div className="flex items-start justify-between mb-4">
-        <p className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted">{label}</p>
+        <div className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted font-semibold leading-[1.3] flex flex-col justify-center min-h-[2.4rem]">
+          <span>{l1}</span>
+          {l2 && <span>{l2}</span>}
+        </div>
         <div
           className="flex h-9 w-9 items-center justify-center rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-110"
           style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.20)' }}
