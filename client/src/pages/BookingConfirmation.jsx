@@ -179,7 +179,7 @@ export default function BookingConfirmation() {
       <div className="receipt-page relative z-10 mx-auto max-w-3xl px-4 py-8 md:py-12">
 
         {/* Action Bar (Screen Only) */}
-        <div className="mb-6 flex items-center justify-between print-hidden">
+        <div className="mb-6 flex items-center print-hidden">
           <Link
             to="/my-bookings"
             className="inline-flex items-center gap-2 font-sans text-xs font-bold uppercase tracking-wider text-white/60 transition-colors hover:text-luxury-gold"
@@ -189,17 +189,6 @@ export default function BookingConfirmation() {
             </svg>
             My Bookings
           </Link>
-
-          <button
-            type="button"
-            onClick={handlePrintReceipt}
-            className="inline-flex items-center gap-2.5 rounded-xl border border-luxury-gold px-5 py-2.5 font-sans text-xs font-bold text-luxury-gold transition-all hover:bg-luxury-gold hover:text-black active:scale-95 shadow-lg shadow-luxury-gold/10"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
-            Download Official Tax Invoice (PDF)
-          </button>
         </div>
 
         {/* Success Banner (Screen Only) */}
