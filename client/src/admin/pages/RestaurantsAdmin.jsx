@@ -199,7 +199,7 @@ export default function RestaurantsAdmin() {
             r.name,
             r.location || '—',
             r.category || 'Multi',
-            r.tokenFee || 100,
+            r.tokenFee != null ? r.tokenFee : 150,
             r.totalSeatingCapacity || 40,
             'Live & Active',
             r.ownerId?.name || r.ownerId?.email || 'Admin Managed',
@@ -214,7 +214,7 @@ export default function RestaurantsAdmin() {
   // Derived stats
   const totalCapacity = list.reduce((s, r) => s + (r.totalSeatingCapacity || 0), 0);
   const avgTokenFee   = list.length
-    ? Math.round(list.reduce((s, r) => s + Math.min(r.tokenFee || 100, 100), 0) / list.length)
+    ? Math.round(list.reduce((s, r) => s + (Number(r.tokenFee) || 0), 0) / list.length)
     : 0;
 
   return (

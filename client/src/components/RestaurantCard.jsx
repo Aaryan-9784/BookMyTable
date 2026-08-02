@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getFallbackRestaurantImage } from '../utils/imageUtils.js';
+import { useWishlist } from '../context/WishlistContext.jsx';
 
 function priceLabel(n) {
   if (n == null || Number.isNaN(Number(n))) return null;
@@ -13,9 +14,17 @@ function priceLabel(n) {
 
 export default function RestaurantCard({ restaurant }) {
   const { _id, name, location, description, imageUrl, rating, priceRange, category } = restaurant;
+  const { isWishlisted, toggleWishlist } = useWishlist();
+  const wishlisted = isWishlisted(_id);
   const [imgFailed, setImgFailed] = useState(false);
   const [fallbackFailed, setFallbackFailed] = useState(false);
   const [hovered, setHovered] = useState(false);
+
+  const handleWishlistClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(restaurant);
+  };
 
   const fallbackUrl = getFallbackRestaurantImage(restaurant);
   const currentImageUrl = (!imageUrl || imgFailed) ? fallbackUrl : imageUrl;
@@ -78,6 +87,36 @@ export default function RestaurantCard({ restaurant }) {
               background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 35%, rgba(0,0,0,0.75) 65%, rgba(0,0,0,0.97) 100%)',
             }}
           />
+
+          {/* ── Wishlist Heart Button — top left ── */}
+          <button
+            type="button"
+            onClick={handleWishlistClick}
+            className="absolute left-4 top-4 z-[5] flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 active:scale-90"
+            style={{
+              background: wishlisted ? 'rgba(239, 68, 68, 0.25)' : 'rgba(8,8,8,0.7)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: wishlisted ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255,255,255,0.18)',
+              boxShadow: wishlisted ? '0 0 16px rgba(239, 68, 68, 0.4)' : 'none',
+            }}
+            title={wishlisted ? 'Remove from Wishlist' : 'Save to Wishlist'}
+            aria-label={wishlisted ? 'Remove from Wishlist' : 'Save to Wishlist'}
+          >
+            <svg
+              className={`h-4 w-4 transition-all duration-300 ${
+                wishlisted ? 'scale-110 fill-red-500 stroke-red-500' : 'fill-none stroke-white/80 hover:stroke-white'
+              }`}
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+              />
+            </svg>
+          </button>
 
           {/* ── Rating badge — top right ── */}
           {rating != null && (

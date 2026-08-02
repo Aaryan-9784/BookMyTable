@@ -6,6 +6,7 @@ import { validationResult, body, param, query } from 'express-validator';
 import Restaurant from '../models/Restaurant.js';
 import Booking from '../models/Booking.js';
 import User from '../models/User.js';
+import Wishlist from '../models/Wishlist.js';
 import { pushToUser } from '../utils/sseManager.js';
 
 export const restaurantWriteValidators = [
@@ -54,10 +55,13 @@ export async function getDashboardStats(_req, res, next) {
       return sum + (b.guests || 1) * fee;
     }, 0);
 
+    const totalWishlistSaves = await Wishlist.countDocuments();
+
     res.json({
       totalUsers: users,
       totalBookings: bookings,
       totalRestaurants,
+      totalWishlistSaves,
       pendingCount: 0,
       approvedCount: totalRestaurants,
       rejectedCount: 0,

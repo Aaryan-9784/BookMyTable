@@ -9,6 +9,7 @@ import Loader from '../components/Loader.jsx';
 import EditProfileModal from '../components/EditProfileModal.jsx';
 import ChangePasswordModal from '../components/ChangePasswordModal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useWishlist } from '../context/WishlistContext.jsx';
 import { formatISODate } from '../utils/formatDate.js';
 
 /* ── tiny icon helpers ── */
@@ -51,6 +52,7 @@ function IconPencil() {
 
 export default function Profile() {
   const { email, role, isRestaurant, profile, profileLoading, logout, refreshProfile, displayName } = useAuth();
+  const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
   const [bookings, setBookings]               = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
@@ -234,7 +236,7 @@ export default function Profile() {
 
               {/* Account Quick Info Cards */}
               <div className="my-8 h-px" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.04) 100%)' }} />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {(isRestaurant ? [
                   { label: 'Mobile Number',   value: displayPhone, icon: '📱', highlight: 'amber' },
                   { label: 'Partner Status',  value: 'Active & Verified', icon: '🟢', highlight: 'emerald' },
@@ -243,27 +245,32 @@ export default function Profile() {
                   { label: 'System Access',   value: 'Root Administrator', icon: '👑', highlight: 'emerald' },
                 ] : [
                   { label: 'Total bookings', value: profile?.stats?.totalBookings ?? 0, icon: '📊', highlight: 'white' },
+                  { label: 'Saved Wishlist',  value: wishlistCount ?? 0, icon: '❤️', highlight: 'amber', link: '/wishlist' },
                   { label: 'Upcoming',        value: profile?.stats?.upcomingConfirmed ?? 0, icon: '📅', highlight: 'amber' },
-                ]).map(({ label, value, icon, highlight }) => (
-                  <div
-                    key={label}
-                    className="group rounded-xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5"
-                    style={{
-                      background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(212,175,55,0.04) 100%)',
-                      border: '1px solid rgba(212,175,55,0.14)',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="font-sans text-[0.65rem] font-bold uppercase tracking-[0.22em] text-white/40 group-hover:text-luxury-gold/80 transition-colors">
-                        {label}
+                ]).map(({ label, value, icon, highlight, link }) => {
+                  const content = (
+                    <div
+                      key={label}
+                      className="group rounded-xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5"
+                      style={{
+                        background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(212,175,55,0.04) 100%)',
+                        border: '1px solid rgba(212,175,55,0.14)',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="font-sans text-[0.65rem] font-bold uppercase tracking-[0.22em] text-white/40 group-hover:text-luxury-gold/80 transition-colors">
+                          {label}
+                        </p>
+                        <span className="text-sm opacity-70 group-hover:scale-110 transition-transform">{icon}</span>
+                      </div>
+                      <p className={`mt-2 font-sans ${typeof value === 'number' ? 'font-display text-3xl font-light tabular-nums' : 'text-sm font-semibold'} ${highlight === 'emerald' ? 'text-emerald-400' : highlight === 'amber' ? 'text-amber-300' : 'text-white'}`}>
+                        {value}
                       </p>
-                      <span className="text-sm opacity-70 group-hover:scale-110 transition-transform">{icon}</span>
                     </div>
-                    <p className={`mt-2 font-sans ${typeof value === 'number' ? 'font-display text-3xl font-light tabular-nums' : 'text-sm font-semibold'} ${highlight === 'emerald' ? 'text-emerald-400' : highlight === 'amber' ? 'text-amber-300' : 'text-white'}`}>
-                      {value}
-                    </p>
-                  </div>
+                  );
+                  return link ? <Link key={label} to={link}>{content}</Link> : <div key={label}>{content}</div>;
+                })}
                 ))}
               </div>
 

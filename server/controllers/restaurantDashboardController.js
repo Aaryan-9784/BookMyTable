@@ -5,6 +5,7 @@
 import Restaurant from '../models/Restaurant.js';
 import Table from '../models/Table.js';
 import Booking from '../models/Booking.js';
+import Wishlist from '../models/Wishlist.js';
 import User from '../models/User.js';
 import { pushToUser } from '../utils/sseManager.js';
 
@@ -93,7 +94,7 @@ export async function getDashboardStats(req, res) {
   const tokenFeeRate = restaurant.tokenFee || 150;
   const totalTokenFees = totalGuestsInBookings * tokenFeeRate;
 
-  const allRestaurants = await Restaurant.find({}, 'name location category rating');
+  const wishlistCount = await Wishlist.countDocuments({ restaurantId: restaurant._id });
 
   res.json({
     ok: true,
@@ -117,6 +118,7 @@ export async function getDashboardStats(req, res) {
       totalTokenFees,
       availableTablesCount: tables.filter((t) => t.status === 'Available').length,
       reservedTablesCount: tables.filter((t) => t.status === 'Reserved').length,
+      wishlistCount,
     },
     recentBookings: bookings.slice(0, 8),
   });

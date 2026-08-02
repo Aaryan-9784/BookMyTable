@@ -14,6 +14,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import restaurantDashboardRoutes from './routes/restaurantDashboardRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import wishlistRoutes from './routes/wishlistRoutes.js';
 import devAuthRoutes from './routes/devAuthRoutes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
@@ -106,6 +107,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/restaurant-dashboard', restaurantDashboardRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/wishlist', wishlistRoutes);
 
 // Development-only authentication routes (disabled in production)
 if (process.env.NODE_ENV !== 'production') {

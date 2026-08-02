@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import api from '../services/api.js';
 import Loader from '../components/Loader.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useWishlist } from '../context/WishlistContext.jsx';
 import { getFallbackRestaurantImage } from '../utils/imageUtils.js';
 
 function priceLabel(n) {
@@ -34,6 +35,8 @@ const EXPERIENCE_ICONS = {
 export default function RestaurantDetails() {
   const { id } = useParams();
   const { isAuthenticated } = useAuth();
+  const { isWishlisted, toggleWishlist } = useWishlist();
+  const wishlisted = isWishlisted(id);
   const [r, setR] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -264,36 +267,63 @@ export default function RestaurantDetails() {
                 </div>
               </div>
 
-              {isAuthenticated ? (
-                <Link
-                  to={`/restaurants/${id}/book`}
-                  className="flex w-full items-center justify-center gap-3 rounded-xl py-4 font-sans text-base font-bold text-[#0a0a0a] transition-all duration-300 hover:brightness-110 active:scale-[0.98]"
+              <div className="flex items-center gap-3">
+                {isAuthenticated ? (
+                  <Link
+                    to={`/restaurants/${id}/book`}
+                    className="flex flex-1 items-center justify-center gap-3 rounded-xl py-4 font-sans text-base font-bold text-[#0a0a0a] transition-all duration-300 hover:brightness-110 active:scale-[0.98]"
+                    style={{
+                      background: 'linear-gradient(135deg, #c9a84c 0%, #f5e6a3 50%, #c9a84c 100%)',
+                      boxShadow: '0 0 30px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.5)',
+                    }}
+                  >
+                    Reserve a Table Now
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                  </Link>
+                ) : (
+                  <Link
+                    to="/login"
+                    state={{ from: { pathname: `/restaurants/${id}/book` } }}
+                    className="flex flex-1 items-center justify-center gap-3 rounded-xl py-4 font-sans text-base font-bold text-luxury-gold transition-all duration-300 hover:bg-luxury-gold/10 active:scale-[0.98]"
+                    style={{
+                      border: '1px solid rgba(212,175,55,0.4)',
+                      boxShadow: '0 0 20px rgba(212,175,55,0.1)',
+                    }}
+                  >
+                    Log in to Reserve
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                  </Link>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => toggleWishlist(r)}
+                  className="flex h-[56px] shrink-0 items-center justify-center gap-2 rounded-xl px-4 font-sans text-sm font-bold transition-all duration-300 active:scale-95"
                   style={{
-                    background: 'linear-gradient(135deg, #c9a84c 0%, #f5e6a3 50%, #c9a84c 100%)',
-                    boxShadow: '0 0 30px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.5)',
+                    background: wishlisted ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                    border: wishlisted ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255, 255, 255, 0.15)',
+                    color: wishlisted ? '#f87171' : '#ffffff',
                   }}
+                  title={wishlisted ? 'Remove from Wishlist' : 'Save to Wishlist'}
                 >
-                  Reserve a Table Now
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  <svg
+                    className={`h-5 w-5 transition-transform duration-300 ${wishlisted ? 'scale-110 fill-red-500 stroke-red-500' : 'fill-none stroke-current'}`}
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                    />
                   </svg>
-                </Link>
-              ) : (
-                <Link
-                  to="/login"
-                  state={{ from: { pathname: `/restaurants/${id}/book` } }}
-                  className="flex w-full items-center justify-center gap-3 rounded-xl py-4 font-sans text-base font-bold text-luxury-gold transition-all duration-300 hover:bg-luxury-gold/10 active:scale-[0.98]"
-                  style={{
-                    border: '1px solid rgba(212,175,55,0.4)',
-                    boxShadow: '0 0 20px rgba(212,175,55,0.1)',
-                  }}
-                >
-                  Log in to Reserve
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                  </svg>
-                </Link>
-              )}
+                  <span className="hidden sm:inline">{wishlisted ? 'Saved' : 'Wishlist'}</span>
+                </button>
+              </div>
             </div>
 
           </div>

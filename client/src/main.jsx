@@ -5,18 +5,20 @@ import { Toaster } from 'react-hot-toast';
 import App from './App.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { NotificationProvider } from './context/NotificationContext.jsx';
+import { WishlistProvider } from './context/WishlistContext.jsx';
 import './index.css';
 
 /**
- * Root: Router + Auth + Notifications + global toast host.
+ * Root: Router + Auth + Notifications + Wishlist + global toast host.
  */
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <NotificationProvider>
-          <App />
-          <Toaster
+          <WishlistProvider>
+            <App />
+            <Toaster
             position="top-right"
             gutter={8}
             reverseOrder={false}
@@ -59,6 +61,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               },
             }}
           />
+          </WishlistProvider>
         </NotificationProvider>
       </AuthProvider>
     </BrowserRouter>
