@@ -68,6 +68,7 @@ export default function BookingConfirmation() {
   }
 
   const restaurant = booking.restaurantId || {};
+  const heroImage = restaurant.imageUrl || getFallbackRestaurantImage(restaurant);
   const tokenFeePerGuest = restaurant.tokenFee || 200;
   const numGuests = booking.guests || 1;
   const grossDeposit = numGuests * tokenFeePerGuest;
@@ -223,14 +224,21 @@ export default function BookingConfirmation() {
         >
           {/* Summary Header */}
           <div className="px-6 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(212,175,55,0.05)' }}>
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <h2 className="font-serif text-lg font-bold text-white">
-                  {restaurant.name || 'Restaurant'}
-                </h2>
-                <p className="font-sans text-xs text-white/50 mt-0.5">
-                  📍 {restaurant.location || 'Ahmedabad'}
-                </p>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-4">
+                <img
+                  src={heroImage}
+                  alt={restaurant.name || 'Restaurant'}
+                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl object-cover border border-luxury-gold/30 shadow-md shrink-0"
+                />
+                <div>
+                  <h2 className="font-serif text-lg sm:text-xl font-bold text-white">
+                    {restaurant.name || 'Restaurant'}
+                  </h2>
+                  <p className="font-sans text-xs text-white/60 mt-1 flex items-center gap-1">
+                    <span>📍</span> {restaurant.location || 'Ahmedabad'}
+                  </p>
+                </div>
               </div>
               <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-xs font-bold" style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.35)', color: '#4ade80' }}>
                 ✓ Confirmed
@@ -294,7 +302,7 @@ export default function BookingConfirmation() {
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
-            Download Official Tax Invoice (PDF)
+            Download Invoice (PDF)
           </button>
 
           <Link

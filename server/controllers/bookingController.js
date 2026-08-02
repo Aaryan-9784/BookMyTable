@@ -56,7 +56,20 @@ export async function createBooking(req, res, next) {
       req.user._id
     );
 
-    const { restaurant, validatedData } = validation;
+    const { restaurant, validatedData, existingBooking } = validation;
+
+    if (existingBooking) {
+      logger.info('Duplicate booking request - returning existing booking', {
+        bookingId: String(existingBooking._id),
+      });
+      const populatedBooking = await existingBooking.populate('restaurantId');
+      const payload = populatedBooking.toObject ? populatedBooking.toObject() : populatedBooking;
+      return res.status(200).json({ 
+        success: true,
+        data: payload,
+        message: 'Table reservation already confirmed'
+      });
+    }
 
     // Create booking
     const booking = await Booking.create({

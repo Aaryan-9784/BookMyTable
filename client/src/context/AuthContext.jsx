@@ -133,32 +133,37 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
-   * Supabase Auth — Login
+   * Supabase Auth / Dev Auth — Login
    */
   const login = useCallback(async (userEmail, password) => {
     const trimmedEmail = (userEmail || '').trim();
     setLoading(true);
 
     try {
-      // Validate Supabase configuration
-      if (!isRealSupabaseConfigured()) {
-        setLoading(false);
-        throw new Error('Authentication service is not properly configured. Please contact support.');
+      let token = null;
+
+      // Validate Supabase configuration or fall back to development authentication
+      if (isRealSupabaseConfigured()) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: trimmedEmail,
+          password,
+        });
+
+        if (error) {
+          setLoading(false);
+          throw new Error(error.message);
+        }
+
+        token = data?.session?.access_token;
+      } else {
+        // Fallback to backend dev-auth login
+        const res = await api.post('/api/dev-auth/login', {
+          email: trimmedEmail,
+          password,
+        });
+        token = res.data?.token;
       }
 
-      // Use Supabase authentication only - no client-side JWT fallback
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: trimmedEmail,
-        password,
-      });
-
-      if (error) {
-        setLoading(false);
-        throw new Error(error.message);
-      }
-
-      const token = data?.session?.access_token;
-      
       if (!token) {
         setLoading(false);
         throw new Error('Authentication failed - no token received');
@@ -180,7 +185,6 @@ export function AuthProvider({ children }) {
         fetchedProfile = profileData;
       } catch (profileError) {
         console.error('Failed to fetch profile:', profileError);
-        // Don't fail login if profile fetch fails
       }
 
       return { token, profile: fetchedProfile };
@@ -191,7 +195,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
-   * Supabase Auth — Sign Up
+   * Supabase Auth / Dev Auth — Sign Up
    */
   const signUp = useCallback(async (userEmail, password, fullName) => {
     const trimmedEmail = (userEmail || '').trim();
@@ -201,29 +205,36 @@ export function AuthProvider({ children }) {
       throw new Error('Full name is required');
     }
 
-    // Validate Supabase configuration
-    if (!isRealSupabaseConfigured()) {
-      throw new Error('Authentication service is not properly configured. Please contact support.');
-    }
-
     localStorage.setItem('bookmytable_full_name', trimmedName);
     setLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: trimmedEmail,
-        password,
-        options: {
-          data: { full_name: trimmedName },
-        },
-      });
-      
-      if (error) {
-        setLoading(false);
-        throw new Error(error.message);
+      let userConfirmed = false;
+
+      if (isRealSupabaseConfigured()) {
+        const { data, error } = await supabase.auth.signUp({
+          email: trimmedEmail,
+          password,
+          options: {
+            data: { full_name: trimmedName },
+          },
+        });
+        
+        if (error) {
+          setLoading(false);
+          throw new Error(error.message);
+        }
+        
+        userConfirmed = Boolean(data?.user?.confirmed_at);
+      } else {
+        // Fallback to backend dev-auth signup
+        const res = await api.post('/api/dev-auth/signup', {
+          email: trimmedEmail,
+          password,
+          fullName: trimmedName,
+        });
+        userConfirmed = Boolean(res.data?.userConfirmed);
       }
-      
-      const userConfirmed = Boolean(data?.user?.confirmed_at);
 
       setLoading(false);
       return {

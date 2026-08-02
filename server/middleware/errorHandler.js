@@ -59,14 +59,14 @@ function handleSpecificErrors(err) {
     return new AppError('Invalid ID format', 400, 'INVALID_ID');
   }
 
-  if (err.name === 'ValidationError') {
+  if (err.name === 'ValidationError' && err.errors) {
     const errors = Object.values(err.errors).map((e) => e.message);
     return new AppError('Validation failed', 400, 'VALIDATION_ERROR', errors);
   }
 
   if (err.code === 11000) {
     // MongoDB duplicate key error
-    const field = Object.keys(err.keyPattern)[0];
+    const field = Object.keys(err.keyPattern || {})[0] || 'record';
     return new AppError(`${field} already exists`, 409, 'DUPLICATE_KEY', { field });
   }
 

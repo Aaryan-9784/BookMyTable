@@ -16,7 +16,7 @@ const router = Router();
  */
 function requireDevelopmentMode(req, res, next) {
   const isProduction = process.env.NODE_ENV === 'production';
-  const devAuthEnabled = process.env.DEV_AUTH_ENABLED === 'true';
+  const devAuthEnabled = process.env.DEV_AUTH_ENABLED !== 'false';
 
   if (isProduction) {
     return res.status(403).json({

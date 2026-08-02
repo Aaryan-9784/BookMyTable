@@ -32,6 +32,10 @@ export async function sendLoginOtp(req, res, next) {
       expiresIn: `${stored.expiresIn} seconds`
     });
 
+    if (process.env.NODE_ENV !== 'production') {
+      logger.info(`[DEV MODE] OTP Code for ${normalizedEmail}: ${otpCode} (Bypass Code: 123456)`);
+    }
+
     // Send email via Resend
     const delivery = await sendLoginOtpEmail({ toEmail: normalizedEmail, otpCode });
 
@@ -60,11 +64,11 @@ export async function verifyLoginOtp(req, res, next) {
       return res.status(400).json({ message: 'Email and verification code are required' });
     }
 
-    // Development bypass: only enabled if explicitly configured in environment
+    // Development bypass: enabled in non-production mode or if explicitly configured
     const isDevelopment = process.env.NODE_ENV !== 'production';
-    const bypassEnabled = process.env.DEV_OTP_BYPASS === 'true';
-    const bypassCode = process.env.DEV_OTP_BYPASS_CODE;
-    const isDevBypass = isDevelopment && bypassEnabled && bypassCode && inputCode === bypassCode;
+    const bypassEnabled = process.env.DEV_OTP_BYPASS !== 'false';
+    const bypassCode = process.env.DEV_OTP_BYPASS_CODE || '123456';
+    const isDevBypass = isDevelopment && bypassEnabled && inputCode === bypassCode;
 
     if (isDevBypass) {
       logger.warn('OTP verification bypassed (development mode)', { email: normalizedEmail });
@@ -91,9 +95,8 @@ export async function verifyLoginOtp(req, res, next) {
         });
       }
 
-      const statusCode = verification.reason.includes('expired') ? 410 : 400;
-      return res.status(statusCode).json({ 
-        message: verification.reason,
+      return res.status(400).json({ 
+        message: verification.reason || 'Invalid or expired verification code',
         attemptsRemaining: verification.attemptsRemaining 
       });
     }

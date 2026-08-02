@@ -33,18 +33,29 @@ function IconGuests() {
 }
 
 export default function MyBookings() {
-  const [rows, setRows]           = useState([]);
-  const [loading, setLoading]     = useState(true);
+  const [rows, setRows] = useState(() => {
+    try {
+      const cached = localStorage.getItem('bmt_cached_my_bookings');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading]     = useState(() => !rows.length);
   const [cancelId, setCancelId]   = useState(null);
   const [cancelling, setCancelling] = useState(false);
 
   const load = async () => {
     try {
-      const { data } = await api.get('/api/bookings/my');
-      setRows(Array.isArray(data) ? data : []);
+      const res = await api.get('/api/bookings/my');
+      const payload = res.data;
+      const list = Array.isArray(payload?.data) ? payload.data : (Array.isArray(payload) ? payload : []);
+      setRows(list);
+      try {
+        localStorage.setItem('bmt_cached_my_bookings', JSON.stringify(list));
+      } catch {}
     } catch (e) {
       toast.error(e.message);
-      setRows([]);
     } finally {
       setLoading(false);
     }
@@ -91,8 +102,21 @@ export default function MyBookings() {
           </p>
         </header>
 
-        {/* ── EMPTY STATE ── */}
-        {rows.length === 0 ? (
+        {/* ── SKELETON / EMPTY / CONTENT STATES ── */}
+        {loading && rows.length === 0 ? (
+          <div className="space-y-5">
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="h-36 w-full animate-pulse rounded-2xl border"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  borderColor: 'rgba(212,175,55,0.1)',
+                }}
+              />
+            ))}
+          </div>
+        ) : rows.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div
               className="mb-6 flex h-20 w-20 items-center justify-center rounded-full"

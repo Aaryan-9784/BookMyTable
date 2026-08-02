@@ -85,13 +85,16 @@ export default function BookTable() {
         toast.success('🎉 Table reserved successfully!');
       }
 
+      try { localStorage.removeItem('bmt_cached_my_bookings'); } catch {}
+
       if (bookingId) {
         navigate(`/booking-confirmation/${bookingId}`);
       } else {
         navigate('/my-bookings');
       }
     } catch (e) {
-      toast.error(e.message || 'Failed to create booking');
+      const errMsg = e.response?.data?.error?.message || e.response?.data?.message || e.message || 'Failed to create booking';
+      toast.error(errMsg);
     } finally {
       setSubmitting(false);
     }

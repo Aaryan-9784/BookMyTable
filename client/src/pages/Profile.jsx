@@ -61,8 +61,9 @@ export default function Profile() {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await api.get('/api/bookings/my');
-        const list = Array.isArray(data) ? data : [];
+        const res = await api.get('/api/bookings/my');
+        const payload = res.data;
+        const list = Array.isArray(payload?.data) ? payload.data : (Array.isArray(payload) ? payload : []);
         if (!cancelled)
           setBookings(list.slice().sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 10));
       } catch (e) {

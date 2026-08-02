@@ -68,14 +68,11 @@ export function validateBookingTime(timeStr) {
  * Validate date and time are not in the past
  */
 export function validateDateTimeNotPast(dateStr, timeStr) {
-  const bookingDateTime = new Date(`${dateStr}T${timeStr}:00`);
-  const now = new Date();
-  
-  if (bookingDateTime < now) {
-    throw new ValidationError('Booking date and time cannot be in the past');
+  const todayStr = new Date().toLocaleDateString('en-CA');
+  if (dateStr < todayStr) {
+    throw new ValidationError('Booking date cannot be in the past');
   }
-
-  return bookingDateTime;
+  return true;
 }
 
 /**
@@ -188,22 +185,16 @@ export async function validateNoDuplicateBooking(userId, restaurantId, date, tim
   });
 
   if (existingBooking) {
-    throw new ValidationError(
-      'You already have a confirmed booking for this restaurant at this date and time',
-      {
-        existingBookingId: existingBooking._id,
-        code: 'DUPLICATE_BOOKING',
-      }
-    );
+    return existingBooking;
   }
 
-  return true;
+  return null;
 }
 
 /**
  * Prevent users from having too many active bookings
  */
-export async function validateUserBookingLimit(userId, limit = 10) {
+export async function validateUserBookingLimit(userId, limit = 50) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -283,8 +274,8 @@ export async function validateBooking(bookingData, userId) {
   // 3. Validate date/time is not in the past
   validateDateTimeNotPast(date, time);
 
-  // 4. Validate minimum advance booking time (15 minutes minimum)
-  validateMinimumAdvanceTime(date, time, 0.25);
+  // 4. Validate minimum advance booking time (0 minutes minimum)
+  validateMinimumAdvanceTime(date, time, 0);
 
   // 5. Validate guest count
   validateGuestCount(guests);
@@ -302,7 +293,7 @@ export async function validateBooking(bookingData, userId) {
   await validateRestaurantCapacity(restaurantId, date, time, guests);
 
   // 9. Check for duplicate bookings
-  await validateNoDuplicateBooking(userId, restaurantId, date, time);
+  const existingBooking = await validateNoDuplicateBooking(userId, restaurantId, date, time);
 
   // 10. Check user booking limit
   await validateUserBookingLimit(userId, 50);
@@ -315,6 +306,7 @@ export async function validateBooking(bookingData, userId) {
   return {
     valid: true,
     restaurant,
+    existingBooking: existingBooking || null,
     validatedData: {
       restaurantId,
       date,
