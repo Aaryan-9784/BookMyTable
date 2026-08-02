@@ -1,6 +1,8 @@
 /**
- * BookingConfirmation.jsx — Hyper-Realistic Official Tax Invoice & Reservation Deposit Receipt.
- * Features GSTIN breakdown, SAC codes, itemized financial table, Razorpay verification, and 1-page print architecture.
+ * BookingConfirmation.jsx — Luxury Official Table Reservation Deposit Receipt.
+ * Features 100% clean A4 printable PDF layout, zero emojis, zero GST clutter,
+ * 100% square gold brand borders on ALL elements, no black/gray lines, compact spacing,
+ * and full dual screen/print architecture.
  */
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -9,7 +11,7 @@ import api from '../services/api.js';
 import Loader from '../components/Loader.jsx';
 import { getFallbackRestaurantImage } from '../utils/imageUtils.js';
 
-/** Convert numbers to words for authentic invoice formatting */
+/** Convert numbers to words for authentic receipt formatting */
 function numberToWords(num) {
   const n = Math.floor(Math.abs(num));
   if (n === 0) return 'Zero Rupees Only';
@@ -60,7 +62,7 @@ export default function BookingConfirmation() {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center font-sans text-white/50">
         <p className="text-lg font-semibold">Booking record not found.</p>
-        <Link to="/my-bookings" className="mt-4 inline-block text-luxury-gold hover:underline font-bold">
+        <Link to="/my-bookings" className="mt-4 inline-block font-bold text-luxury-gold hover:underline">
           View all my bookings →
         </Link>
       </div>
@@ -75,11 +77,6 @@ export default function BookingConfirmation() {
   const discount = booking.discountAmount || 0;
   const finalPaid = booking.finalPayable ?? Math.max(0, grossDeposit - discount);
   const amountInWords = numberToWords(finalPaid);
-
-  // GST Calculation (5% GST included in deposit)
-  const taxableValue = (grossDeposit / 1.05).toFixed(2);
-  const cgst = ((grossDeposit - taxableValue) / 2).toFixed(2);
-  const sgst = cgst;
 
   const formattedDate = new Date(booking.date).toLocaleDateString('en-US', {
     weekday: 'long',
@@ -98,23 +95,31 @@ export default function BookingConfirmation() {
 
   return (
     <div
-      className="min-h-screen text-white print:bg-white print:text-black print:p-0"
+      className="min-h-screen font-sans text-white print:bg-white print:text-black print:p-0 print:min-h-0"
       style={{ background: 'linear-gradient(180deg, #09090b 0%, #111114 50%, #18181c 100%)' }}
     >
-      {/* ── Strict 1-Page Official GST Invoice Print CSS ── */}
+      {/* ── Strict Full-Bleed Luxury Print Stylesheet ── */}
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
         @media print {
           @page {
             size: A4 portrait;
-            margin: 8mm 10mm;
+            margin: 8mm 10mm !important;
           }
-          html, body {
+          *, *::before, *::after {
+            box-shadow: none !important;
+            text-shadow: none !important;
+          }
+          html, body, #root, main, .receipt-page {
             background: #ffffff !important;
-            color: #000000 !important;
+            color: #0f172a !important;
             margin: 0 !important;
             padding: 0 !important;
             width: 100% !important;
-            height: 100% !important;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -132,39 +137,47 @@ export default function BookingConfirmation() {
             margin: 0 !important;
           }
           .official-receipt-box {
+            display: block !important;
             background: #ffffff !important;
-            border: 2px solid #000000 !important;
+            border: 2px solid #d4af37 !important;
+            border-radius: 0 !important;
             box-shadow: none !important;
-            border-radius: 8px !important;
-            color: #000000 !important;
-            padding: 24px 30px !important;
+            outline: none !important;
+            color: #0f172a !important;
+            padding: 20px 24px !important;
             width: 100% !important;
             box-sizing: border-box !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
+            margin: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
-          .official-receipt-box * {
-            color: #000000 !important;
+          .official-receipt-box div, 
+          .official-receipt-box table, 
+          .official-receipt-box tr, 
+          .official-receipt-box td, 
+          .official-receipt-box th {
+            border-color: #d4af37 !important;
           }
           .gold-brand-text {
             color: #9a7812 !important;
             -webkit-text-fill-color: #9a7812 !important;
+            font-weight: 800 !important;
           }
           .table-header-bg {
-            background: #f1f1f4 !important;
-            border-bottom: 2px solid #000000 !important;
+            background: #fdfbf7 !important;
+            border-bottom: 2px solid #d4af37 !important;
+            border-radius: 0 !important;
           }
-          .receipt-border-dark {
-            border-color: #000000 !important;
-          }
-          .receipt-bg-light {
-            background: #f8f8fa !important;
-            border: 1px solid #d0d0d8 !important;
+          .receipt-bg-gold {
+            background: #fffdf5 !important;
+            border: 1.5px solid #d4af37 !important;
+            border-radius: 0 !important;
           }
           .paid-badge {
             background: #e6f4ea !important;
             color: #137333 !important;
             border: 1.5px solid #137333 !important;
+            border-radius: 0 !important;
           }
         }
       `}</style>
@@ -177,7 +190,7 @@ export default function BookingConfirmation() {
         }}
       />
 
-      <div className="receipt-page relative z-10 mx-auto max-w-3xl px-4 py-8 md:py-12">
+      <div className="receipt-page relative z-10 mx-auto max-w-3xl px-4 py-8 md:py-12 print:max-w-none print:p-0 print:m-0">
 
         {/* Action Bar (Screen Only) */}
         <div className="mb-6 flex items-center print-hidden">
@@ -200,7 +213,7 @@ export default function BookingConfirmation() {
             border: '1px solid rgba(34,197,94,0.35)',
           }}
         >
-          <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-green-500/20 text-green-400 border border-green-500/40">
+          <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full border border-green-500/40 bg-green-500/20 text-green-400">
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
@@ -209,13 +222,13 @@ export default function BookingConfirmation() {
             Reservation & Payment Verified
           </h1>
           <p className="mt-0.5 font-sans text-xs text-white/70">
-            Your official tax invoice & reservation deposit receipt has been generated below.
+            Your official reservation deposit receipt has been generated below.
           </p>
         </div>
 
         {/* ── SCREEN-ONLY: Clean Simple Summary Card ── */}
         <div
-          className="print-hidden rounded-3xl overflow-hidden border"
+          className="print-hidden overflow-hidden rounded-3xl border"
           style={{
             background: 'rgba(20,20,24,0.95)',
             borderColor: 'rgba(212,175,55,0.25)',
@@ -223,31 +236,31 @@ export default function BookingConfirmation() {
           }}
         >
           {/* Summary Header */}
-          <div className="px-6 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(212,175,55,0.05)' }}>
-            <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="border-b px-6 py-5" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(212,175,55,0.05)' }}>
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <img
                   src={heroImage}
                   alt={restaurant.name || 'Restaurant'}
-                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl object-cover border border-luxury-gold/30 shadow-md shrink-0"
+                  className="h-16 w-16 shrink-0 rounded-2xl border border-luxury-gold/30 object-cover shadow-md sm:h-20 sm:w-20"
                 />
                 <div>
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-white">
+                  <h2 className="font-serif text-lg font-bold text-white sm:text-xl">
                     {restaurant.name || 'Restaurant'}
                   </h2>
-                  <p className="font-sans text-xs text-white/60 mt-1 flex items-center gap-1">
-                    <span>📍</span> {restaurant.location || 'Ahmedabad'}
+                  <p className="mt-1 font-sans text-xs text-white/60">
+                    Location: {restaurant.location || 'Ahmedabad'}
                   </p>
                 </div>
               </div>
               <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-xs font-bold" style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.35)', color: '#4ade80' }}>
-                ✓ Confirmed
+                Confirmed
               </span>
             </div>
           </div>
 
           {/* Summary Info Grid */}
-          <div className="px-6 py-5 grid grid-cols-2 sm:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 gap-5 px-6 py-5 sm:grid-cols-4">
             <div>
               <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-white/40">Date</p>
               <p className="mt-1 font-sans text-sm font-bold text-white">{booking.date}</p>
@@ -267,24 +280,24 @@ export default function BookingConfirmation() {
           </div>
 
           {/* Payment Info */}
-          <div className="px-6 pb-5 space-y-2">
-            <div className="rounded-xl p-4 space-y-1.5 font-sans text-xs" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <div className="flex justify-between flex-wrap gap-1">
+          <div className="space-y-2 px-6 pb-5">
+            <div className="space-y-1.5 rounded-xl p-4 font-sans text-xs" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="flex flex-wrap justify-between gap-1">
                 <span className="text-white/50">Razorpay Transaction ID</span>
-                <span className="font-mono text-luxury-gold font-bold">{booking.paymentId || `pay_${String(booking._id).slice(-10)}`}</span>
+                <span className="font-mono font-bold text-luxury-gold">{booking.paymentId || `pay_${String(booking._id).slice(-10)}`}</span>
               </div>
-              <div className="flex justify-between flex-wrap gap-1">
-                <span className="text-white/50">Invoice Reference</span>
-                <span className="text-white font-semibold">INV/2026/{String(booking._id).slice(-8).toUpperCase()}</span>
+              <div className="flex flex-wrap justify-between gap-1">
+                <span className="text-white/50">Receipt Reference</span>
+                <span className="font-semibold text-white">REC/2026/{String(booking._id).slice(-8).toUpperCase()}</span>
               </div>
-              <div className="flex justify-between flex-wrap gap-1">
+              <div className="flex flex-wrap justify-between gap-1">
                 <span className="text-white/50">Payment Status</span>
-                <span className="text-green-400 font-bold">Captured & Verified ✓</span>
+                <span className="font-bold text-green-400">Captured & Verified</span>
               </div>
               {discount > 0 && (
-                <div className="flex justify-between flex-wrap gap-1">
+                <div className="flex flex-wrap justify-between gap-1">
                   <span className="text-white/50">Coupon Applied</span>
-                  <span className="text-green-400 font-semibold">{booking.couponCode} (−₹{discount})</span>
+                  <span className="font-semibold text-green-400">{booking.couponCode} (−₹{discount})</span>
                 </div>
               )}
             </div>
@@ -292,224 +305,181 @@ export default function BookingConfirmation() {
         </div>
 
         {/* Action Buttons (Screen Only) */}
-        <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center print-hidden">
+        <div className="mt-6 flex flex-col justify-center gap-4 sm:flex-row print-hidden">
           <button
             type="button"
             onClick={handlePrintReceipt}
-            className="flex items-center justify-center gap-2.5 rounded-2xl py-3.5 px-8 font-sans text-sm font-bold text-black transition-all hover:brightness-110 active:scale-95 shadow-xl shadow-luxury-gold/20"
+            className="flex items-center justify-center gap-2.5 rounded-2xl px-8 py-3.5 font-sans text-sm font-bold text-black shadow-xl shadow-luxury-gold/20 transition-all hover:brightness-110 active:scale-95"
             style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f5e6a3 50%, #c9a84c 100%)' }}
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
-            Download Invoice (PDF)
+            Download Receipt (PDF)
           </button>
 
           <Link
             to="/my-bookings"
-            className="flex items-center justify-center gap-2 rounded-2xl py-3.5 px-6 font-sans text-sm font-bold text-white border border-white/20 transition-all hover:bg-white/10 active:scale-95"
+            className="flex items-center justify-center gap-2 rounded-2xl border border-white/20 px-6 py-3.5 font-sans text-sm font-bold text-white transition-all hover:bg-white/10 active:scale-95"
           >
             View All My Bookings
           </Link>
         </div>
 
-        {/* ── PRINT-ONLY: Full Official GST Tax Invoice (hidden on screen) ── */}
-        <div className="hidden print:block">
-        <div
-          className="official-receipt-box overflow-hidden rounded-3xl border"
-          style={{
-            background: 'linear-gradient(160deg, rgba(22,22,26,0.98) 0%, rgba(12,12,14,0.99) 100%)',
-            borderColor: 'rgba(212,175,55,0.3)',
-          }}
-        >
-          {/* 1. TOP HEADER: LOGO, GSTIN & INVOICE NUMBER */}
-          <div
-            className="table-header-bg border-b p-6 space-y-3"
-            style={{
-              borderColor: 'rgba(255,255,255,0.1)',
-              background: 'rgba(212,175,55,0.06)',
-            }}
-          >
-            <div className="flex flex-wrap items-start justify-between gap-4">
+        {/* ── PRINT-ONLY: Full Official Authentic Receipt (100% Gold Borders Only) ── */}
+        <div className="hidden print:block print:w-full">
+          <div className="official-receipt-box w-full bg-white text-slate-900 border-2 border-[#d4af37] rounded-none p-5 sm:p-7 space-y-4">
+
+            {/* 1. TOP HEADER */}
+            <div className="flex justify-between items-start border-b-2 border-[#d4af37] pb-4 table-header-bg p-3.5 rounded-none">
               <div>
-                {/* Official Brand Logo */}
-                <div className="font-serif text-3xl font-bold tracking-tight text-white flex items-center">
+                <div className="font-serif text-2xl sm:text-3xl font-extrabold text-slate-900 flex items-center">
                   <span>Book</span>
-                  <span
-                    className="gold-brand-text px-0.5"
-                    style={{
-                      background: 'linear-gradient(135deg, #c9a84c 0%, #f5e6a3 50%, #c9a84c 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                    }}
-                  >
-                    My
-                  </span>
+                  <span className="gold-brand-text px-0.5 text-[#9a7812]">My</span>
                   <span>Table</span>
                 </div>
-                <p className="font-sans text-[11px] font-bold text-white/80 print:text-black">
-                  BookMyTable Technologies Pvt. Ltd.
-                </p>
-                <p className="font-sans text-[10px] text-white/50 print:text-gray-600">
-                  GSTIN: <strong>24AAACB9876F1Z5</strong> | SAC Code: <strong>996331</strong> (Restaurant Table Booking Services)
+                <p className="text-[11px] font-bold text-slate-700 mt-0.5">
+                  Official Table Reservation & Deposit Receipt
                 </p>
               </div>
 
               <div className="text-right">
-                <div className="inline-block rounded-full px-3 py-1 font-sans text-[11px] font-extrabold uppercase tracking-wider paid-badge"
-                  style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', color: '#4ade80' }}>
-                  ✓ PAID & VERIFIED
+                <div className="paid-badge inline-block px-3 py-0.5 bg-[#e6f4ea] border-1.5 border-[#137333] text-[#137333] font-extrabold text-[11px] rounded-none">
+                  PAID & VERIFIED
                 </div>
-                <h2 className="mt-2 font-serif text-sm font-extrabold uppercase tracking-widest text-luxury-gold gold-brand-text">
-                  TAX INVOICE & RECEIPT
+                <h2 className="text-[11px] font-extrabold gold-brand-text text-[#9a7812] tracking-wider uppercase mt-1.5">
+                  RESERVATION RECEIPT
                 </h2>
-                <p className="font-mono text-xs font-bold text-white/90 print:text-black">
-                  Invoice No: <strong className="text-luxury-gold gold-brand-text">INV/2026/{String(booking._id).slice(-8).toUpperCase()}</strong>
+                <p className="text-xs font-bold text-slate-900 font-mono mt-0.5">
+                  Receipt No: <span className="gold-brand-text text-[#9a7812]">REC/2026/{String(booking._id).slice(-8).toUpperCase()}</span>
                 </p>
-                <p className="font-sans text-[10px] text-white/50 print:text-gray-600">
-                  Date of Issue: {issueDate}
+                <p className="text-[10px] font-semibold text-slate-700">
+                  Issued On: {issueDate}
                 </p>
               </div>
             </div>
-          </div>
 
-          <div className="p-6 sm:p-8 space-y-6">
-
-            {/* 2. BILLED TO & MERCHANT DETAILS (2-COLUMN GRID) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pb-4 border-b border-white/10 receipt-border-dark">
-              {/* Left: Merchant / Restaurant Details */}
-              <div className="space-y-1">
-                <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-luxury-gold gold-brand-text">
-                  Service Provider (Restaurant Venue)
+            {/* 2. VENUE & RESERVATION PARTICULARS */}
+            <div className="grid grid-cols-2 gap-6 border-b-2 border-[#d4af37] pb-4">
+              <div>
+                <p className="text-[10px] font-extrabold gold-brand-text text-[#9a7812] uppercase tracking-wider">
+                  RESTAURANT VENUE
                 </p>
-                <h3 className="font-serif text-lg font-bold text-white print:text-black">
+                <h3 className="text-base font-bold text-slate-900 mt-0.5">
                   {restaurant.name || 'The Grand Thakar'}
                 </h3>
-                <p className="font-sans text-xs text-white/70 print:text-gray-700">
-                  📍 Address: {restaurant.location || 'Odhav, Ahmedabad'}, Gujarat, India 382415
+                <p className="text-xs font-semibold text-slate-800 mt-0.5">
+                  Address: {restaurant.location || 'Odhav, Ahmedabad'}, Gujarat, India
                 </p>
-                <p className="font-sans text-xs text-white/60 print:text-gray-600">
-                  Cuisine Category: <strong className="text-white/80 print:text-black">{restaurant.category || 'Multi-cuisine Fine Dining'}</strong>
+                <p className="text-xs font-semibold text-slate-700 mt-0.5">
+                  Cuisine Category: <strong className="text-slate-900">{restaurant.category || 'Multi-cuisine Fine Dining'}</strong>
                 </p>
               </div>
 
-              {/* Right: Reservation Particulars */}
-              <div className="space-y-1 sm:text-right">
-                <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-luxury-gold gold-brand-text">
-                  Reservation Particulars
+              <div className="text-right">
+                <p className="text-[10px] font-extrabold gold-brand-text text-[#9a7812] uppercase tracking-wider">
+                  RESERVATION PARTICULARS
                 </p>
-                <p className="font-sans text-xs font-semibold text-white print:text-black">
-                  Booking Reference: <strong className="font-mono text-luxury-gold gold-brand-text">#BMT-{String(booking._id).slice(-6).toUpperCase()}</strong>
+                <p className="text-xs font-semibold text-slate-900 mt-0.5">
+                  Booking Reference: <strong className="font-mono gold-brand-text text-[#9a7812]">#BMT-{String(booking._id).slice(-6).toUpperCase()}</strong>
                 </p>
-                <p className="font-sans text-xs font-semibold text-white print:text-black">
-                  📅 Reservation Date: <strong>{formattedDate}</strong>
+                <p className="text-xs font-semibold text-slate-900 mt-0.5">
+                  Reservation Date: <strong>{formattedDate}</strong>
                 </p>
-                <p className="font-sans text-xs font-semibold text-white print:text-black">
-                  🕒 Time Slot: <strong>{booking.time}</strong>
+                <p className="text-xs font-semibold text-slate-900 mt-0.5">
+                  Time Slot: <strong>{booking.time}</strong>
                 </p>
-                <p className="font-sans text-xs font-semibold text-white print:text-black">
-                  👥 Party Size: <strong>{numGuests} {numGuests === 1 ? 'Guest' : 'Guests'} (Guaranteed Table Lock)</strong>
+                <p className="text-xs font-semibold text-slate-900 mt-0.5">
+                  Party Size: <strong>{numGuests} {numGuests === 1 ? 'Guest' : 'Guests'} (Guaranteed Seating)</strong>
                 </p>
               </div>
             </div>
 
-            {/* 3. ITEMISED GST FINANCIAL TABLE */}
-            <div className="space-y-2">
-              <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-luxury-gold gold-brand-text">
-                Itemized Financial Summary
+            {/* 3. ITEMIZED FINANCIAL SUMMARY */}
+            <div className="space-y-2.5">
+              <p className="text-[10px] font-extrabold gold-brand-text text-[#9a7812] uppercase tracking-wider">
+                ITEMIZED FINANCIAL SUMMARY
               </p>
 
-              <table className="w-full text-left font-sans text-xs border-collapse">
+              <table className="w-full border-collapse text-left font-sans text-xs">
                 <thead>
-                  <tr className="table-header-bg border-b border-white/10 print:border-black" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                    <th className="py-2.5 px-3 font-bold uppercase tracking-wider text-white/70 print:text-black">S.No</th>
-                    <th className="py-2.5 px-3 font-bold uppercase tracking-wider text-white/70 print:text-black">Service Description</th>
-                    <th className="py-2.5 px-3 font-bold uppercase tracking-wider text-center text-white/70 print:text-black">SAC</th>
-                    <th className="py-2.5 px-3 font-bold uppercase tracking-wider text-center text-white/70 print:text-black">Qty</th>
-                    <th className="py-2.5 px-3 font-bold uppercase tracking-wider text-right text-white/70 print:text-black">Rate</th>
-                    <th className="py-2.5 px-3 font-bold uppercase tracking-wider text-right text-white/70 print:text-black">Amount</th>
+                  <tr className="table-header-bg bg-[#fdfbf7] border-b-2 border-[#d4af37]">
+                    <th className="py-2 px-3 font-extrabold text-slate-900">S.No</th>
+                    <th className="py-2 px-3 font-extrabold text-slate-900">Service Description</th>
+                    <th className="py-2 px-3 text-center font-extrabold text-slate-900">Qty</th>
+                    <th className="py-2 px-3 text-right font-extrabold text-slate-900">Rate / Guest</th>
+                    <th className="py-2 px-3 text-right font-extrabold text-slate-900">Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5 print:divide-gray-300">
+                <tbody className="divide-y divide-[#d4af37]">
                   <tr>
-                    <td className="py-3 px-3 text-white/60 print:text-black">1</td>
-                    <td className="py-3 px-3 font-medium text-white print:text-black">
+                    <td className="py-2.5 px-3 font-semibold text-slate-700">1</td>
+                    <td className="py-2.5 px-3 font-semibold text-slate-900">
                       Table Reservation Deposit ({restaurant.name || 'Venue'})
-                      <p className="text-[10px] text-white/50 print:text-gray-600">Guaranteed Priority Table Seating Fee (5% GST Incl.)</p>
+                      <p className="text-[10px] font-semibold text-slate-600 mt-0.5">Guaranteed Priority Table Seating Fee</p>
                     </td>
-                    <td className="py-3 px-3 text-center text-white/60 print:text-black">996331</td>
-                    <td className="py-3 px-3 text-center text-white/80 print:text-black">{numGuests}</td>
-                    <td className="py-3 px-3 text-right text-white/80 print:text-black">₹{tokenFeePerGuest}.00</td>
-                    <td className="py-3 px-3 text-right font-semibold text-white print:text-black">₹{grossDeposit}.00</td>
+                    <td className="py-2.5 px-3 text-center font-bold text-slate-900">{numGuests}</td>
+                    <td className="py-2.5 px-3 text-right font-bold text-slate-900">₹{tokenFeePerGuest}.00</td>
+                    <td className="py-2.5 px-3 text-right font-extrabold text-slate-900">₹{grossDeposit}.00</td>
                   </tr>
 
                   {discount > 0 && (
-                    <tr className="text-green-400 print:text-green-800 font-semibold">
-                      <td className="py-2.5 px-3" colSpan={5}>
-                        Coupon Code Discount ({booking.couponCode || 'WELCOME100'})
+                    <tr className="font-bold text-green-800">
+                      <td className="py-2 px-3" colSpan={4}>
+                        Coupon Discount ({booking.couponCode || 'WELCOME100'})
                       </td>
-                      <td className="py-2.5 px-3 text-right">-₹{discount}.00</td>
+                      <td className="py-2 px-3 text-right">-₹{discount}.00</td>
                     </tr>
                   )}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t border-white/10 print:border-gray-400 text-white/70 print:text-gray-700 text-[11px]">
-                    <td className="py-1.5 px-3" colSpan={5}>Taxable Value: ₹{taxableValue} | CGST (2.5%): ₹{cgst} | SGST (2.5%): ₹{sgst}</td>
-                    <td className="py-1.5 px-3 text-right">₹{grossDeposit}.00</td>
-                  </tr>
-                  <tr className="border-t-2 border-white/20 print:border-black font-bold">
-                    <td className="py-3 px-3 text-sm text-white print:text-black" colSpan={5}>
-                      Total Amount Payable & Paid
+                  <tr className="border-t-2 border-[#d4af37] font-bold">
+                    <td className="py-2.5 px-3 text-xs text-slate-900 font-serif" colSpan={4}>
+                      Total Deposit Paid
                     </td>
-                    <td className="py-3 px-3 text-right text-base text-luxury-gold gold-brand-text font-black">
+                    <td className="py-2.5 px-3 text-right font-mono text-base font-black gold-brand-text text-[#9a7812]">
                       ₹{finalPaid}.00
                     </td>
                   </tr>
                 </tfoot>
               </table>
 
-              {/* Amount in Words */}
-              <div className="receipt-bg-light rounded-xl p-3 text-xs font-sans font-semibold text-white/80 print:text-black flex justify-between flex-wrap gap-2">
-                <span>Amount in Words: <strong className="text-luxury-gold gold-brand-text">{amountInWords}</strong></span>
-                <span>Payment Mode: <strong>Online (Razorpay)</strong></span>
+              <div className="receipt-bg-gold flex justify-between items-center bg-[#fffdf5] rounded-none p-3 border-1.5 border-[#d4af37] text-xs font-bold text-slate-900">
+                <span>Amount in Words: <strong className="gold-brand-text text-[#9a7812]">{amountInWords}</strong></span>
+                <span>Payment Method: <strong>Online (Razorpay)</strong></span>
               </div>
             </div>
 
             {/* 4. PAYMENT GATEWAY VERIFICATION BOX */}
-            <div
-              className="receipt-bg-light rounded-2xl p-4 space-y-1.5 font-sans text-xs"
-              style={{ background: 'rgba(212,175,55,0.04)', border: '1px solid rgba(212,175,55,0.2)' }}
-            >
-              <div className="flex justify-between flex-wrap gap-1">
-                <span className="font-semibold text-white/60 print:text-gray-700">Payment Gateway Engine:</span>
-                <span className="text-white font-bold print:text-black">Razorpay Online Payment (256-Bit SSL Encrypted)</span>
+            <div className="receipt-bg-gold bg-[#fffdf5] rounded-none p-3.5 space-y-1 border-1.5 border-[#d4af37] text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-700 font-bold">Payment Gateway Engine:</span>
+                <span className="font-bold text-slate-900">Razorpay Online Payment (256-Bit SSL Encrypted)</span>
               </div>
-              <div className="flex justify-between flex-wrap gap-1">
-                <span className="font-semibold text-white/60 print:text-gray-700">Razorpay Transaction ID:</span>
-                <span className="font-mono text-luxury-gold font-bold tracking-wider gold-brand-text">{booking.paymentId || `pay_${String(booking._id).slice(-10)}`}</span>
+              <div className="flex justify-between">
+                <span className="text-slate-700 font-bold">Razorpay Transaction ID:</span>
+                <span className="font-mono font-extrabold gold-brand-text text-[#9a7812]">{booking.paymentId || `pay_${String(booking._id).slice(-10)}`}</span>
               </div>
-              <div className="flex justify-between flex-wrap gap-1">
-                <span className="font-semibold text-white/60 print:text-gray-700">Transaction Status:</span>
-                <span className="text-green-400 font-bold print:text-green-800">CAPTURED & VERIFIED ✓</span>
+              <div className="flex justify-between">
+                <span className="text-slate-700 font-bold">Verification Status:</span>
+                <span className="font-extrabold text-green-800">CAPTURED & VERIFIED</span>
               </div>
             </div>
 
-            {/* 5. LEGAL TERMS & STAMP FOOTER */}
-            <div className="border-t border-white/10 pt-4 text-center font-sans text-[10px] text-white/40 print:text-gray-600 receipt-border-dark space-y-1">
+            {/* 5. POLICY & FOOTER */}
+            <div className="border-t-2 border-[#d4af37] pt-3 pb-1 text-center text-[10px] font-semibold text-slate-700 space-y-1">
               <p>
-                <strong>Reservation Policy:</strong> Deposit is 100% refundable if cancelled at least 2 hours prior to table time.
+                <strong>Cancellation Policy:</strong> Deposit is 100% refundable if cancelled at least 2 hours prior to table reservation time.
               </p>
               <p>
-                This is a computer-generated tax invoice and deposit receipt issued by BookMyTable Technologies Pvt. Ltd. No signature required.
+                This is an official computer-generated reservation deposit receipt issued by BookMyTable. No physical signature required.
               </p>
-              <p className="text-luxury-gold gold-brand-text font-bold pt-1">
+              <p className="font-bold gold-brand-text text-[#9a7812] pt-0.5">
                 Thank you for reserving with BookMyTable!
               </p>
             </div>
 
           </div>
-        </div>
         </div>
 
       </div>
