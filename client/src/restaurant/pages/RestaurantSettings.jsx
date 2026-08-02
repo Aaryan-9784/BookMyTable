@@ -117,6 +117,7 @@ export default function RestaurantSettings() {
   const [capacity, setCapacity] = useState('40');
   const [openingHours, setOpeningHours] = useState('11:00 AM - 11:00 PM');
   const [priceRange, setPriceRange] = useState(2);
+  const [category, setCategory] = useState('Multi-cuisine');
   const [experiences, setExperiences] = useState(['Fine Dining', 'Outdoor Terrace']);
   const [imageUrls, setImageUrls] = useState([]);
   const [imageUrlInput, setImageUrlInput] = useState('');
@@ -130,6 +131,7 @@ export default function RestaurantSettings() {
       setRestaurant(r);
       setName(r.name || '');
       setLocation(r.location || '');
+      setCategory(r.category || 'Multi-cuisine');
       setDescription(r.description || '');
       setTokenFee(String(r.tokenFee ?? 150));
       setCapacity(String(r.totalSeatingCapacity ?? 40));
@@ -205,6 +207,7 @@ export default function RestaurantSettings() {
       await restaurantApi.updateSettings({
         name: name.trim(),
         location: location.trim(),
+        category: category || 'Multi-cuisine',
         description: description.trim(),
         tokenFee: Number(tokenFee) || 150,
         totalSeatingCapacity: Number(capacity) || 40,
@@ -281,8 +284,8 @@ export default function RestaurantSettings() {
         />
         <StatCard
           label="Price Tier"
-          value={'◆'.repeat(priceRange || 2)}
-          sub={priceRange === 4 ? 'Ultra Luxury' : priceRange === 3 ? 'Luxury Dining' : 'Fine Dining'}
+          value={priceRange === 4 ? 'Ultra Luxury' : priceRange === 3 ? 'Premium Luxury' : priceRange === 2 ? 'Moderate Fine Dining' : 'Casual / Budget'}
+          sub="Tier Level"
           Icon={IconPrice}
         />
       </div>
@@ -319,7 +322,7 @@ export default function RestaurantSettings() {
             <h3 className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-luxury-gold flex items-center gap-2">
               <span>🍴</span> Basic Details & Location
             </h3>
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-3">
               <div>
                 <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
                   Restaurant Name *
@@ -344,6 +347,21 @@ export default function RestaurantSettings() {
                   className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white outline-none focus:border-luxury-gold/60"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
+                  Cuisine / Category *
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-[#101010] px-4 py-3 font-sans text-sm text-white outline-none focus:border-luxury-gold/60"
+                >
+                  {['Multi-cuisine', 'Indian', 'North Indian', 'South Indian', 'Italian', 'Chinese', 'Japanese', 'Continental', 'Cafe', 'Fine dining', 'Mexican', 'Thai', 'Mediterranean', 'Bakery & Desserts'].map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -423,10 +441,10 @@ export default function RestaurantSettings() {
                 onChange={(e) => setPriceRange(Number(e.target.value))}
                 className="w-full rounded-xl border border-white/10 bg-[#101010] px-4 py-3 font-sans text-sm text-white outline-none focus:border-luxury-gold/60"
               >
-                <option value={1}>◆ — Casual / Budget</option>
-                <option value={2}>◆◆ — Moderate Fine Dining</option>
-                <option value={3}>◆◆◆ — Premium Luxury</option>
-                <option value={4}>◆◆◆◆ — Ultra Luxury</option>
+                <option value={1}>Casual / Budget</option>
+                <option value={2}>Moderate Fine Dining</option>
+                <option value={3}>Premium Luxury</option>
+                <option value={4}>Ultra Luxury</option>
               </select>
             </div>
           </div>

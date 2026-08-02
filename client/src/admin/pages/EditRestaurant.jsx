@@ -18,17 +18,18 @@ const EXPERIENCE_OPTIONS = [
 ];
 
 const CATEGORIES = [
-  'Multi-cuisine', 'Indian', 'Italian', 'Chinese',
-  'Japanese', 'Continental', 'Cafe', 'Fine dining',
+  'Multi-cuisine', 'Indian', 'North Indian', 'South Indian',
+  'Italian', 'Chinese', 'Japanese', 'Continental', 'Cafe',
+  'Fine dining', 'Mexican', 'Thai', 'Mediterranean', 'Bakery & Desserts',
 ];
 
 const CATEGORY_OPTIONS = CATEGORIES.map((c) => ({ value: c, label: c }));
 
 const PRICE_TIER_OPTIONS = [
-  { value: 1, label: '◆ — Casual / Budget' },
-  { value: 2, label: '◆◆ — Moderate Fine Dining' },
-  { value: 3, label: '◆◆◆ — Premium Luxury' },
-  { value: 4, label: '◆◆◆◆ — Ultra Luxury' },
+  { value: 1, label: 'Casual / Budget' },
+  { value: 2, label: 'Moderate Fine Dining' },
+  { value: 3, label: 'Premium Luxury' },
+  { value: 4, label: 'Ultra Luxury' },
 ];
 
 /* ── LUXURY CUSTOM DROPDOWN ───────────────────────────────────────── */
@@ -498,7 +499,7 @@ export default function EditRestaurant() {
               />
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-3 gap-4">
               <div>
                 <FieldLabel required>Location / City</FieldLabel>
                 <input
@@ -508,6 +509,15 @@ export default function EditRestaurant() {
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="e.g. Bandra West, Mumbai"
                   className={inputCls}
+                />
+              </div>
+              <div>
+                <FieldLabel required>Cuisine / Category</FieldLabel>
+                <CustomLuxurySelect
+                  value={category}
+                  onChange={setCategory}
+                  options={CATEGORY_OPTIONS}
+                  placeholder="Select Cuisine"
                 />
               </div>
               <div>

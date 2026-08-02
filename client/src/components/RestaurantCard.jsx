@@ -3,17 +3,23 @@
  */
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getFallbackRestaurantImage } from '../utils/imageUtils.js';
 
 function priceLabel(n) {
   if (n == null || Number.isNaN(Number(n))) return null;
-  return '◆'.repeat(Math.min(4, Math.max(1, Number(n))));
+  const labels = { 1: 'Casual', 2: 'Moderate', 3: 'Premium', 4: 'Ultra Luxury' };
+  return labels[Number(n)] || null;
 }
 
 export default function RestaurantCard({ restaurant }) {
   const { _id, name, location, description, imageUrl, rating, priceRange, category } = restaurant;
   const [imgFailed, setImgFailed] = useState(false);
+  const [fallbackFailed, setFallbackFailed] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const showPlaceholder = !imageUrl || imgFailed;
+
+  const fallbackUrl = getFallbackRestaurantImage(restaurant);
+  const currentImageUrl = (!imageUrl || imgFailed) ? fallbackUrl : imageUrl;
+  const showPlaceholder = (!imageUrl && fallbackFailed) || (imgFailed && fallbackFailed);
 
   return (
     <article
@@ -36,9 +42,15 @@ export default function RestaurantCard({ restaurant }) {
           {/* Image */}
           {!showPlaceholder ? (
             <img
-              src={imageUrl}
+              src={currentImageUrl}
               alt={name}
-              onError={() => setImgFailed(true)}
+              onError={() => {
+                if (!imgFailed && imageUrl) {
+                  setImgFailed(true);
+                } else {
+                  setFallbackFailed(true);
+                }
+              }}
               className="absolute inset-0 h-full w-full object-cover transition-all duration-700"
               style={{
                 transform: hovered ? 'scale(1.08)' : 'scale(1)',

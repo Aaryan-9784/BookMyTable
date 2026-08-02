@@ -16,11 +16,19 @@ const EXPERIENCE_OPTIONS = [
 ];
 
 const PRICE_TIER_OPTIONS = [
-  { value: 1, label: '◆ — Casual / Budget' },
-  { value: 2, label: '◆◆ — Moderate Fine Dining' },
-  { value: 3, label: '◆◆◆ — Premium Luxury' },
-  { value: 4, label: '◆◆◆◆ — Ultra Luxury' },
+  { value: 1, label: 'Casual / Budget' },
+  { value: 2, label: 'Moderate Fine Dining' },
+  { value: 3, label: 'Premium Luxury' },
+  { value: 4, label: 'Ultra Luxury' },
 ];
+
+const CATEGORIES = [
+  'Multi-cuisine', 'Indian', 'North Indian', 'South Indian',
+  'Italian', 'Chinese', 'Japanese', 'Continental', 'Cafe',
+  'Fine dining', 'Mexican', 'Thai', 'Mediterranean', 'Bakery & Desserts',
+];
+
+const CATEGORY_OPTIONS = CATEGORIES.map((c) => ({ value: c, label: c }));
 
 /* ── LUXURY CUSTOM DROPDOWN ───────────────────────────────────── */
 function CustomLuxurySelect({ value, onChange, options, placeholder = 'Select Option' }) {
@@ -109,6 +117,7 @@ export default function AddRestaurant() {
 
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
+  const [category, setCategory] = useState('Multi-cuisine');
   const [description, setDescription] = useState('');
   const [openingHours, setOpeningHours] = useState('');
   const [tokenFee, setTokenFee] = useState('');
@@ -249,7 +258,7 @@ export default function AddRestaurant() {
         name: name.trim(),
         location: location.trim(),
         description: description.trim(),
-        category: 'Multi-cuisine',
+        category: category || 'Multi-cuisine',
         priceRange: Number(price),
         rating: rating !== '' ? Number(rating) : 4.5,
         tokenFee: Number(tokenFee),
@@ -326,10 +335,19 @@ export default function AddRestaurant() {
               <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-2">Restaurant Name *</label>
               <input type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. The Golden Fork & Grill" className="w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-sans text-sm text-white placeholder-white/20 outline-none transition-colors duration-200 focus:border-luxury-gold/60" />
             </div>
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-3 gap-4">
               <div>
                 <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-2">Location / City *</label>
                 <input type="text" required value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Bandra West, Mumbai" className="w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-sans text-sm text-white placeholder-white/20 outline-none transition-colors duration-200 focus:border-luxury-gold/60" />
+              </div>
+              <div>
+                <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-2">Cuisine / Category *</label>
+                <CustomLuxurySelect
+                  value={category}
+                  onChange={setCategory}
+                  options={CATEGORY_OPTIONS}
+                  placeholder="Select Cuisine"
+                />
               </div>
               <div>
                 <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-2">Opening Hours *</label>

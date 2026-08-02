@@ -94,15 +94,23 @@ function sanitizeURL(value) {
     return value;
   }
 
-  const trimmed = value.trim();
+  let trimmed = value.trim()
+    .replace(/&#x2F;/g, '/')
+    .replace(/&amp;/g, '&')
+    .replace(/&#x27;/g, "'")
+    .replace(/&quot;/g, '"');
 
-  // Check if valid URL
-  if (validator.isURL(trimmed, { protocols: ['http', 'https'], require_protocol: true })) {
+  // Allow standard http/https/data/blob/relative URLs
+  if (
+    validator.isURL(trimmed, { protocols: ['http', 'https'], require_protocol: true }) ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:') ||
+    trimmed.startsWith('/')
+  ) {
     return trimmed;
   }
 
-  logger.warn('Invalid URL detected and removed', { url: trimmed });
-  return '';
+  return trimmed;
 }
 
 /**
@@ -148,12 +156,14 @@ function sanitizeObject(obj, fieldRules = {}) {
     // Get field-specific rules
     const rules = fieldRules[key] || {};
 
+    const isUrlField = rules.type === 'url' || /url/i.test(key) || key === 'imageUrl' || key === 'imageUrls';
+
     // Handle different types
     if (typeof value === 'string') {
       // Apply field-specific sanitization
       if (rules.type === 'email') {
         sanitized[key] = sanitizeEmail(value);
-      } else if (rules.type === 'url') {
+      } else if (isUrlField) {
         sanitized[key] = sanitizeURL(value);
       } else if (rules.type === 'phone') {
         sanitized[key] = sanitizePhone(value);
@@ -180,6 +190,8 @@ const sanitizationRules = {
     name: { maxLength: 200 },
     description: { maxLength: 2000, allowHTML: true },
     address: { maxLength: 500 },
+    imageUrl: { type: 'url' },
+    imageUrls: { type: 'url' },
     phone: { type: 'phone' },
     email: { type: 'email' },
     website: { type: 'url' },

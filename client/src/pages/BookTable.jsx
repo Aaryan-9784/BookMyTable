@@ -79,7 +79,11 @@ export default function BookTable() {
     }
   };
 
-  if (!restaurant && !loading) {
+  if (loading) {
+    return <Loader />;
+  }
+
+  if (!restaurant) {
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center font-sans text-white/40">
         Invalid restaurant.{' '}
