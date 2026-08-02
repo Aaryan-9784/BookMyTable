@@ -85,15 +85,15 @@ export async function getDashboardStats(req, res) {
     .populate('userId', 'name email phone')
     .sort({ date: -1, time: -1, createdAt: -1 });
 
-  const activeBookings = bookings.filter((b) => b.status === 'confirmed').length;
+  const activeConfirmedBookings = bookings.filter(
+    (b) => b.status === 'confirmed' || b.status === 'checked-in' || b.status === 'completed'
+  );
+  const activeBookings = activeConfirmedBookings.length;
 
-  const totalGuestsInBookings = bookings
-    .filter((b) => b.status === 'confirmed')
-    .reduce((acc, b) => acc + (b.guests || 1), 0);
+  const totalGuestsInBookings = activeConfirmedBookings.reduce((acc, b) => acc + (b.guests || 1), 0);
 
   const tokenFeeRate = restaurant.tokenFee || 150;
-  const confirmedBookings = bookings.filter((b) => b.status === 'confirmed');
-  const totalTokenFees = confirmedBookings.reduce((acc, b) => {
+  const totalTokenFees = activeConfirmedBookings.reduce((acc, b) => {
     const fee = b.finalPayable > 0 ? b.finalPayable : (b.guests || 1) * tokenFeeRate;
     return acc + fee;
   }, 0);
@@ -213,7 +213,15 @@ export async function getBookings(req, res) {
     .populate('userId', 'name email phone')
     .sort({ createdAt: -1 });
 
-  res.json({ ok: true, bookings });
+  res.json({
+    ok: true,
+    restaurant: {
+      id: restaurant._id,
+      name: restaurant.name,
+      tokenFee: restaurant.tokenFee || 150,
+    },
+    bookings,
+  });
 }
 
 function formatMinutes(mins) {

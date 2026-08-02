@@ -401,6 +401,13 @@ export default function RestaurantDashboard() {
   const reservedCount  = stats.reservedTablesCount  ?? 0;
   const totalTables    = stats.totalTables          ?? 0;
 
+  const confirmedList = bookings.filter((b) => b.status === 'confirmed' || b.status === 'checked-in' || b.status === 'completed');
+  const liveActiveCount = confirmedList.length;
+  const liveTotalTokenFees = confirmedList.reduce((acc, b) => {
+    const fee = b.finalPayable > 0 ? b.finalPayable : (b.guests || 1) * (restaurant.tokenFee || 200);
+    return acc + fee;
+  }, 0);
+
   return (
     <div className="max-w-[1100px] mx-auto pb-12">
 
@@ -469,8 +476,8 @@ export default function RestaurantDashboard() {
         <StatCard
           line1="Active"
           line2="Bookings"
-          value={stats.activeBookings ?? 0}
-          sub={`${stats.totalBookings ?? 0} total reservations`}
+          value={liveActiveCount}
+          sub={`${bookings.length} total reservations`}
           Icon={IconActiveBookings}
         />
         <StatCard
@@ -487,7 +494,7 @@ export default function RestaurantDashboard() {
         <StatCard
           line1="Token Fees"
           line2="Earned"
-          value={`₹${(stats.totalTokenFees ?? 0).toLocaleString()}`}
+          value={`₹${liveTotalTokenFees.toLocaleString()}`}
           sub="From confirmed bookings"
           Icon={IconRevenue}
           accent

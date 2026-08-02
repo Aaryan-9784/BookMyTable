@@ -157,6 +157,7 @@ const FILTER_TABS = ['all', 'confirmed', 'cancelled'];
 
 /* ── MAIN COMPONENT ─────────────────────────────────────────── */
 export default function RestaurantBookings() {
+  const [restaurant, setRestaurant] = useState(null);
   const [bookings,   setBookings]   = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -169,6 +170,7 @@ export default function RestaurantBookings() {
     try {
       const res = await restaurantApi.getBookings();
       setBookings(res.data.bookings || []);
+      setRestaurant(res.data.restaurant || null);
     } catch (err) {
       toast.error(err.message || 'Failed to load bookings');
     } finally {
@@ -208,16 +210,22 @@ export default function RestaurantBookings() {
     }
   };
 
+  const getBookingTokenFee = (b) => {
+    if (b.finalPayable > 0) return b.finalPayable;
+    const rate = b.tokenFee || restaurant?.tokenFee || 200;
+    return (b.guests || 1) * rate;
+  };
+
   /* ── Derived stats ── */
   const confirmed  = bookings.filter((b) => b.status === 'confirmed' || b.status === 'checked-in');
-  const completed  = bookings.filter((b) => b.status === 'completed');
   const cancelled  = bookings.filter((b) => b.status === 'cancelled');
   const totalRevenue = confirmed.reduce(
-    (s, b) => s + (b.guests || 1) * (b.tokenFee || 150), 0
+    (s, b) => s + getBookingTokenFee(b), 0
   );
 
   const filteredBookings = bookings.filter((b) => {
     if (filter === 'all') return true;
+    if (filter === 'confirmed') return b.status === 'confirmed' || b.status === 'checked-in' || b.status === 'completed';
     return b.status === filter;
   });
 
@@ -234,7 +242,7 @@ export default function RestaurantBookings() {
             Manage Bookings
           </h1>
           <p className="mt-2 font-sans text-sm text-luxury-muted">
-            Approve, track, and manage all table reservations for your restaurant guests
+            Approve, track, and manage all table reservations for {restaurant?.name || 'your restaurant'}
           </p>
           <div
             className="mt-4 h-px w-20"
@@ -266,11 +274,9 @@ export default function RestaurantBookings() {
                     headers: ['Metric', 'Value'],
                     rows: [
                       ['Total Reservations', bookings.length],
-                      ['Confirmed',          bookings.filter((b) => b.status === 'confirmed').length],
-                      ['Checked In',         bookings.filter((b) => b.status === 'checked-in').length],
-                      ['Completed',          bookings.filter((b) => b.status === 'completed').length],
+                      ['Confirmed',          bookings.filter((b) => b.status === 'confirmed' || b.status === 'checked-in').length],
                       ['Cancelled',          bookings.filter((b) => b.status === 'cancelled').length],
-                      ['Token Revenue',      fmt(activeBookings.reduce((s, b) => s + (b.guests || 1) * (b.tokenFee || 150), 0))],
+                      ['Token Revenue',      fmt(activeBookings.reduce((s, b) => s + getBookingTokenFee(b), 0))],
                     ],
                   },
                   {
@@ -281,8 +287,8 @@ export default function RestaurantBookings() {
                       b.userId?.email || b.userId?.phone || '—',
                       fmtDate(b.date), b.time,
                       b.guests || 1,
-                      fmt((b.guests || 1) * (b.tokenFee || 150)),
-                      b.status,
+                      fmt(getBookingTokenFee(b)),
+                      b.status === 'cancelled' ? 'Cancelled' : 'Confirmed',
                       b.timeSpentFormatted || '—',
                     ]),
                   },
@@ -314,7 +320,7 @@ export default function RestaurantBookings() {
         <StatCard
           label="Active / Confirmed"
           value={confirmed.length}
-          sub={`${bookings.filter((b) => b.status === 'checked-in').length} currently checked-in`}
+          sub={`${confirmed.length} active reservation${confirmed.length !== 1 ? 's' : ''}`}
           Icon={IconConfirmed}
         />
         <StatCard
@@ -327,7 +333,7 @@ export default function RestaurantBookings() {
         <StatCard
           label="Cancelled"
           value={cancelled.length}
-          sub={`${completed.length} completed`}
+          sub={`${cancelled.length} total cancelled`}
           Icon={IconCancelled}
         />
       </div>
@@ -448,7 +454,7 @@ export default function RestaurantBookings() {
 
                   {/* Token Fee */}
                   <div className="font-sans text-sm font-bold text-luxury-gold/90">
-                    ₹{((b.guests || 1) * (b.tokenFee || 150)).toLocaleString()}
+                    ₹{getBookingTokenFee(b).toLocaleString()}
                   </div>
 
                   {/* Status */}

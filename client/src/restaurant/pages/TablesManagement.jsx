@@ -455,11 +455,6 @@ export default function TablesManagement() {
               Base Token Fee:{' '}
               <strong className="text-luxury-gold/80">₹{restaurant?.tokenFee || 150}</strong>
             </span>
-            <span className="text-white/20">·</span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-0.5 font-sans text-[10px] font-semibold text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Active & Operational
-            </span>
           </p>
           <div
             className="mt-4 h-px w-20"
@@ -585,16 +580,6 @@ export default function TablesManagement() {
           >
             {tables.length} Table{tables.length !== 1 ? 's' : ''}
           </span>
-
-          <button
-            type="button"
-            onClick={() => setShowRestModal(true)}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs text-luxury-gold/80 hover:text-luxury-gold transition-all duration-200"
-            style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.22)' }}
-          >
-            <IconEdit />
-            Edit Profile
-          </button>
 
           <button
             type="button"
