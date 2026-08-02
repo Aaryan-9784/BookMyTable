@@ -276,7 +276,7 @@ export default function BookingConfirmation() {
             <div>
               <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-white/40">Assigned Table</p>
               <p className="mt-1 font-sans text-sm font-bold text-amber-300">
-                {booking.tableNumber ? `Table ${booking.tableNumber}${booking.tableZone ? ` (${booking.tableZone})` : ''}` : 'T-01 (Main Hall)'}
+                {booking.tableNumber ? `Table ${booking.tableNumber}${booking.tableZone ? ` (${booking.tableZone})` : ''}` : 'T-01 (Fine Dining)'}
               </p>
             </div>
             <div>

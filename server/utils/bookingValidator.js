@@ -245,7 +245,7 @@ export async function validateRestaurantCapacity(restaurantId, date, time, guest
       _id: null,
       tableNumber: 'T-01',
       capacity: restaurantCapacity,
-      zone: 'Main Hall',
+      zone: 'Fine Dining',
     };
 
     return {

@@ -695,7 +695,7 @@ export default function BookingForm({
                         )}
                       </div>
                       <div className="mt-1 flex items-center justify-between text-[11px] font-sans">
-                        <span className="text-luxury-muted font-medium">{t.zone || 'Main Hall'}</span>
+                        <span className="text-luxury-muted font-medium">{t.zone || 'Fine Dining'}</span>
                         <span className="font-semibold text-amber-300">{t.capacity}-Seater</span>
                       </div>
                       {isDisabled && (

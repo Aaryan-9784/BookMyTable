@@ -25,8 +25,21 @@ const tableSchema = new mongoose.Schema(
     },
     zone: {
       type: String,
-      enum: ['Main Hall', 'Outdoor Terrace', 'VIP Private Dining', 'Rooftop', 'Bar Counter'],
-      default: 'Main Hall',
+      enum: [
+        'Fine Dining',
+        'Outdoor Terrace',
+        'Rooftop Dining',
+        'VIP Dining',
+        'Bar & Lounge',
+        'Gourmet Cuisine',
+        'Private Dining',
+        'Live Music',
+        'Main Hall',
+        'VIP Private Dining',
+        'Rooftop',
+        'Bar Counter',
+      ],
+      default: 'Fine Dining',
     },
     status: {
       type: String,

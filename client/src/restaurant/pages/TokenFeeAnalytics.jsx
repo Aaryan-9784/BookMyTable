@@ -115,11 +115,19 @@ function StatCard({ line1, line2, label, value, sub, Icon, accent = false }) {
 
 /* ── ZONE CHIP ──────────────────────────────────────────────── */
 const ZONE_COLORS = {
-  'Main Hall':          { bg: 'rgba(99,102,241,0.10)',  color: '#a5b4fc' },
-  'Outdoor Terrace':    { bg: 'rgba(34,197,94,0.08)',   color: '#6ee7b7' },
-  'VIP Private Dining': { bg: 'rgba(212,175,55,0.10)',  color: '#f5e27a' },
-  'Rooftop':            { bg: 'rgba(244,63,94,0.10)',   color: '#fb7185' },
-  'Bar Counter':        { bg: 'rgba(249,115,22,0.10)',  color: '#fdba74' },
+  'Fine Dining':        { bg: 'rgba(212,175,55,0.12)', color: '#f5e27a' },
+  'Outdoor Terrace':    { bg: 'rgba(34,197,94,0.12)',  color: '#86efac' },
+  'Rooftop Dining':     { bg: 'rgba(168,85,247,0.12)', color: '#d8b4fe' },
+  'VIP Dining':         { bg: 'rgba(234,179,8,0.12)',  color: '#fef08a' },
+  'Bar & Lounge':       { bg: 'rgba(249,115,22,0.12)', color: '#fdba74' },
+  'Gourmet Cuisine':    { bg: 'rgba(236,72,153,0.12)', color: '#fbcfe8' },
+  'Private Dining':     { bg: 'rgba(99,102,241,0.12)', color: '#a5b4fc' },
+  'Live Music':         { bg: 'rgba(14,165,233,0.12)', color: '#7dd3fc' },
+  // Legacy backward compatibility
+  'Main Hall':          { bg: 'rgba(212,175,55,0.12)', color: '#f5e27a' },
+  'VIP Private Dining': { bg: 'rgba(234,179,8,0.12)',  color: '#fef08a' },
+  'Rooftop':            { bg: 'rgba(168,85,247,0.12)', color: '#d8b4fe' },
+  'Bar Counter':        { bg: 'rgba(249,115,22,0.12)', color: '#fdba74' },
 };
 function ZoneChip({ zone }) {
   const cfg = ZONE_COLORS[zone] || { bg: 'rgba(255,255,255,0.06)', color: '#aaa' };

@@ -53,14 +53,15 @@ async function ensureDefaultTables(restaurantId, tokenFee = 150) {
   const count = await Table.countDocuments({ restaurantId });
   if (count === 0) {
     const defaultTables = [
-      { restaurantId, tableNumber: 'T-01', capacity: 2, zone: 'Main Hall', status: 'Available', tokenFee },
-      { restaurantId, tableNumber: 'T-02', capacity: 2, zone: 'Main Hall', status: 'Reserved', tokenFee },
-      { restaurantId, tableNumber: 'T-03', capacity: 4, zone: 'Main Hall', status: 'Available', tokenFee },
+      { restaurantId, tableNumber: 'T-01', capacity: 2, zone: 'Fine Dining', status: 'Available', tokenFee },
+      { restaurantId, tableNumber: 'T-02', capacity: 2, zone: 'Fine Dining', status: 'Reserved', tokenFee },
+      { restaurantId, tableNumber: 'T-03', capacity: 4, zone: 'Fine Dining', status: 'Available', tokenFee },
       { restaurantId, tableNumber: 'T-04', capacity: 4, zone: 'Outdoor Terrace', status: 'Available', tokenFee },
       { restaurantId, tableNumber: 'T-05', capacity: 6, zone: 'Outdoor Terrace', status: 'Available', tokenFee },
-      { restaurantId, tableNumber: 'VIP-01', capacity: 8, zone: 'VIP Private Dining', status: 'Reserved', tokenFee: tokenFee * 1.5 },
-      { restaurantId, tableNumber: 'VIP-02', capacity: 10, zone: 'VIP Private Dining', status: 'Available', tokenFee: tokenFee * 2 },
-      { restaurantId, tableNumber: 'RT-01', capacity: 4, zone: 'Rooftop', status: 'Available', tokenFee },
+      { restaurantId, tableNumber: 'VIP-01', capacity: 8, zone: 'VIP Dining', status: 'Reserved', tokenFee: tokenFee * 1.5 },
+      { restaurantId, tableNumber: 'VIP-02', capacity: 10, zone: 'VIP Dining', status: 'Available', tokenFee: tokenFee * 2 },
+      { restaurantId, tableNumber: 'RT-01', capacity: 4, zone: 'Rooftop Dining', status: 'Available', tokenFee },
+      { restaurantId, tableNumber: 'BAR-01', capacity: 2, zone: 'Bar & Lounge', status: 'Available', tokenFee },
     ];
     await Table.insertMany(defaultTables);
   }
@@ -178,7 +179,7 @@ export async function createTable(req, res) {
     restaurantId: restaurant._id,
     tableNumber: tableNumber.trim(),
     capacity: Number(capacity),
-    zone: zone || 'Main Hall',
+    zone: zone || 'Fine Dining',
     status: status || 'Available',
     tokenFee: tokenFee !== undefined ? Number(tokenFee) : restaurant.tokenFee || 150,
   });

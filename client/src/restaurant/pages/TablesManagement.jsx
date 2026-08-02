@@ -27,11 +27,14 @@ const BULK_CAPACITY_OPTIONS = [
 ];
 
 const ZONE_OPTIONS = [
-  { value: 'Main Hall', label: 'Main Hall' },
+  { value: 'Fine Dining', label: 'Fine Dining' },
   { value: 'Outdoor Terrace', label: 'Outdoor Terrace' },
-  { value: 'VIP Private Dining', label: 'VIP Private Dining' },
-  { value: 'Rooftop', label: 'Rooftop' },
-  { value: 'Bar Counter', label: 'Bar Counter' },
+  { value: 'Rooftop Dining', label: 'Rooftop Dining' },
+  { value: 'VIP Dining', label: 'VIP Dining' },
+  { value: 'Bar & Lounge', label: 'Bar & Lounge' },
+  { value: 'Gourmet Cuisine', label: 'Gourmet Cuisine' },
+  { value: 'Private Dining', label: 'Private Dining' },
+  { value: 'Live Music', label: 'Live Music' },
 ];
 
 const STATUS_OPTIONS = [
@@ -279,11 +282,19 @@ function TableStatusBadge({ status }) {
 
 /* ── ZONE CHIP ──────────────────────────────────────────────── */
 const ZONE_COLORS = {
-  'Main Hall':          { bg: 'rgba(99,102,241,0.10)', color: '#a5b4fc' },
-  'Outdoor Terrace':    { bg: 'rgba(34,197,94,0.08)',  color: '#6ee7b7' },
-  'VIP Private Dining': { bg: 'rgba(212,175,55,0.10)', color: '#f5e27a' },
-  'Rooftop':            { bg: 'rgba(244,63,94,0.10)',  color: '#fb7185' },
-  'Bar Counter':        { bg: 'rgba(249,115,22,0.10)', color: '#fdba74' },
+  'Fine Dining':        { bg: 'rgba(212,175,55,0.12)', color: '#f5e27a' },
+  'Outdoor Terrace':    { bg: 'rgba(34,197,94,0.12)',  color: '#86efac' },
+  'Rooftop Dining':     { bg: 'rgba(168,85,247,0.12)', color: '#d8b4fe' },
+  'VIP Dining':         { bg: 'rgba(234,179,8,0.12)',  color: '#fef08a' },
+  'Bar & Lounge':       { bg: 'rgba(249,115,22,0.12)', color: '#fdba74' },
+  'Gourmet Cuisine':    { bg: 'rgba(236,72,153,0.12)', color: '#fbcfe8' },
+  'Private Dining':     { bg: 'rgba(99,102,241,0.12)', color: '#a5b4fc' },
+  'Live Music':         { bg: 'rgba(14,165,233,0.12)', color: '#7dd3fc' },
+  // Legacy backward compatibility
+  'Main Hall':          { bg: 'rgba(212,175,55,0.12)', color: '#f5e27a' },
+  'VIP Private Dining': { bg: 'rgba(234,179,8,0.12)',  color: '#fef08a' },
+  'Rooftop':            { bg: 'rgba(168,85,247,0.12)', color: '#d8b4fe' },
+  'Bar Counter':        { bg: 'rgba(249,115,22,0.12)', color: '#fdba74' },
 };
 
 function ZoneChip({ zone }) {
@@ -349,7 +360,7 @@ export default function TablesManagement() {
   const [deleteTableId,  setDeleteTableId]  = useState(null);
   const [tableNumber, setTableNumber] = useState('');
   const [capacity,    setCapacity]    = useState(4);
-  const [zone,        setZone]        = useState('Main Hall');
+  const [zone,        setZone]        = useState('Fine Dining');
   const [status,      setStatus]      = useState('Available');
   const [tokenFee,    setTokenFee]    = useState(150);
   const [savingTable, setSavingTable] = useState(false);
@@ -358,7 +369,7 @@ export default function TablesManagement() {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkCount,     setBulkCount]     = useState(4);
   const [bulkCapacity,  setBulkCapacity]  = useState(4);
-  const [bulkZone,      setBulkZone]      = useState('Main Hall');
+  const [bulkZone,      setBulkZone]      = useState('Fine Dining');
   const [bulkTokenFee,  setBulkTokenFee]  = useState(150);
 
   /* Restaurant modal */
@@ -403,7 +414,7 @@ export default function TablesManagement() {
   const openAddTable = () => {
     setEditTableItem(null);
     setTableNumber(`T-${String(tables.length + 1).padStart(2, '0')}`);
-    setCapacity(4); setZone('Main Hall'); setStatus('Available');
+    setCapacity(4); setZone('Fine Dining'); setStatus('Available');
     setTokenFee(restaurant?.tokenFee || 150);
     setShowTableModal(true);
   };
