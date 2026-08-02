@@ -299,6 +299,18 @@ function ProfilePopup({ name, email, role, isCustomer, isRestaurant, isAdmin, on
               label="Saved Wishlist"
             />
           </Link>
+
+          {isRestaurant && (
+            <Link to="/restaurant-dashboard" onClick={onClose}>
+              <MenuItem icon={<IconSwitchView />} label="Partner Portal" />
+            </Link>
+          )}
+
+          {isAdmin && (
+            <Link to="/admin" onClick={onClose}>
+              <MenuItem icon={<IconSwitchView />} label="Admin Console" />
+            </Link>
+          )}
         </div>
 
         {/* Divider */}

@@ -106,6 +106,17 @@ export default function Profile() {
           userEmail={displayEmail}
         />
 
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="group mb-6 inline-flex items-center gap-2 px-1 py-1 font-sans text-sm font-medium text-gray-400 transition-all duration-200 hover:text-amber-400"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="transition-transform duration-200 group-hover:-translate-x-1">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          Back
+        </button>
+
         <header className="mb-10">
           <p className="mb-2.5 font-sans text-[0.65rem] font-bold uppercase tracking-[0.28em] text-luxury-gold/80">
             YOUR ACCOUNT
