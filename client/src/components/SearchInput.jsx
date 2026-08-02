@@ -40,7 +40,8 @@ export default function SearchInput({
       <input
         id={id}
         name={name}
-        type="search"
+        type="text"
+        role="searchbox"
         autoComplete="off"
         autoFocus={autoFocus}
         disabled={disabled}

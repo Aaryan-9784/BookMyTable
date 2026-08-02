@@ -365,7 +365,7 @@ export default function Navbar() {
     'User';
 
   const rawRole = profile?.role || (isAdmin ? 'admin' : isRestaurant ? 'restaurant' : 'customer');
-  const displayRole = rawRole === 'admin' ? 'ADMIN' : rawRole === 'restaurant' ? 'RESTAURANT PARTNER' : 'CUSTOMER ACCOUNT';
+  const displayRole = rawRole === 'admin' ? 'ADMIN' : rawRole === 'restaurant' ? 'RESTAURANT' : 'CUSTOMER';
 
   const transparent = isHome && !scrolled;
   const userInitials = initials(userName);

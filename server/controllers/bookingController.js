@@ -127,7 +127,7 @@ export async function createBooking(req, res, next) {
       };
     }
 
-    // Send real-time notification
+    // Send real-time notification to customer
     pushToUser(String(req.user._id), {
       id: Date.now(),
       type: 'booking_confirmed',
@@ -136,6 +136,18 @@ export async function createBooking(req, res, next) {
       time: 'Just now',
       unread: true,
     });
+
+    // Send real-time notification to restaurant owner if present
+    if (restaurant.ownerId) {
+      pushToUser(String(restaurant.ownerId), {
+        id: Date.now() + 1,
+        type: 'new_booking_received',
+        title: 'New Reservation Received 🔔',
+        desc: `New booking at ${restaurant.name} for ${date} at ${time} (${guests} guest${guests > 1 ? 's' : ''}).`,
+        time: 'Just now',
+        unread: true,
+      });
+    }
 
     const payload = populatedBooking.toObject ? populatedBooking.toObject() : populatedBooking;
 
@@ -274,7 +286,7 @@ export async function cancelBooking(req, res, next) {
       };
     }
 
-    // Send real-time notification
+    // Send real-time notification to customer
     pushToUser(String(userId), {
       id: Date.now(),
       type: 'booking_cancelled',
@@ -283,6 +295,18 @@ export async function cancelBooking(req, res, next) {
       time: 'Just now',
       unread: true,
     });
+
+    // Send real-time notification to restaurant owner if present
+    if (booking.restaurantId?.ownerId) {
+      pushToUser(String(booking.restaurantId.ownerId), {
+        id: Date.now() + 1,
+        type: 'booking_cancelled_partner',
+        title: 'Reservation Cancelled ⚠️',
+        desc: `Reservation at ${restName} on ${booking.date} at ${booking.time} for ${booking.guests} guest(s) was cancelled by customer.`,
+        time: 'Just now',
+        unread: true,
+      });
+    }
 
     const payload = booking.toObject ? booking.toObject() : booking;
 

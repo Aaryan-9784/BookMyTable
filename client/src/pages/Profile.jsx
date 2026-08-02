@@ -177,15 +177,14 @@ export default function Profile() {
                     <p className="break-all font-sans text-xs text-gray-400">{displayEmail}</p>
                     <div className="pt-1.5">
                       <span
-                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[10px] font-bold uppercase tracking-wider"
+                        className="inline-flex items-center rounded-full px-3 py-1 font-sans text-[10px] font-bold uppercase tracking-wider"
                         style={{
                           background: 'rgba(212,175,55,0.12)',
                           border: '1px solid rgba(212,175,55,0.30)',
                           color: '#f5e27a',
                         }}
                       >
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-                        {isAdmin ? 'Admin' : isRestaurant ? 'Restaurant Partner' : 'Customer Account'}
+                        {isAdmin ? 'ADMIN' : isRestaurant ? 'RESTAURANT' : 'CUSTOMER'}
                       </span>
                     </div>
                   </div>

@@ -6,6 +6,7 @@ import Restaurant from '../models/Restaurant.js';
 import Table from '../models/Table.js';
 import Booking from '../models/Booking.js';
 import User from '../models/User.js';
+import { pushToUser } from '../utils/sseManager.js';
 
 /**
  * Helper to retrieve active restaurant ID or default to user's assigned restaurant
@@ -219,11 +220,30 @@ export async function updateBookingStatus(req, res) {
     return res.status(400).json({ ok: false, error: 'Invalid booking status' });
   }
 
-  const booking = await Booking.findById(id);
+  const booking = await Booking.findById(id).populate('restaurantId');
   if (!booking) return res.status(404).json({ ok: false, error: 'Booking not found' });
 
   booking.status = status;
   await booking.save();
+
+  // Push real-time SSE notification to the customer
+  if (booking.userId) {
+    const restName = booking.restaurantId?.name || 'Restaurant';
+    const statusTitle =
+      status === 'confirmed'
+        ? 'Reservation Confirmed ✓'
+        : status === 'completed'
+        ? 'Reservation Completed 🎉'
+        : 'Reservation Cancelled ⚠️';
+    pushToUser(String(booking.userId), {
+      id: Date.now(),
+      type: `booking_${status}`,
+      title: statusTitle,
+      desc: `Your reservation at ${restName} on ${booking.date} at ${booking.time} was updated to "${status.toUpperCase()}".`,
+      time: 'Just now',
+      unread: true,
+    });
+  }
 
   res.json({ ok: true, booking });
 }

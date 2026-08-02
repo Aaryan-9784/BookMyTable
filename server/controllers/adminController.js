@@ -6,6 +6,7 @@ import { validationResult, body, param, query } from 'express-validator';
 import Restaurant from '../models/Restaurant.js';
 import Booking from '../models/Booking.js';
 import User from '../models/User.js';
+import { pushToUser } from '../utils/sseManager.js';
 
 export const restaurantWriteValidators = [
   body('name').trim().notEmpty(),
@@ -112,6 +113,18 @@ export async function approveRestaurantAdmin(req, res, next) {
     if (!doc) {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
+
+    if (doc.ownerId) {
+      pushToUser(String(doc.ownerId), {
+        id: Date.now(),
+        type: 'restaurant_approved',
+        title: 'Restaurant Approved 🎉',
+        desc: `Congratulations! Your venue "${doc.name}" has been approved by the platform admin and is now live.`,
+        time: 'Just now',
+        unread: true,
+      });
+    }
+
     res.json({ ok: true, message: 'Restaurant approved successfully', restaurant: doc });
   } catch (e) {
     next(e);
@@ -135,6 +148,18 @@ export async function rejectRestaurantAdmin(req, res, next) {
     if (!doc) {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
+
+    if (doc.ownerId) {
+      pushToUser(String(doc.ownerId), {
+        id: Date.now(),
+        type: 'restaurant_rejected',
+        title: 'Submission Update ⚠️',
+        desc: `Your venue listing for "${doc.name}" was not approved. Reason: ${reason}`,
+        time: 'Just now',
+        unread: true,
+      });
+    }
+
     res.json({ ok: true, message: 'Restaurant rejected', restaurant: doc });
   } catch (e) {
     next(e);
