@@ -38,7 +38,21 @@ export async function createBooking(req, res, next) {
       });
     }
 
-    const { restaurantId, date, time, guests, specialRequests, paymentId, couponCode, discountAmount, finalPayable } = req.body;
+    const {
+      restaurantId,
+      date,
+      time,
+      guests,
+      specialRequests,
+      paymentId,
+      couponCode,
+      discountAmount,
+      finalPayable,
+      checkInTime,
+      checkOutTime,
+      timeSpentFormatted,
+      timeSpentMinutes,
+    } = req.body;
 
     logger.info('Creating booking', {
       userId: String(req.user._id),
@@ -79,6 +93,10 @@ export async function createBooking(req, res, next) {
       couponCode: couponCode || null,
       discountAmount: Number(discountAmount) || 0,
       finalPayable: Number(finalPayable) || 0,
+      checkInTime: checkInTime ? new Date(checkInTime) : null,
+      checkOutTime: checkOutTime ? new Date(checkOutTime) : null,
+      timeSpentFormatted: timeSpentFormatted || null,
+      timeSpentMinutes: timeSpentMinutes ? Number(timeSpentMinutes) : 0,
       status: 'confirmed',
     });
 

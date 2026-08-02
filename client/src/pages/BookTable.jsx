@@ -52,7 +52,19 @@ export default function BookTable() {
 
   const slots = restaurantTimeSlots(restaurant?.openingHours);
 
-  const handleBook = async ({ date, time, guests, paymentId, couponCode, discountAmount, finalPayable }) => {
+  const handleBook = async ({
+    date,
+    time,
+    guests,
+    paymentId,
+    couponCode,
+    discountAmount,
+    finalPayable,
+    checkInTime,
+    checkOutTime,
+    timeSpentFormatted,
+    timeSpentMinutes,
+  }) => {
     if (isPastDateStr(date)) {
       toast.error('Choose today or a future date');
       return;
@@ -68,6 +80,10 @@ export default function BookTable() {
         couponCode,
         discountAmount,
         finalPayable,
+        checkInTime,
+        checkOutTime,
+        timeSpentFormatted,
+        timeSpentMinutes,
       });
 
       const resData = res.data;

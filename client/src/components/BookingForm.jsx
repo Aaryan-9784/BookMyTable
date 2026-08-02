@@ -184,9 +184,66 @@ export default function BookingForm({
     ? (defaultTime && timeSlots.includes(defaultTime) ? defaultTime : timeSlots[0])
     : defaultTime;
 
+  // Generate Check-Out time slots from 11:30 to 23:00 (11:30 AM to 11:00 PM)
+  const checkOutSlots = (() => {
+    const slots = [];
+    for (let m = 690; m <= 1380; m += 30) {
+      const hh = Math.floor(m / 60);
+      const mm = m % 60;
+      slots.push(`${String(hh).padStart(2, '0')}:${mm === 0 ? '00' : '30'}`);
+    }
+    return slots;
+  })();
+
   const [date, setDate] = useState(defaultDate);
   const [selectedTime, setSelectedTime] = useState(resolvedDefault);
+  const [checkOutTime, setCheckOutTime] = useState(() => {
+    if (!resolvedDefault) return '12:30';
+    const [h, m] = resolvedDefault.split(':').map((v) => parseInt(v, 10) || 0);
+    const outMins = Math.min(1380, Math.max(690, h * 60 + m + 90)); // default +1.5 hrs
+    const outH = Math.floor(outMins / 60);
+    const outM = outMins % 60;
+    return `${String(outH).padStart(2, '0')}:${outM === 0 ? '00' : '30'}`;
+  });
   const [guests, setGuests] = useState(defaultGuests);
+
+  // Auto adjust checkOutTime when selectedTime (check-in) changes
+  useEffect(() => {
+    if (!selectedTime) return;
+    const [inH, inM] = selectedTime.split(':').map((v) => parseInt(v, 10) || 0);
+    const inMins = inH * 60 + inM;
+    const [outH, outM] = (checkOutTime || '').split(':').map((v) => parseInt(v, 10) || 0);
+    const outMins = outH * 60 + outM;
+
+    if (outMins <= inMins) {
+      const targetMins = Math.min(1380, Math.max(690, inMins + 90));
+      const hh = Math.floor(targetMins / 60);
+      const mm = targetMins % 60;
+      setCheckOutTime(`${String(hh).padStart(2, '0')}:${mm === 0 ? '00' : '30'}`);
+    }
+  }, [selectedTime]);
+
+  // Auto calculate duration in minutes & formatted text
+  const calculateDuration = (inT, outT) => {
+    if (!inT || !outT) return { mins: 90, formatted: '1 hr 30 mins' };
+    const [inH, inM] = inT.split(':').map((v) => parseInt(v, 10) || 0);
+    const [outH, outM] = outT.split(':').map((v) => parseInt(v, 10) || 0);
+    
+    let diff = (outH * 60 + outM) - (inH * 60 + inM);
+    if (diff <= 0) diff += 24 * 60; // handle post-midnight checkout
+    
+    const h = Math.floor(diff / 60);
+    const m = Math.round(diff % 60);
+    
+    let formatted = '';
+    if (h > 0 && m > 0) formatted = `${h} hr${h > 1 ? 's' : ''} ${m} min${m > 1 ? 's' : ''}`;
+    else if (h > 0) formatted = `${h} hr${h > 1 ? 's' : ''}`;
+    else formatted = `${m} min${m > 1 ? 's' : ''}`;
+    
+    return { mins: diff, formatted };
+  };
+
+  const durationInfo = calculateDuration(selectedTime, checkOutTime);
 
   /* Coupon State — Strict Single Active Coupon Rule */
   const [couponInput, setCouponInput] = useState('');
@@ -268,6 +325,13 @@ export default function BookingForm({
       return;
     }
 
+    const payloadTimes = {
+      checkInTime: date && selectedTime ? `${date}T${selectedTime}:00` : null,
+      checkOutTime: date && checkOutTime ? `${date}T${checkOutTime}:00` : null,
+      timeSpentFormatted: durationInfo.formatted,
+      timeSpentMinutes: durationInfo.mins,
+    };
+
     const isLoaded = await loadRazorpaySDK();
     if (!isLoaded) {
       toast.error('Razorpay SDK failed to load. Proceeding with instant reservation...');
@@ -278,6 +342,7 @@ export default function BookingForm({
         couponCode: appliedCoupon?.code || null,
         discountAmount,
         finalPayable,
+        ...payloadTimes,
       });
       return;
     }
@@ -320,6 +385,7 @@ export default function BookingForm({
           couponCode: appliedCoupon?.code || null,
           discountAmount,
           finalPayable,
+          ...payloadTimes,
         });
       },
       prefill: {
@@ -348,6 +414,7 @@ export default function BookingForm({
         couponCode: appliedCoupon?.code || null,
         discountAmount,
         finalPayable,
+        ...payloadTimes,
       });
     }
   };
@@ -373,7 +440,7 @@ export default function BookingForm({
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {/* Date */}
             <div>
               <label htmlFor="date" className="mb-2 flex items-center gap-2 font-sans text-xs font-semibold text-white/80">
@@ -391,10 +458,10 @@ export default function BookingForm({
               />
             </div>
 
-            {/* Time Slot */}
+            {/* Check-In Time */}
             <div>
               <label className="mb-2 flex items-center gap-2 font-sans text-xs font-semibold text-white/80">
-                <IconClock /> Time Slot *
+                <IconClock /> Check-In Time *
               </label>
               {timeSlots?.length ? (
                 <TimeSelect value={selectedTime} onChange={setSelectedTime} options={timeSlots} />
@@ -410,6 +477,30 @@ export default function BookingForm({
                 />
               )}
             </div>
+
+            {/* Check-Out Time */}
+            <div>
+              <label className="mb-2 flex items-center gap-2 font-sans text-xs font-semibold text-white/80">
+                <IconClock /> Check-Out Time *
+              </label>
+              <TimeSelect value={checkOutTime} onChange={setCheckOutTime} options={checkOutSlots} />
+            </div>
+          </div>
+
+          {/* Calculated Duration Banner */}
+          <div
+            className="flex items-center justify-between rounded-xl px-4 py-2.5"
+            style={{
+              background: 'rgba(212,175,55,0.08)',
+              border: '1px solid rgba(212,175,55,0.22)',
+            }}
+          >
+            <span className="font-sans text-xs font-medium text-luxury-gold flex items-center gap-1.5">
+              <span>⏱️</span> Expected Dining Duration:
+            </span>
+            <span className="font-sans text-xs font-bold text-white">
+              {durationInfo.formatted} ({selectedTime} to {checkOutTime})
+            </span>
           </div>
 
           {/* Guest Selector (Manual Edit Support) */}

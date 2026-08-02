@@ -219,100 +219,62 @@ function OccupancyCard({ available, reserved, total }) {
   );
 }
 
+import TimeSpentModal from '../components/TimeSpentModal.jsx';
+
 /* ── STATUS BADGE ───────────────────────────────────────────── */
 function StatusBadge({ status }) {
   const v = String(status).toLowerCase();
-  const configs = {
-    confirmed: { text: 'Confirmed', bg: 'rgba(34,197,94,0.10)', border: 'rgba(34,197,94,0.22)', color: '#4ade80', dot: true },
-    completed:  { text: 'Completed', bg: 'rgba(99,102,241,0.10)', border: 'rgba(99,102,241,0.22)', color: '#a5b4fc', dot: false },
-    cancelled:  { text: 'Cancelled', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.22)', color: '#f87171', dot: false },
-    pending:    { text: 'Pending',   bg: 'rgba(234,179,8,0.10)', border: 'rgba(234,179,8,0.22)', color: '#fbbf24', dot: true },
-  };
-  const cfg = configs[v] || { text: status, bg: 'transparent', border: 'rgba(255,255,255,0.1)', color: '#888', dot: false };
+  const isCancelled = v === 'cancelled';
+
+  const cfg = isCancelled
+    ? { text: 'Cancelled', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.22)', color: '#f87171' }
+    : { text: 'Confirmed', bg: 'rgba(34,197,94,0.10)', border: 'rgba(34,197,94,0.22)', color: '#4ade80' };
 
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold select-none"
+      className="inline-flex items-center rounded-full px-3 py-1 font-sans text-[11px] font-semibold select-none"
       style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
     >
-      {cfg.dot && <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: cfg.color }} />}
       {cfg.text}
     </span>
   );
 }
 
-/* ── INLINE STATUS SELECTOR ─────────────────────────────────── */
-function StatusSelector({ bookingId, currentStatus, onUpdated }) {
+/* ── DIRECT CANCEL BUTTON ────────────────────────────────────── */
+function DirectCancelBtn({ booking, onUpdated }) {
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
 
-  const options = [
-    { value: 'confirmed', label: 'Confirmed', color: '#4ade80' },
-    { value: 'completed', label: 'Completed', color: '#a5b4fc' },
-    { value: 'cancelled', label: 'Cancelled', color: '#f87171' },
-  ].filter((o) => o.value !== currentStatus);
-
-  const handleSelect = async (newStatus) => {
-    setOpen(false);
+  const handleCancel = async () => {
     setLoading(true);
     try {
-      await restaurantApi.updateBookingStatus(bookingId, newStatus);
-      toast.success(`Booking marked as ${newStatus}`);
-      onUpdated(bookingId, newStatus);
+      const res = await restaurantApi.updateBookingStatus(booking._id, 'cancelled');
+      toast.success('Booking marked as Cancelled');
+      onUpdated(booking._id, 'cancelled', res.data?.booking);
     } catch (err) {
-      toast.error(err?.response?.data?.error || 'Failed to update status');
+      toast.error(err?.response?.data?.error || 'Failed to cancel booking');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative">
-      <button
-        type="button"
-        disabled={loading}
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 font-sans text-[11px] text-luxury-muted hover:text-luxury-gold transition-all duration-200"
-        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-        title="Change status"
-      >
-        {loading ? (
-          <span className="h-3 w-3 rounded-full border border-luxury-gold/40 border-t-luxury-gold animate-spin" />
-        ) : (
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-            <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
-        Change
-      </button>
-
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div
-            className="absolute right-0 top-full z-20 mt-1.5 overflow-hidden rounded-xl py-1 min-w-[130px]"
-            style={{
-              background: '#1a1a1a',
-              border: '1px solid rgba(212,175,55,0.15)',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.7)',
-            }}
-          >
-            {options.map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                onClick={() => handleSelect(o.value)}
-                className="flex w-full items-center gap-2.5 px-3.5 py-2 font-sans text-xs transition-colors duration-150 hover:bg-white/5"
-                style={{ color: o.color }}
-              >
-                <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: o.color }} />
-                {o.label}
-              </button>
-            ))}
-          </div>
-        </>
+    <button
+      type="button"
+      disabled={loading}
+      onClick={handleCancel}
+      className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-sans text-xs font-semibold text-red-400 hover:text-red-300 transition-all duration-200 disabled:opacity-40"
+      style={{
+        background: 'rgba(239,68,68,0.08)',
+        border: '1px solid rgba(239,68,68,0.22)',
+      }}
+      title="Cancel reservation"
+    >
+      {loading ? (
+        <span className="h-3 w-3 rounded-full border border-red-400 border-t-transparent animate-spin" />
+      ) : (
+        'Cancel'
       )}
-    </div>
+    </button>
   );
 }
 
@@ -388,12 +350,41 @@ export default function RestaurantDashboard() {
     toast.success('Analytics exported as CSV!');
   }, [data, bookings]);
 
+  const [selectedBookingForComplete, setSelectedBookingForComplete] = useState(null);
+  const [submittingTimeSpent, setSubmittingTimeSpent] = useState(false);
+
   /* Inline booking status update (updates local state) */
-  const handleBookingStatusUpdate = useCallback((bookingId, newStatus) => {
+  const handleBookingStatusUpdate = useCallback((bookingId, newStatus, updatedObj) => {
     setBookings((prev) =>
-      prev.map((b) => (b._id === bookingId ? { ...b, status: newStatus } : b))
+      prev.map((b) => {
+        if (b._id === bookingId) {
+          return {
+            ...b,
+            status: newStatus,
+            ...(updatedObj || {}),
+          };
+        }
+        return b;
+      })
     );
   }, []);
+
+  const handleConfirmCompleteWithTime = async ({ bookingId, timeSpentFormatted, timeSpentMinutes }) => {
+    setSubmittingTimeSpent(true);
+    try {
+      const res = await restaurantApi.updateBookingStatus(bookingId, 'completed', {
+        timeSpentFormatted,
+        timeSpentMinutes,
+      });
+      toast.success(`Booking completed! Customer spent ${timeSpentFormatted}`);
+      handleBookingStatusUpdate(bookingId, 'completed', res.data?.booking || { timeSpentFormatted });
+      setSelectedBookingForComplete(null);
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to complete booking');
+    } finally {
+      setSubmittingTimeSpent(false);
+    }
+  };
 
   if (loading && !data) {
     return (
@@ -602,15 +593,14 @@ export default function RestaurantDashboard() {
 
                 {/* Status badge */}
                 <div>
-                  <StatusBadge status={b.status} />
+                  <StatusBadge status={b.status} timeSpentFormatted={b.timeSpentFormatted} />
                 </div>
 
                 {/* Actions */}
                 <div className="flex justify-end">
-                  {b.status !== 'cancelled' && b.status !== 'completed' ? (
-                    <StatusSelector
-                      bookingId={b._id}
-                      currentStatus={b.status}
+                  {b.status !== 'cancelled' ? (
+                    <DirectCancelBtn
+                      booking={b}
                       onUpdated={handleBookingStatusUpdate}
                     />
                   ) : (
@@ -622,6 +612,15 @@ export default function RestaurantDashboard() {
           </div>
         )}
       </div>
+
+      {/* ── TIME SPENT MODAL ── */}
+      <TimeSpentModal
+        open={Boolean(selectedBookingForComplete)}
+        booking={selectedBookingForComplete}
+        onClose={() => setSelectedBookingForComplete(null)}
+        onConfirm={handleConfirmCompleteWithTime}
+        loading={submittingTimeSpent}
+      />
     </div>
   );
 }

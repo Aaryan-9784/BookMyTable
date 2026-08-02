@@ -163,12 +163,17 @@ export default function MyBookings() {
           /* ── BOOKING CARDS ── */
           <ul className="space-y-5">
             {rows.map((b) => {
-              const rest     = b.restaurantId;
-              const name     = typeof rest === 'object' && rest?.name ? rest.name : 'Restaurant';
-              const rid      = typeof rest === 'object' && rest?._id  ? rest._id  : null;
-              const status   = b.status || 'confirmed';
-              const canCancel = status === 'confirmed';
-              const isCancelled = status === 'cancelled';
+              const rest        = b.restaurantId;
+              const name        = typeof rest === 'object' && rest?.name ? rest.name : 'Restaurant';
+              const rid         = typeof rest === 'object' && rest?._id  ? rest._id  : null;
+              const status      = b.status || 'confirmed';
+              const isCancelled = String(status).toLowerCase() === 'cancelled';
+              const canCancel   = !isCancelled;
+
+              const badgeBg = isCancelled ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.10)';
+              const badgeBorder = isCancelled ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.22)';
+              const badgeColor = isCancelled ? '#f87171' : '#4ade80';
+              const badgeLabel = isCancelled ? 'Cancelled' : 'Confirmed';
 
               return (
                 <li
@@ -208,25 +213,31 @@ export default function MyBookings() {
                     {/* LEFT — details */}
                     <div className="flex-1 min-w-0">
                       {/* Status badge */}
-                      <div className="mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1"
-                        style={isCancelled ? {
-                          background: 'rgba(239,68,68,0.08)',
-                          border: '1px solid rgba(239,68,68,0.2)',
-                        } : {
-                          background: 'rgba(212,175,55,0.1)',
-                          border: '1px solid rgba(212,175,55,0.25)',
-                        }}
-                      >
-                        <span
-                          className="h-1.5 w-1.5 rounded-full"
-                          style={{ background: isCancelled ? '#ef4444' : '#d4af37' }}
-                        />
-                        <span
-                          className="font-sans text-[0.6rem] font-semibold uppercase tracking-[0.2em]"
-                          style={{ color: isCancelled ? '#f87171' : '#d4af37' }}
+                      <div className="mb-3 flex items-center gap-2 flex-wrap">
+                        <div
+                          className="inline-flex items-center rounded-full px-3 py-1"
+                          style={{ background: badgeBg, border: `1px solid ${badgeBorder}` }}
                         >
-                          {isCancelled ? 'Cancelled' : 'Confirmed'}
-                        </span>
+                          <span
+                            className="font-sans text-[0.6rem] font-semibold uppercase tracking-[0.2em]"
+                            style={{ color: badgeColor }}
+                          >
+                            {badgeLabel}
+                          </span>
+                        </div>
+
+                        {isCompleted && b.timeSpentFormatted && (
+                          <span
+                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-xs font-semibold"
+                            style={{
+                              background: 'rgba(99,102,241,0.15)',
+                              border: '1px solid rgba(99,102,241,0.3)',
+                              color: '#c7d2fe',
+                            }}
+                          >
+                            ⏱️ Time Spent: {b.timeSpentFormatted}
+                          </span>
+                        )}
                       </div>
 
                       {/* Restaurant name */}

@@ -216,14 +216,26 @@ export async function getBookings(req, res) {
   res.json({ ok: true, bookings });
 }
 
+function formatMinutes(mins) {
+  if (!mins || mins <= 0) return '0 mins';
+  const hours = Math.floor(mins / 60);
+  const remainingMins = Math.round(mins % 60);
+  if (hours > 0 && remainingMins > 0) {
+    return `${hours} hr${hours > 1 ? 's' : ''} ${remainingMins} min${remainingMins > 1 ? 's' : ''}`;
+  } else if (hours > 0) {
+    return `${hours} hr${hours > 1 ? 's' : ''}`;
+  }
+  return `${remainingMins} min${remainingMins > 1 ? 's' : ''}`;
+}
+
 /**
  * PUT /api/restaurant-dashboard/bookings/:id/status
  */
 export async function updateBookingStatus(req, res) {
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, checkInTime, checkOutTime, timeSpentMinutes, timeSpentFormatted } = req.body;
 
-  if (!['confirmed', 'cancelled', 'completed'].includes(status)) {
+  if (!['confirmed', 'checked-in', 'completed', 'cancelled'].includes(status)) {
     return res.status(400).json({ ok: false, error: 'Invalid booking status' });
   }
 
@@ -231,6 +243,25 @@ export async function updateBookingStatus(req, res) {
   if (!booking) return res.status(404).json({ ok: false, error: 'Booking not found' });
 
   booking.status = status;
+
+  if (status === 'checked-in') {
+    booking.checkInTime = checkInTime ? new Date(checkInTime) : (booking.checkInTime || new Date());
+  } else if (status === 'completed') {
+    if (checkInTime) booking.checkInTime = new Date(checkInTime);
+    if (!booking.checkInTime) booking.checkInTime = new Date(Date.now() - 60 * 60 * 1000); // default fallback 1hr ago
+    booking.checkOutTime = checkOutTime ? new Date(checkOutTime) : new Date();
+
+    if (timeSpentFormatted) {
+      booking.timeSpentFormatted = timeSpentFormatted;
+      if (timeSpentMinutes) booking.timeSpentMinutes = Number(timeSpentMinutes);
+    } else {
+      const diffMs = Math.max(0, new Date(booking.checkOutTime) - new Date(booking.checkInTime));
+      const mins = Math.max(1, Math.round(diffMs / 60000));
+      booking.timeSpentMinutes = timeSpentMinutes ? Number(timeSpentMinutes) : mins;
+      booking.timeSpentFormatted = formatMinutes(booking.timeSpentMinutes);
+    }
+  }
+
   await booking.save();
 
   // Push real-time SSE notification to the customer
@@ -239,14 +270,21 @@ export async function updateBookingStatus(req, res) {
     const statusTitle =
       status === 'confirmed'
         ? 'Reservation Confirmed ✓'
+        : status === 'checked-in'
+        ? 'Checked In at Restaurant 🍽️'
         : status === 'completed'
         ? 'Reservation Completed 🎉'
         : 'Reservation Cancelled ⚠️';
+    const statusDesc =
+      status === 'completed' && booking.timeSpentFormatted
+        ? `Your visit at ${restName} is completed. Total time spent: ${booking.timeSpentFormatted}. Thank you for dining with us!`
+        : `Your reservation at ${restName} on ${booking.date} at ${booking.time} was updated to "${status.toUpperCase()}".`;
+
     pushToUser(String(booking.userId), {
       id: Date.now(),
       type: `booking_${status}`,
       title: statusTitle,
-      desc: `Your reservation at ${restName} on ${booking.date} at ${booking.time} was updated to "${status.toUpperCase()}".`,
+      desc: statusDesc,
       time: 'Just now',
       unread: true,
     });

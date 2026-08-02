@@ -108,22 +108,21 @@ function StatCard({ line1, line2, label, value, sub, Icon, accent = false }) {
   );
 }
 
+import TimeSpentModal from '../components/TimeSpentModal.jsx';
+
 /* ── STATUS BADGE ───────────────────────────────────────────── */
 function StatusBadge({ status }) {
   const v = String(status).toLowerCase();
-  const configs = {
-    confirmed: { text: 'Confirmed', bg: 'rgba(34,197,94,0.10)',  border: 'rgba(34,197,94,0.22)',  color: '#4ade80', dot: true  },
-    completed: { text: 'Completed', bg: 'rgba(99,102,241,0.10)', border: 'rgba(99,102,241,0.22)', color: '#a5b4fc', dot: false },
-    cancelled: { text: 'Cancelled', bg: 'rgba(239,68,68,0.08)',  border: 'rgba(239,68,68,0.22)',  color: '#f87171', dot: false },
-    pending:   { text: 'Pending',   bg: 'rgba(234,179,8,0.10)',  border: 'rgba(234,179,8,0.22)',  color: '#fbbf24', dot: true  },
-  };
-  const cfg = configs[v] || { text: status, bg: 'transparent', border: 'rgba(255,255,255,0.1)', color: '#888', dot: false };
+  const isCancelled = v === 'cancelled';
+  const cfg = isCancelled
+    ? { text: 'Cancelled', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.22)', color: '#f87171' }
+    : { text: 'Confirmed', bg: 'rgba(34,197,94,0.10)', border: 'rgba(34,197,94,0.22)', color: '#4ade80' };
+
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-[11px] font-semibold capitalize"
+      className="inline-flex items-center rounded-full px-3 py-1 font-sans text-[11px] font-semibold capitalize"
       style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
     >
-      {cfg.dot && <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: cfg.color }} />}
       {cfg.text}
     </span>
   );
@@ -154,7 +153,7 @@ function ActionBtn({ label, color, hoverBg, hoverBorder, onClick, disabled }) {
 }
 
 /* ── FILTER TAB ─────────────────────────────────────────────── */
-const FILTER_TABS = ['all', 'confirmed', 'completed', 'cancelled'];
+const FILTER_TABS = ['all', 'confirmed', 'cancelled'];
 
 /* ── MAIN COMPONENT ─────────────────────────────────────────── */
 export default function RestaurantBookings() {
@@ -180,12 +179,16 @@ export default function RestaurantBookings() {
 
   useEffect(() => { fetchBookings(); }, [fetchBookings]);
 
-  const handleStatusChange = async (id, status) => {
+  const [selectedBookingForComplete, setSelectedBookingForComplete] = useState(null);
+  const [submittingTimeSpent, setSubmittingTimeSpent] = useState(false);
+
+  const handleStatusChange = async (id, status, extraBody = {}) => {
     setUpdatingId(id);
     try {
-      await restaurantApi.updateBookingStatus(id, status);
-      toast.success(`Booking marked as ${status}`);
-      setBookings((prev) => prev.map((b) => b._id === id ? { ...b, status } : b));
+      const res = await restaurantApi.updateBookingStatus(id, status, extraBody);
+      const updated = res.data?.booking;
+      toast.success(`Booking marked as ${status.toUpperCase()}`);
+      setBookings((prev) => prev.map((b) => b._id === id ? { ...b, status, ...(updated || {}) } : b));
     } catch (err) {
       toast.error(err.message || 'Failed to update status');
     } finally {
@@ -193,8 +196,20 @@ export default function RestaurantBookings() {
     }
   };
 
+  const handleConfirmCompleteWithTime = async ({ bookingId, timeSpentFormatted, timeSpentMinutes }) => {
+    setSubmittingTimeSpent(true);
+    try {
+      await handleStatusChange(bookingId, 'completed', { timeSpentFormatted, timeSpentMinutes });
+      setSelectedBookingForComplete(null);
+    } catch (err) {
+      toast.error(err?.message || 'Failed to complete reservation');
+    } finally {
+      setSubmittingTimeSpent(false);
+    }
+  };
+
   /* ── Derived stats ── */
-  const confirmed  = bookings.filter((b) => b.status === 'confirmed');
+  const confirmed  = bookings.filter((b) => b.status === 'confirmed' || b.status === 'checked-in');
   const completed  = bookings.filter((b) => b.status === 'completed');
   const cancelled  = bookings.filter((b) => b.status === 'cancelled');
   const totalRevenue = confirmed.reduce(
@@ -207,7 +222,7 @@ export default function RestaurantBookings() {
   });
 
   return (
-    <div className="max-w-[1100px] mx-auto">
+    <div className="max-w-[1100px] mx-auto pb-12">
 
       {/* ── Page Header Row ─────────────────────────────────── */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between anim-fade-up">
@@ -242,7 +257,7 @@ export default function RestaurantBookings() {
           <button
             type="button"
             onClick={() => {
-              const confirmed = bookings.filter((b) => b.status === 'confirmed');
+              const activeBookings = bookings.filter((b) => b.status === 'confirmed' || b.status === 'checked-in');
               downloadCSV(
                 `bookings_export_${today()}.csv`,
                 [
@@ -252,14 +267,15 @@ export default function RestaurantBookings() {
                     rows: [
                       ['Total Reservations', bookings.length],
                       ['Confirmed',          bookings.filter((b) => b.status === 'confirmed').length],
+                      ['Checked In',         bookings.filter((b) => b.status === 'checked-in').length],
                       ['Completed',          bookings.filter((b) => b.status === 'completed').length],
                       ['Cancelled',          bookings.filter((b) => b.status === 'cancelled').length],
-                      ['Token Revenue',      fmt(confirmed.reduce((s, b) => s + (b.guests || 1) * (b.tokenFee || 150), 0))],
+                      ['Token Revenue',      fmt(activeBookings.reduce((s, b) => s + (b.guests || 1) * (b.tokenFee || 150), 0))],
                     ],
                   },
                   {
                     title: 'All Reservations',
-                    headers: ['Customer Name', 'Email / Phone', 'Date', 'Time', 'Guests', 'Token Fee Paid', 'Status'],
+                    headers: ['Customer Name', 'Email / Phone', 'Date', 'Time', 'Guests', 'Token Fee Paid', 'Status', 'Time Spent'],
                     rows: bookings.map((b) => [
                       b.userId?.name  || 'Guest',
                       b.userId?.email || b.userId?.phone || '—',
@@ -267,6 +283,7 @@ export default function RestaurantBookings() {
                       b.guests || 1,
                       fmt((b.guests || 1) * (b.tokenFee || 150)),
                       b.status,
+                      b.timeSpentFormatted || '—',
                     ]),
                   },
                 ],
@@ -295,9 +312,9 @@ export default function RestaurantBookings() {
           Icon={IconCalendar}
         />
         <StatCard
-          label="Confirmed"
+          label="Active / Confirmed"
           value={confirmed.length}
-          sub="Active confirmed bookings"
+          sub={`${bookings.filter((b) => b.status === 'checked-in').length} currently checked-in`}
           Icon={IconConfirmed}
         />
         <StatCard
@@ -334,7 +351,7 @@ export default function RestaurantBookings() {
 
           {/* Filter tabs */}
           <div
-            className="flex items-center gap-1 rounded-full p-1.5"
+            className="flex items-center gap-1 rounded-full p-1.5 flex-wrap"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
           >
             {FILTER_TABS.map((tab) => {
@@ -436,32 +453,12 @@ export default function RestaurantBookings() {
 
                   {/* Status */}
                   <div>
-                    <StatusBadge status={b.status} />
+                    <StatusBadge status={b.status} timeSpentFormatted={b.timeSpentFormatted} />
                   </div>
 
                   {/* Actions */}
                   <div className="flex items-center justify-end gap-2 flex-wrap">
-                    {b.status !== 'confirmed' && (
-                      <ActionBtn
-                        label="Confirm"
-                        color="#4ade80"
-                        hoverBg="rgba(34,197,94,0.15)"
-                        hoverBorder="rgba(34,197,94,0.35)"
-                        onClick={() => handleStatusChange(b._id, 'confirmed')}
-                        disabled={updatingId === b._id}
-                      />
-                    )}
-                    {b.status !== 'completed' && (
-                      <ActionBtn
-                        label="Complete"
-                        color="#a5b4fc"
-                        hoverBg="rgba(99,102,241,0.15)"
-                        hoverBorder="rgba(99,102,241,0.35)"
-                        onClick={() => handleStatusChange(b._id, 'completed')}
-                        disabled={updatingId === b._id}
-                      />
-                    )}
-                    {b.status !== 'cancelled' && (
+                    {b.status !== 'cancelled' && b.status !== 'completed' ? (
                       <ActionBtn
                         label="Cancel"
                         color="#f87171"
@@ -470,6 +467,8 @@ export default function RestaurantBookings() {
                         onClick={() => handleStatusChange(b._id, 'cancelled')}
                         disabled={updatingId === b._id}
                       />
+                    ) : (
+                      <span className="font-sans text-[10px] text-luxury-muted uppercase tracking-wider">—</span>
                     )}
                   </div>
                 </div>
@@ -478,6 +477,15 @@ export default function RestaurantBookings() {
           </>
         )}
       </div>
+
+      {/* ── TIME SPENT MODAL ── */}
+      <TimeSpentModal
+        open={Boolean(selectedBookingForComplete)}
+        booking={selectedBookingForComplete}
+        onClose={() => setSelectedBookingForComplete(null)}
+        onConfirm={handleConfirmCompleteWithTime}
+        loading={submittingTimeSpent}
+      />
     </div>
   );
 }
