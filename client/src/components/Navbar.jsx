@@ -429,7 +429,6 @@ export default function Navbar() {
         {/* Center links */}
         <div className="hidden items-center md:flex" style={{ gap: '2rem' }}>
           <NavLink to="/restaurants" className={navLinkClass}>Restaurants</NavLink>
-          <NavLink to="/reviews" className={navLinkClass}>Reviews & Ratings</NavLink>
         </div>
 
         {/* Right Actions & Profile Pill */}

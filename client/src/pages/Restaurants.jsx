@@ -314,13 +314,28 @@ export default function Restaurants() {
           </div>
           {!loading && (
             <div
-              className="flex items-center gap-2.5 self-start rounded-full px-4 py-2 md:self-auto"
-              style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.25)' }}
+              className="inline-flex items-center gap-2.5 self-start rounded-full px-4 py-2 md:self-auto transition-all duration-300 select-none hover:border-luxury-gold/50"
+              style={{
+                background: 'linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.03) 100%)',
+                border: '1px solid rgba(212,175,55,0.3)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+              }}
             >
-              <span className="h-2 w-2 rounded-full bg-luxury-gold" />
-              <span className="font-sans text-xs font-semibold text-luxury-gold">
-                <span>{data.total}</span>
-                {data.total === 1 ? ' Venue Available' : ' Venues Available'}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-luxury-gold shrink-0">
+                <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16" />
+                <path d="M3 21h18" />
+                <path d="M9 7h1" />
+                <path d="M9 11h1" />
+                <path d="M9 15h1" />
+                <path d="M14 7h1" />
+                <path d="M14 11h1" />
+                <path d="M14 15h1" />
+              </svg>
+              <span className="font-sans text-xs font-semibold tracking-wide text-luxury-gold">
+                <strong className="font-bold text-amber-200 mr-1">{data.total}</strong>
+                {data.total === 1 ? 'Venue Available' : 'Venues Available'}
               </span>
             </div>
           )}
