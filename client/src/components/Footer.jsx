@@ -87,6 +87,10 @@ export default function Footer() {
                 Explore Restaurants
               </Link>
               <span className="h-1 w-1 rounded-full bg-luxury-gold/30" />
+              <Link to="/reviews" className="transition-colors duration-200 hover:text-luxury-gold">
+                Reviews & Ratings
+              </Link>
+              <span className="h-1 w-1 rounded-full bg-luxury-gold/30" />
               <Link to="/profile" className="transition-colors duration-200 hover:text-luxury-gold">
                 Account
               </Link>

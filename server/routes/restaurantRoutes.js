@@ -8,6 +8,7 @@ import {
   getRestaurantTables,
   createRestaurant,
   createRestaurantValidators,
+  addRestaurantReview,
 } from '../controllers/restaurantController.js';
 import { verifyCognitoToken } from '../middleware/verifyCognitoToken.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
@@ -22,6 +23,7 @@ const sanitizeRestaurant = createSanitizationMiddleware('restaurant');
 router.get('/', asyncHandler(listRestaurants));
 router.get('/:id', asyncHandler(getRestaurantById));
 router.get('/:id/tables', asyncHandler(getRestaurantTables));
+router.post('/:id/reviews', asyncHandler(addRestaurantReview));
 router.post(
   '/',
   verifyCognitoToken,

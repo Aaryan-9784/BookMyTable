@@ -27,6 +27,7 @@ import RestaurantSettings from './restaurant/pages/RestaurantSettings.jsx';
 import Home from './pages/Home.jsx';
 import Restaurants from './pages/Restaurants.jsx';
 import RestaurantDetails from './pages/RestaurantDetails.jsx';
+import GuestReviews from './pages/GuestReviews.jsx';
 import BookTable from './pages/BookTable.jsx';
 import MyBookings from './pages/MyBookings.jsx';
 import BookingConfirmation from './pages/BookingConfirmation.jsx';
@@ -120,6 +121,16 @@ export default function App() {
             <PublicLayout>
               <RouteErrorBoundary routeName="Restaurant Details">
                 <RestaurantDetails />
+              </RouteErrorBoundary>
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/reviews"
+          element={
+            <PublicLayout>
+              <RouteErrorBoundary routeName="Reviews & Ratings">
+                <GuestReviews />
               </RouteErrorBoundary>
             </PublicLayout>
           }

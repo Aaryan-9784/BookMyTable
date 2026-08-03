@@ -600,10 +600,22 @@ export default function RestaurantDetails() {
 
         {/* ── SECTION: REVIEWS & GUEST FEEDBACK ── */}
         <div className="mt-14 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-2xl font-semibold text-white">Guest Reviews & Ratings</h2>
-            <div className="flex items-center gap-1.5 text-luxury-gold font-sans text-sm font-bold">
-              ★ {Number(r.rating || 4.8).toFixed(1)} / 5.0
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <h2 className="font-display text-2xl font-semibold text-white">Reviews & Ratings</h2>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5 text-luxury-gold font-sans text-sm font-bold">
+                ★ {Number(r.rating || 4.8).toFixed(1)} / 5.0
+              </div>
+              <Link
+                to={`/reviews?restaurantId=${id}`}
+                className="rounded-xl px-4 py-2 font-sans text-xs font-bold text-luxury-gold transition-all duration-200 hover:bg-luxury-gold/15 active:scale-95"
+                style={{
+                  background: 'rgba(212,175,55,0.08)',
+                  border: '1px solid rgba(212,175,55,0.35)',
+                }}
+              >
+                ✍️ Write a Review
+              </Link>
             </div>
           </div>
 

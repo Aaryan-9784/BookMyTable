@@ -190,3 +190,57 @@ export async function getRestaurantTables(req, res, next) {
     next(e);
   }
 }
+
+/**
+ * POST /api/restaurants/:id/reviews — submit guest review & rating for a restaurant.
+ */
+export async function addRestaurantReview(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { rating, text, author } = req.body;
+
+    const numRating = Number(parseFloat(rating).toFixed(1));
+    if (isNaN(numRating) || numRating < 1.0 || numRating > 5.0) {
+      return res.status(400).json({ message: 'Rating must be between 1.0 and 5.0' });
+    }
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: 'Review content is required' });
+    }
+
+    const restaurant = await Restaurant.findById(id);
+    if (!restaurant) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+
+    const reviewAuthor = author?.trim() || req.user?.name || req.user?.email?.split('@')[0] || 'Verified Guest';
+    const newReview = {
+      author: reviewAuthor,
+      rating: numRating,
+      text: text.trim(),
+      date: 'Just now',
+    };
+
+    if (!Array.isArray(restaurant.reviews)) {
+      restaurant.reviews = [];
+    }
+
+    restaurant.reviews.unshift(newReview);
+
+    // Calculate new average rating
+    const totalRating = restaurant.reviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0);
+    const avgRating = Number((totalRating / restaurant.reviews.length).toFixed(1));
+    restaurant.rating = avgRating;
+
+    await restaurant.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Review submitted successfully',
+      rating: restaurant.rating,
+      reviews: restaurant.reviews,
+    });
+  } catch (e) {
+    next(e);
+  }
+}
