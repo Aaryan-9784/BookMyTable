@@ -2,19 +2,21 @@
 
 # 🍽️ BookMyTable
 
-### Premium Restaurant Reservation Platform
+### Premium Full-Stack MERN Restaurant Reservation & Management Platform
 
-[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![Express](https://img.shields.io/badge/Express-000000?style=flat&logo=express&logoColor=white)](https://expressjs.com/)
-[![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)](https://reactjs.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-06B6D4?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.0-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-4.0-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![AWS](https://img.shields.io/badge/AWS-Amplify%20%7C%20Beanstalk-232F3E?style=flat-square&logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
 
 **Live Demo:** [bookmytable.me](https://bookmytable.me)
 
-A full-stack MERN restaurant reservation system with multi-role dashboards, real-time notifications, and a luxury dark-gold UI.
+A full-stack, enterprise-grade restaurant reservation platform built with modern web technologies, multi-role access control, real-time notification streams, wishlist tracking, dining zone seating management, and a luxury dark-gold obsidian design system.
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Tech Stack](#-tech-stack) • [API Docs](#-api-reference) • [Deployment](#-deployment)
+[Overview](#-overview) • [Key Features](#-key-features) • [Tech Stack](#-tech-stack) • [Quick Start](#-quick-start) • [Environment Setup](#-environment-setup) • [API Reference](#-api-reference) • [Database Schema](#-database-schema) • [Deployment](#-deployment)
 
 </div>
 
@@ -23,100 +25,159 @@ A full-stack MERN restaurant reservation system with multi-role dashboards, real
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
-- [Features](#-features)
+- [Key Features](#-key-features)
 - [Tech Stack](#-tech-stack)
+- [Project Architecture](#-project-architecture)
 - [Quick Start](#-quick-start)
 - [Environment Setup](#-environment-setup)
-- [User Roles](#-user-roles)
-- [Database Schema](#-database-schema)
+- [User Roles & Security](#-user-roles--security)
+- [Database Schemas](#-database-schemas)
 - [API Reference](#-api-reference)
-- [Project Structure](#-project-structure)
-- [Deployment](#-deployment)
-- [Troubleshooting](#-troubleshooting)
+- [Deployment Guide](#-deployment-guide)
+- [Troubleshooting & FAQs](#-troubleshooting--faqs)
+- [License & Contributing](#-license--contributing)
 
 ---
 
 ## 🎯 Overview
 
-BookMyTable is a comprehensive restaurant booking platform serving three user types:
+**BookMyTable** bridges the gap between hungry diners, restaurant managers, and platform administrators. Built with performance, security, and visual elegance in mind, it provides an end-to-end booking experience backed by real-time notification capabilities and automated transactional emails.
 
-- **👤 Customers** — Browse restaurants, make reservations, manage bookings
-- **🏪 Restaurant Partners** — Dedicated dashboard to manage tables, bookings, and analytics
-- **👨‍💼 Admins** — Central panel to oversee restaurants, users, and platform operations
+### Targeted Workflows
 
-### Key Highlights
-
-✅ Real-time Notifications via Server-Sent Events (SSE)  
-✅ Token Fee System with refundable booking deposits  
-✅ Multi-Dashboard Architecture for each user role  
-✅ Cloudinary CDN integration for optimized images  
-✅ Automated Email Notifications via Nodemailer & Resend  
-✅ Advanced Search & Filters (cuisine, location, price, rating)  
-✅ Dark Obsidian + Gold UI with Glassmorphism  
-✅ Secure Authentication with Supabase Auth & JWT
+- 👤 **Customers**: Discover top-rated dining experiences, filter by cuisine/location/price, reserve tables in specific dining zones, save favorites to personal wishlists, and manage reservations.
+- 🏪 **Restaurant Partners**: Manage dining capacity and layout across custom zones (VIP, Rooftop, Main Hall, Outdoor), process reservations in real time, review guest metrics, and export analytics.
+- 👨‍💼 **Platform Admins**: Monitor platform metrics, audit users and partner restaurants, approve or reject new restaurant onboardings, and enforce platform standards.
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-### For Customers 👥
-- 🔍 Smart search with filters (cuisine, location, price, rating)
-- 📅 Easy booking flow (date, time slot, guest count)
-- 💰 Token fee system (₹150 refundable deposit)
-- 📱 Manage bookings (view, cancel reservations)
-- 👤 Profile management with password change
-- 🔔 Real-time booking notifications
-- 📧 Automated email confirmations
+### 👤 Customer Experience
+- 🔍 **Advanced Search & Discovery**: Multi-faceted filtering by cuisine category, city location, price range (₹ to ₹₹₹₹), and minimum star ratings.
+- 📅 **Dynamic Booking Flow**: Interactive date selection, time slot pickers, and seat capacity controls with instant fee calculation.
+- ❤️ **Personal Wishlist**: Save favorite venues for quick access with real-time toggle states and counts.
+- 💰 **Refundable Token Deposit**: Deposit guarantee system (₹150 default) to reduce no-shows and streamline table holds.
+- 🔔 **Real-Time SSE Notifications**: Instant push notifications via Server-Sent Events for booking status changes and reminders.
+- 📧 **Automated Email Confirmations**: Seamless transactional emails via Nodemailer with Gmail/Resend integration.
 
-### For Restaurant Partners 🏪
-- 📊 Analytics dashboard with KPIs
-- 🪑 Table management (zones: VIP, Rooftop, Outdoor, etc.)
-- 📋 Booking management with status updates
-- 💵 Token fee revenue tracking
-- ⚙️ Restaurant settings (hours, description, capacity)
-- 📤 CSV export for reports
+### 🏪 Restaurant Partner Management
+- 📊 **Partner Dashboard & Analytics**: Visual metrics for occupancy rates, booking throughput, and token revenue.
+- 🪑 **Zone-Based Table Management**: Configure seating capacities across custom dining areas (*VIP Private Dining, Rooftop, Outdoor Terrace, Main Hall, Bar Counter*).
+- 📋 **Live Booking Management**: Approve, complete, or cancel bookings with automated customer notification triggers.
+- 📤 **Report Data Export**: Export booking history and guest details directly to CSV format.
+- ⚙️ **Restaurant Customization**: Update opening hours, seating capacity, high-resolution media, and descriptions.
 
-### For Admins 👨‍💼
-- 🎛️ Central dashboard with platform-wide stats
-- 🏢 Full restaurant CRUD (create, edit, approve, reject, delete)
-- 👥 User management (roles, account deletion)
-- 📑 Booking oversight across all restaurants
-- 📊 Platform analytics and growth tracking
+### 👨‍💼 Platform Administration
+- 🎛️ **Central Command Panel**: Comprehensive metrics covering total revenue, active users, total restaurants, and booking totals.
+- 🏢 **Restaurant Verification Pipeline**: Review pending restaurant applications with one-click Approval/Rejection workflows.
+- 👥 **User & Partner Audit**: Manage account privileges, user roles (`customer`, `restaurant`, `admin`), and handle account deletions safely.
+- 📑 **Global Booking Oversight**: Search and monitor reservations across all registered partner locations.
+
+### 🔒 Enterprise Security & Resilience
+- 🛡️ **Multi-Layered Security**: CSRF Double-Submit Cookie protection, helmet HTTP security headers, and input sanitization to prevent XSS/SQLi attacks.
+- ⚡ **Rate Limiting Engine**: IP and email-based rate limiters protecting auth, OTP verification, and image upload endpoints against brute-force attacks.
+- 🔑 **Flexible Authentication**: Native JWT support with AWS Cognito / Supabase token validation and environment-locked local development auth bypass modes.
+- 🖼️ **Cloudinary Image CDN**: Secure multipart image uploads with format validation and instant CDN delivery.
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Frontend
+### Frontend Architecture
 | Technology | Purpose |
 |---|---|
-| React 18 + Vite | UI framework & blazing-fast build tool |
-| Tailwind CSS | Utility-first styling |
-| React Router v6 | Client-side routing & navigation |
-| Framer Motion | Smooth page & component animations |
-| Axios | HTTP client with interceptors |
-| Supabase Auth | User authentication provider |
+| **React 18** | High-performance declarative component UI library |
+| **Vite 5** | Lightning-fast module bundler and dev server |
+| **Tailwind CSS 3.4** | Utility-first styling with modern dark-gold obsidian design tokens |
+| **Framer Motion** | Fluid page transitions, modal animations, and micro-interactions |
+| **Axios** | HTTP client with centralized error interceptors & CSRF token injection |
+| **Lucide React** | Clean, consistent vector icons |
 
-### Backend
+### Backend Architecture
 | Technology | Purpose |
 |---|---|
-| Node.js 18+ + Express 4 | REST API server |
-| Mongoose | MongoDB ODM with schema validation |
-| jsonwebtoken | JWT authentication |
-| Cloudinary | Image storage & CDN |
-| Nodemailer + Resend | Transactional emails |
-| Multer | File upload handling |
-| Helmet + CORS | Security headers & middleware |
-| Server-Sent Events (SSE) | Real-time push notifications |
+| **Node.js 18+** | Asynchronous event-driven runtime environment |
+| **Express.js 4** | Modular RESTful API routing framework |
+| **MongoDB Atlas + Mongoose** | Cloud document database with strict schema validation |
+| **JSONWebToken (JWT)** | Secure stateful / stateless user session management |
+| **AWS Cognito / Supabase** | External identity provider integration |
+| **Server-Sent Events (SSE)** | Low-latency server-to-client real-time push streaming |
+| **Cloudinary & Multer** | Cloud media storage, file parsing, and image optimization |
+| **Nodemailer** | HTML transactional email generation & dispatch |
 
-### Infrastructure
-| Service | Purpose |
-|---|---|
-| AWS Amplify | Frontend hosting + CI/CD pipeline |
-| AWS Elastic Beanstalk | Backend hosting (Node.js) |
-| MongoDB Atlas | Cloud database (free tier: 512MB) |
-| Supabase | Authentication (free tier: 50k MAU) |
-| Cloudinary | Image CDN (free tier: 25GB) |
+---
+
+## 📁 Project Architecture
+
+```
+BookMyTable/
+├── client/                      # Front-End (React + Vite + Tailwind CSS)
+│   ├── public/                  # Static web assets & favicons
+│   ├── src/
+│   │   ├── admin/               # Admin Management Portal (Role-Gated)
+│   │   │   ├── components/      # Admin tables, stats, and audit cards
+│   │   │   └── pages/           # Platform metrics & partner approval pages
+│   │   ├── restaurant/          # Partner Dashboard (Role-Gated)
+│   │   │   ├── components/      # Table zone controls, booking lists
+│   │   │   └── pages/           # Partner analytics & table management
+│   │   ├── components/          # Shared components (Navbar, Footer, Modals, Cards)
+│   │   ├── config/              # Environment & API client configurations
+│   │   ├── context/             # React Contexts (AuthContext, NotificationContext)
+│   │   ├── hooks/               # Custom hooks (useAuth, useNotification, useWishlist)
+│   │   ├── pages/               # Public pages (Home, RestaurantDetail, Booking, Wishlist, Profile)
+│   │   ├── services/            # Axios API wrappers (auth, booking, restaurant, admin)
+│   │   ├── utils/               # Formatters, date handlers, helpers
+│   │   ├── App.jsx              # Main App layout & route definitions
+│   │   ├── index.css            # Custom design tokens & global CSS styles
+│   │   └── main.jsx             # App initialization entrypoint
+│   ├── index.html               # Main HTML host
+│   ├── package.json             # Front-end dependencies
+│   ├── tailwind.config.js       # Tailwind theme extensions & custom color palette
+│   └── vite.config.js           # Vite development server & proxy settings
+│
+├── server/                      # Back-End REST API (Node.js + Express + Mongoose)
+│   ├── config/                  # DB connection, Cloudinary, AWS Cognito configs
+│   ├── controllers/             # Business logic handlers
+│   │   ├── adminController.js   # Admin platform statistics & management
+│   │   ├── authController.js    # OTP email verification & authentication
+│   │   ├── bookingController.js # Reservation lifecycle management
+│   │   ├── devAuthController.js # Development mode auth bypass logic
+│   │   ├── restaurantController.js # Public restaurant search & detail handlers
+│   │   ├── restaurantDashboardController.js # Partner table & booking handlers
+│   │   ├── uploadController.js  # Image uploads to Cloudinary
+│   │   ├── userController.js    # Profile & wishlist handlers
+│   │   └── wishlistController.js# Wishlist CRUD handlers
+│   ├── middleware/              # Express middlewares
+│   │   ├── asyncHandler.js      # Async error wrapper
+│   │   ├── csrfProtection.js    # Double-submit CSRF cookie guard
+│   │   ├── errorHandler.js      # Centralized HTTP exception handler
+│   │   ├── imageValidator.js    # File MIME type & size verification
+│   │   ├── inputSanitizer.js    # XSS & injection sanitizer
+│   │   ├── passwordValidator.js # Password complexity validator
+│   │   ├── rateLimiter.js       # IP/Email express rate limiters
+│   │   ├── requireAdmin.js      # Admin privilege assertion
+│   │   ├── requireRole.js       # Dynamic role validator middleware
+│   │   ├── uploadImage.js       # Multer storage configuration
+│   │   └── verifyCognitoToken.js# AWS Cognito / JWT token verifier
+│   ├── models/                  # Mongoose MongoDB schemas
+│   │   ├── Booking.js           # Booking schema & seat allocation
+│   │   ├── Restaurant.js        # Restaurant details & approval state
+│   │   ├── Table.js             # Table seating schema by zone
+│   │   ├── User.js              # User account & role schema
+│   │   └── Wishlist.js          # Customer saved restaurant mapping
+│   ├── routes/                  # Express route declarations
+│   ├── scripts/                 # Database seed & utility scripts
+│   ├── services/                # External services (Email, SSE Stream)
+│   ├── utils/                   # Helper functions
+│   ├── app.js                   # Express application setup
+│   ├── server.js                # Server entrypoint & port listener
+│   └── package.json             # Back-end dependencies
+│
+├── .gitignore                   # Master repository git ignore configuration
+├── README.md                    # Platform documentation
+└── amplify.yml                  # AWS Amplify deployment pipeline manifest
+```
 
 ---
 
@@ -124,503 +185,361 @@ BookMyTable is a comprehensive restaurant booking platform serving three user ty
 
 ### Prerequisites
 
-| Requirement | Version | Download Link |
-|-------------|---------|---------------|
-| Node.js | 18.x+ | [nodejs.org](https://nodejs.org/) |
-| npm | 9.x+ | Included with Node.js |
-| Git | Latest | [git-scm.com](https://git-scm.com/) |
+Ensure you have the following installed on your local development system:
+- **Node.js**: `v18.0.0` or higher
+- **npm**: `v9.0.0` or higher
+- **Git**: Latest version
 
-### Required Services (All Have Free Tiers)
-
-1. **[MongoDB Atlas](https://www.mongodb.com/atlas)** → Database (Free: 512MB)
-2. **[Supabase](https://supabase.com)** → Authentication (Free: 50k MAU)
-3. **[Cloudinary](https://cloudinary.com)** → Image Storage (Free: 25GB)
-
-### Installation
-
-#### 1. Clone Repository
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/yourusername/BookMyTable.git
 cd BookMyTable
 ```
 
-#### 2. Install Dependencies
+### 2. Install Dependencies
+
+Install packages for both back-end and front-end workspaces:
 
 ```bash
-# Backend
+# Install Server Dependencies
 cd server
 npm install
 
-# Frontend
+# Install Client Dependencies
 cd ../client
 npm install
 ```
 
-#### 3. Configure Environment
+### 3. Environment Configuration
 
-**Server** (`server/.env`):
+Create `.env` files in both the `server` and `client` directories by copying their `.env.example` templates:
+
 ```bash
+# Server Environment
+cd ../server
 cp .env.example .env
-# Then edit .env with your credentials
+
+# Client Environment
+cd ../client
+cp .env.example .env
 ```
 
-**Client** (`client/.env`):
+*(Refer to the [Environment Setup](#-environment-setup) section below for parameter descriptions).*
+
+### 4. Run Development Servers
+
+**Option A: Separate Terminal Windows (Recommended)**
+
 ```bash
-cp .env.example .env
-# Then edit .env with your credentials
-```
-
-> 💡 See [Environment Setup](#-environment-setup) for detailed configuration guide
-
-#### 4. Start Development Servers
-
-**Terminal 1 - Backend:**
-```bash
+# Terminal 1 — Backend (http://localhost:5000)
 cd server
-npm run dev  # Runs on http://localhost:5000
-```
+npm run dev
 
-**Terminal 2 - Frontend:**
-```bash
+# Terminal 2 — Frontend (http://localhost:5173)
 cd client
-npm run dev  # Runs on http://localhost:5173
+npm run dev
 ```
 
-#### 5. Access Application
+**Option B: Access the Web App**
 
-Open your browser:
-```
-http://localhost:5173
-```
-
-#### 6. Create Admin Account
-
-1. Add your email to `ADMIN_EMAILS` in `server/.env`:
-   ```env
-   ADMIN_EMAILS=youremail@example.com
-   ```
-
-2. Restart backend server
-
-3. Sign up/login with that email
-
-4. Access admin dashboard at `/admin`
+Navigate to `http://localhost:5173` in your browser.
 
 ---
 
 ## 🔐 Environment Setup
 
-### Backend Variables (`server/.env`)
+### Server Configuration (`server/.env`)
 
 ```env
-# Server Configuration
+# Server Runtime
 PORT=5000
 NODE_ENV=development
-
-# Database
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/bookmytable
-
-# Authentication
-JWT_SECRET=your-64-char-secure-secret  # Generate: openssl rand -base64 64
-ADMIN_EMAILS=admin@example.com
-RESTAURANT_EMAILS=restaurant@example.com
-
-# Supabase
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
-
-# Email (Gmail)
-GMAIL_USER=youremail@gmail.com
-GMAIL_APP_PASSWORD=your-16-char-app-password
-
-# CORS
 CLIENT_URL=http://localhost:5173
+
+# Database Connection
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/bookmytable?retryWrites=true&w=majority
+
+# Security & Authentication
+JWT_SECRET=your-secure-64-character-random-secret-key
+ADMIN_EMAILS=admin@bookmytable.me,leadadmin@example.com
+RESTAURANT_EMAILS=partner@restaurant.com
+
+# Development Authentication Bypass (Only set true for local testing)
+DEV_AUTH_ENABLED=true
+
+# AWS Cognito / External Identity Provider (Optional)
+COGNITO_USER_POOL_ID=us-east-1_xxxxxxxxx
+COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
+COGNITO_REGION=us-east-1
+
+# Cloudinary CDN Configuration
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Transactional Email (Gmail App Password)
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx
 ```
 
-> 📖 See `.env.example` files for complete documentation
-
-### Frontend Variables (`client/.env`)
+### Client Configuration (`client/.env`)
 
 ```env
-# API Configuration
+# Backend API Base URL
 VITE_API_URL=http://localhost:5000
 
-# Supabase (Public keys only!)
+# Supabase / External Auth (Public Key)
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-### Getting API Keys
+---
 
-<details>
-<summary><b>🔑 MongoDB Atlas</b></summary>
+## 👥 User Roles & Security
 
-1. Create account at [MongoDB Atlas](https://www.mongodb.com/atlas)
-2. Create free cluster
-3. Click **Connect** → **Connect your application**
-4. Copy connection string and replace:
-   - `<password>` with your database password
-   - `<dbname>` with `bookmytable`
-</details>
+| Role | Access Permissions | Primary UI Interfaces |
+|---|---|---|
+| **customer** | Browse restaurants, book tables, manage personal bookings, manage wishlist, receive SSE alerts | Customer Home, Detail Page, Booking Flow, Wishlist, Profile |
+| **restaurant** | All customer privileges + managing venue seating capacity, table zones, partner bookings, revenue stats | Restaurant Partner Dashboard (`/restaurant`) |
+| **admin** | Full platform access + user management, restaurant approval/rejection, global booking monitoring | Admin Control Panel (`/admin`) |
 
-<details>
-<summary><b>🔑 Supabase</b></summary>
-
-1. Create project at [Supabase](https://supabase.com)
-2. Go to **Settings** → **API**
-3. Copy:
-   - **URL** → Both `.env` files
-   - **anon public** → `client/.env` only
-   - **service_role** → `server/.env` only
-</details>
-
-<details>
-<summary><b>🔑 Cloudinary</b></summary>
-
-1. Sign up at [Cloudinary](https://cloudinary.com)
-2. Go to **Dashboard**
-3. Copy Cloud Name, API Key, and API Secret
-</details>
-
-<details>
-<summary><b>🔑 Gmail App Password</b></summary>
-
-1. Enable 2FA on your Google account
-2. Go to [App Passwords](https://myaccount.google.com/apppasswords)
-3. Create new app password for "Mail"
-4. Copy the 16-character password
-</details>
+### Role Assignment Logic
+1. Accounts registering with emails matched inside `ADMIN_EMAILS` in `server/.env` automatically gain the **admin** role.
+2. Accounts matching `RESTAURANT_EMAILS` gain the **restaurant** partner role.
+3. All other sign-ups default to the **customer** role.
 
 ---
 
-## 👥 User Roles
+## 🗄️ Database Schemas
 
-| Role | Access Level | Description |
-|------|-------------|-------------|
-| **customer** | Basic | Browse, book, manage own reservations |
-| **restaurant** | Partner | All above + restaurant dashboard |
-| **admin** | Full | All above + platform management |
-
-### Role Assignment
-
-Roles are automatically assigned based on email:
-
-- Emails in `ADMIN_EMAILS` → **admin** role
-- Emails in `RESTAURANT_EMAILS` → **restaurant** role  
-- All other users → **customer** role
-
----
-
-## 🗄️ Database Schema
-
-### User Model
+### User Schema (`server/models/User.js`)
 ```javascript
 {
-  email: String (unique, indexed),
-  password: String (bcrypt-hashed),
-  name: String,
-  phone: String,
-  role: Enum ['customer', 'restaurant', 'admin'],
-  restaurantId: ObjectId (ref: Restaurant)
+  email: { type: String, required: true, unique: true, index: true },
+  password: { type: String }, // Hashed with bcrypt
+  name: { type: String, required: true },
+  phone: { type: String },
+  role: { type: String, enum: ['customer', 'restaurant', 'admin'], default: 'customer' },
+  restaurantId: { type: Schema.Types.ObjectId, ref: 'Restaurant' }
 }
 ```
 
-### Restaurant Model
+### Restaurant Schema (`server/models/Restaurant.js`)
 ```javascript
 {
-  name: String (required),
-  location: String (required),
+  name: { type: String, required: true },
+  location: { type: String, required: true },
   description: String,
   imageUrl: String,
   imageUrls: [String],
   category: String,
-  priceRange: Number (1-4),
-  rating: Number (0-5),
-  reviews: [{author, text, rating, date}],
-  tokenFee: Number (default: 150),
-  totalSeatingCapacity: Number,
+  priceRange: { type: Number, min: 1, max: 4, default: 2 },
+  rating: { type: Number, default: 4.5 },
+  tokenFee: { type: Number, default: 150 },
+  totalSeatingCapacity: { type: Number, default: 50 },
   openingHours: String,
-  ownerId: ObjectId (ref: User),
-  approvalStatus: Enum ['pending', 'approved', 'rejected']
+  ownerId: { type: Schema.Types.ObjectId, ref: 'User' },
+  approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' }
 }
 ```
 
-### Booking Model
+### Table Schema (`server/models/Table.js`)
 ```javascript
 {
-  userId: ObjectId (ref: User, required),
-  restaurantId: ObjectId (ref: Restaurant, required),
-  date: String,  // "2026-08-15"
-  time: String,  // "7:00 PM"
-  guests: Number (1-50),
-  status: Enum ['confirmed', 'cancelled']
+  restaurantId: { type: Schema.Types.ObjectId, ref: 'Restaurant', required: true },
+  tableNumber: { type: String, required: true },
+  capacity: { type: Number, default: 4 },
+  zone: { 
+    type: String, 
+    enum: ['Main Hall', 'Outdoor Terrace', 'VIP Private Dining', 'Rooftop', 'Bar Counter'],
+    default: 'Main Hall'
+  },
+  status: { type: String, enum: ['Available', 'Reserved', 'Maintenance'], default: 'Available' },
+  tokenFee: { type: Number, default: 150 }
 }
-// Unique index: (userId, restaurantId, date, time) where status='confirmed'
 ```
 
-### Table Model
+### Booking Schema (`server/models/Booking.js`)
 ```javascript
 {
-  restaurantId: ObjectId (ref: Restaurant, required),
-  tableNumber: String (required),
-  capacity: Number (1-30, default: 4),
-  zone: Enum ['Main Hall', 'Outdoor Terrace', 'VIP Private Dining', 'Rooftop', 'Bar Counter'],
-  status: Enum ['Available', 'Reserved', 'Maintenance'],
-  tokenFee: Number (default: 150)
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  restaurantId: { type: Schema.Types.ObjectId, ref: 'Restaurant', required: true },
+  date: { type: String, required: true }, // "YYYY-MM-DD"
+  time: { type: String, required: true }, // "07:00 PM"
+  guests: { type: Number, required: true, min: 1, max: 50 },
+  status: { type: String, enum: ['confirmed', 'cancelled', 'completed'], default: 'confirmed' }
 }
+```
+
+### Wishlist Schema (`server/models/Wishlist.js`)
+```javascript
+{
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  restaurantId: { type: Schema.Types.ObjectId, ref: 'Restaurant', required: true, index: true }
+} // Compound unique index on (userId, restaurantId)
 ```
 
 ---
 
 ## 📡 API Reference
 
-### Public Endpoints
+### System & Auth Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| GET | `/api/restaurants` | List all restaurants (with filters) |
-| GET | `/api/restaurants/:id` | Get single restaurant |
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/health` | None | System health check endpoint |
+| `GET` | `/api/auth/csrf-token` | None | Fetch CSRF protection token |
+| `POST` | `/api/auth/send-login-otp` | Rate Limited | Send 2FA login OTP email |
+| `POST` | `/api/auth/verify-login-otp` | Rate Limited | Verify OTP code and issue token |
+| `POST` | `/api/dev-auth/login` | Dev Mode Only | Instant developer login token generation |
+| `POST` | `/api/dev-auth/signup` | Dev Mode Only | Instant developer account creation |
 
-#### Query Parameters for `/api/restaurants`
+### Public Restaurant Endpoints
 
-| Parameter | Example | Description |
-|-----------|---------|-------------|
-| `q` | `?q=pizza` | Search by name/location/category |
-| `category` | `?category=Indian` | Filter by cuisine |
-| `location` | `?location=Mumbai` | Filter by city |
-| `minPrice` | `?minPrice=2` | Min price range (1-4) |
-| `maxPrice` | `?maxPrice=3` | Max price range (1-4) |
-| `minRating` | `?minRating=4` | Minimum rating |
-| `sort` | `?sort=rating` | Sort by: newest/rating/price_asc/price_desc |
-| `page` | `?page=2` | Page number (default: 1) |
-| `limit` | `?limit=12` | Results per page (default: 9) |
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/restaurants` | None | List restaurants with search (`q`), category, location, min/max price, rating, sorting & pagination |
+| `GET` | `/api/restaurants/:id` | None | Fetch complete details for a single restaurant |
 
-### Authentication Endpoints
+### Customer Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/send-login-otp` | Send OTP to email |
-| POST | `/api/auth/verify-login-otp` | Verify OTP code |
-| POST | `/api/auth/send-welcome-email` | Send welcome email |
+| Method | Endpoint | Auth Required | Description |
+|---|---|---|---|
+| `GET` | `/api/users/profile` | User Token | Retrieve active user profile |
+| `PATCH` | `/api/users/profile` | User Token | Update profile details / password |
+| `POST` | `/api/bookings` | User Token | Reserve a table at a restaurant |
+| `GET` | `/api/bookings/my` | User Token | Fetch all bookings for logged-in user |
+| `PATCH` | `/api/bookings/:id/cancel` | User Token | Cancel an active reservation |
+| `GET` | `/api/wishlist` | User Token | Get list of user's saved wishlist restaurants |
+| `POST` | `/api/wishlist/toggle/:restaurantId` | User Token | Toggle saved state for a restaurant |
+| `GET` | `/api/wishlist/check/:restaurantId` | User Token | Check if restaurant is saved in wishlist |
+| `GET` | `/api/notifications/stream` | Token Query | Real-Time SSE stream (`?token=<jwt>`) |
 
-### Customer Endpoints (Requires JWT)
+### Restaurant Partner Dashboard Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/users/profile` | Get own profile |
-| PATCH | `/api/users/profile` | Update profile |
-| POST | `/api/bookings` | Create booking |
-| GET | `/api/bookings/my` | List own bookings |
-| PATCH | `/api/bookings/:id/cancel` | Cancel booking |
-| GET | `/api/notifications/stream` | SSE stream (append `?token=jwt`) |
+| Method | Endpoint | Auth Required | Description |
+|---|---|---|---|
+| `GET` | `/api/restaurant-dashboard/stats` | Partner Token | Retrieve KPI summary & occupancy rates |
+| `GET` | `/api/restaurant-dashboard/tables` | Partner Token | Get table list categorized by zone |
+| `POST` | `/api/restaurant-dashboard/tables` | Partner Token | Create new table seating option |
+| `PUT` | `/api/restaurant-dashboard/tables/:id` | Partner Token | Update table capacity or status |
+| `DELETE` | `/api/restaurant-dashboard/tables/:id` | Partner Token | Remove table from inventory |
+| `GET` | `/api/restaurant-dashboard/bookings` | Partner Token | List all guest bookings for venue |
+| `PUT` | `/api/restaurant-dashboard/bookings/:id/status` | Partner Token | Update booking state (confirmed/cancelled/completed) |
 
-### Admin Endpoints (Requires JWT + Admin Role)
+### Admin Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/admin/dashboard/stats` | Platform statistics |
-| GET | `/api/admin/restaurants` | List all restaurants |
-| POST | `/api/admin/restaurants` | Create restaurant |
-| PUT | `/api/admin/restaurants/:id` | Update restaurant |
-| PUT | `/api/admin/restaurants/:id/approve` | Approve restaurant |
-| PUT | `/api/admin/restaurants/:id/reject` | Reject restaurant |
-| DELETE | `/api/admin/restaurants/:id` | Delete restaurant |
-| GET | `/api/admin/users` | List all users |
-| PUT | `/api/admin/users/:id/role` | Change user role |
-| DELETE | `/api/admin/users/:id` | Delete user |
+| Method | Endpoint | Auth Required | Description |
+|---|---|---|---|
+| `GET` | `/api/admin/dashboard/stats` | Admin Token | Get system-wide metrics and growth stats |
+| `GET` | `/api/admin/restaurants` | Admin Token | List all restaurants including pending approvals |
+| `POST` | `/api/admin/restaurants` | Admin Token | Create new restaurant listing |
+| `PUT` | `/api/admin/restaurants/:id/approve` | Admin Token | Approve pending restaurant application |
+| `PUT` | `/api/admin/restaurants/:id/reject` | Admin Token | Reject pending restaurant application |
+| `DELETE` | `/api/admin/restaurants/:id` | Admin Token | Remove restaurant from platform |
+| `GET` | `/api/admin/users` | Admin Token | Fetch list of all registered platform accounts |
+| `PUT` | `/api/admin/users/:id/role` | Admin Token | Update user authorization role |
+| `DELETE` | `/api/admin/users/:id` | Admin Token | Delete user account |
 
-### Restaurant Dashboard Endpoints (Requires JWT + Restaurant Role)
+### Image Upload Endpoint
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/restaurant-dashboard/stats` | Dashboard KPIs |
-| GET | `/api/restaurant-dashboard/tables` | List tables |
-| POST | `/api/restaurant-dashboard/tables` | Add table |
-| PUT | `/api/restaurant-dashboard/tables/:id` | Update table |
-| DELETE | `/api/restaurant-dashboard/tables/:id` | Delete table |
-| GET | `/api/restaurant-dashboard/bookings` | List bookings |
-| PUT | `/api/restaurant-dashboard/bookings/:id/status` | Update booking status |
-| GET | `/api/restaurant-dashboard/analytics` | Token fee analytics |
+| Method | Endpoint | Auth Required | Description |
+|---|---|---|---|
+| `POST` | `/api/upload` | Partner / Admin | Upload single image to Cloudinary (multipart/form-data) |
 
 ---
 
-## 📁 Project Structure
+## 🚢 Deployment Guide
 
-```
-BookMyTable/
-├── client/                 # React frontend (Vite)
-│   ├── public/             # Static assets
-│   ├── src/
-│   │   ├── admin/          # Admin portal (role-gated)
-│   │   ├── restaurant/     # Restaurant dashboard (role-gated)
-│   │   ├── components/     # Shared UI components
-│   │   ├── pages/          # Public & customer pages
-│   │   ├── context/        # Auth & Notification contexts
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── services/       # API client (axios)
-│   │   └── utils/          # Helper functions
-│   └── package.json
-│
-├── server/                 # Express backend
-│   ├── controllers/        # Route handlers
-│   ├── middleware/         # Auth & validation
-│   ├── models/             # Mongoose schemas
-│   ├── routes/             # API routes
-│   ├── utils/              # SSE, email, Cloudinary
-│   └── package.json
-│
-├── amplify.yml             # AWS Amplify build config
-└── README.md
-```
+### Front-End: AWS Amplify
 
----
-
-## 🚢 Deployment
-
-### Frontend - AWS Amplify
-
-1. **Connect Repository**
-   - AWS Console → Amplify → Create new app
-   - Connect GitHub → Select `BookMyTable` repo → Branch: `main`
-
-2. **Configure Build**
-   - Amplify auto-detects `amplify.yml` 
-   - Builds from `client/` folder
-
-3. **Add Environment Variables**
+1. **Connect Repository**: Open AWS Amplify Console -> **New App** -> **Host web app** -> Connect GitHub repository `BookMyTable` on branch `main`.
+2. **Build Settings**: Amplify will automatically detect the root `amplify.yml` manifest:
+   ```yaml
+   version: 1
+   frontend:
+     phases:
+       preBuild:
+         commands:
+           - cd client
+           - npm ci
+       build:
+         commands:
+           - npm run build
+     artifacts:
+       baseDirectory: client/dist
+       files:
+         - '**/*'
+     cache:
+       paths:
+         - client/node_modules/**/*
    ```
-   VITE_API_URL=https://your-api-url.elasticbeanstalk.com
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-anon-key
-   ```
+3. **Environment Variables**: Add front-end environment variables under Amplify **Environment Variables** settings (`VITE_API_URL`, etc.).
 
-4. **Deploy**
-   - Auto-deploys on every push to `main`
+### Back-End: AWS Elastic Beanstalk
 
-### Backend - AWS Elastic Beanstalk
-
-1. **Create Deployment Zip**
+1. **Prepare ZIP Bundle**:
    ```powershell
-   # PowerShell script to create deployment package
    cd server
-   # Zip all files except node_modules, .env, .git
+   # Create production deployment zip excluding node_modules and .env
+   Compress-Archive -Path * -Exclusion "*.env*", "node_modules*" -DestinationPath ../server-deploy.zip
    ```
-
-2. **Deploy on EB Console**
-   - Create application: `bookmytable-api`
-   - Platform: Node.js 20+ on Amazon Linux 2023
-   - Upload zip file
-
-3. **Configure Environment**
-   - Configuration → Software → Environment properties
-   - Add all variables from `server/.env`
-   - Set `NODE_ENV=production` and `PORT=8080`
-
-4. **Verify Deployment**
-   ```
-   https://your-eb-url.elasticbeanstalk.com/health
-   ```
+2. **Deploy Application**:
+   - Platform: **Node.js 18 or 20 on Amazon Linux 2023**
+   - Upload `server-deploy.zip`
+   - Set environment configuration variables in Elastic Beanstalk Software settings.
 
 ---
 
-## 🐛 Troubleshooting
-
-### Common Issues
+## 🐛 Troubleshooting & FAQs
 
 <details>
-<summary><b>MongoDB Connection Refused</b></summary>
+<summary><b>1. MongoDB Connection Failed / Timeout</b></summary>
 
-**Solution:**
-- Go to MongoDB Atlas → Network Access
-- Add IP Address: `0.0.0.0/0` (allow from anywhere)
-- Or add your current IP address
+- Check that your `MONGODB_URI` string in `server/.env` contains valid cluster credentials.
+- Navigate to MongoDB Atlas **Network Access** settings and whitelist IP `0.0.0.0/0` or your host server IP address.
 </details>
 
 <details>
-<summary><b>Images Not Uploading/Showing</b></summary>
+<summary><b>2. CSRF Validation Error</b></summary>
 
-**Solution:**
-- Verify Cloudinary credentials in `server/.env`
-- Check if `CLOUDINARY_CLOUD_NAME`, `API_KEY`, and `API_SECRET` are correct
-- Ensure image size is under 5MB
+- Ensure `CLIENT_URL` in `server/.env` matches your front-end domain URL (e.g. `http://localhost:5173`).
+- Confirm Axios sends credentials with requests (`withCredentials: true`).
 </details>
 
 <details>
-<summary><b>Emails Not Being Sent</b></summary>
+<summary><b>3. Image Upload Fails (Cloudinary Error)</b></summary>
 
-**Solution:**
-- For Gmail: Use App Password, not regular password
-- Enable 2FA on Google account first
-- Verify `GMAIL_USER` and `GMAIL_APP_PASSWORD` are correct
+- Verify `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` credentials in `server/.env`.
+- Ensure uploaded files are valid image extensions (`.png`, `.jpg`, `.jpeg`, `.webp`) under 5MB.
 </details>
 
 <details>
-<summary><b>Login Fails Silently</b></summary>
+<summary><b>4. Dev Auth Not Working</b></summary>
 
-**Solution:**
-- Check `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `client/.env`
-- Verify Supabase project is active
-- Check browser console for errors
-</details>
-
-<details>
-<summary><b>Admin Panel Not Accessible</b></summary>
-
-**Solution:**
-- Add your email to `ADMIN_EMAILS` in `server/.env`
-- Restart backend server
-- Clear browser cache and login again
-</details>
-
-<details>
-<summary><b>CORS Error in Production</b></summary>
-
-**Solution:**
-- Set `CLIENT_URL` in `server/.env` to match your Amplify domain exactly
-- No trailing slash
-- Example: `https://main.d3xxxxxxxxx.amplifyapp.com`
-</details>
-
-<details>
-<summary><b>SSE Notifications Not Working</b></summary>
-
-**Solution:**
-- JWT token must be passed as query param: `?token=<jwt>`
-- Check if load balancer allows query params
-- Verify `/api/notifications/stream` path is accessible
+- Confirm `DEV_AUTH_ENABLED=true` is present in `server/.env`. (Note: dev auth endpoints are disabled automatically in production mode).
 </details>
 
 ---
 
-## 📝 License
+## 📝 License & Contributing
 
-This project is open source and available for personal and commercial use.
+This project is open-source and released under the MIT License.
 
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### Contributing
+1. Fork the project repository.
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
+3. Commit your changes (`git commit -m 'Add AmazingFeature'`).
+4. Push to your branch (`git push origin feature/AmazingFeature`).
+5. Open a Pull Request for review.
 
 ---
 
 <div align="center">
 
-Made with ❤️ by BookMyTable Team
+Crafted with ❤️ by the **BookMyTable** Engineering Team
 
-[⬆ Back to Top](#️-bookmytable)
+[⬆ Back to Top](#-bookmytable)
 
 </div>

@@ -1,13 +1,13 @@
 # ════════════════════════════════════════════════════════════════════════════
-# BookMyTable - Git Ignore Configuration
+# 🍽️ BookMyTable - Repository Git Ignore Configuration
 # ════════════════════════════════════════════════════════════════════════════
-# This file specifies intentionally untracked files that Git should ignore.
-# Always keep sensitive data, build outputs, and dependencies out of version control.
+# Specifies untracked files that Git should ignore across client, server, and root.
+# Keep sensitive data, local credentials, build outputs, and dependencies out of version control.
 # ════════════════════════════════════════════════════════════════════════════
 
 # ─── Dependencies ────────────────────────────────────────────────────────────
-# Package manager files and installed dependencies
 node_modules/
+**/node_modules/
 bower_components/
 jspm_packages/
 .pnp
@@ -16,16 +16,18 @@ jspm_packages/
 .yarn/cache
 .yarn/unplugged
 .yarn/build-state.yml
-.yarn/install-state.gz
 package-lock.json.lock
 yarn.lock.lock
+pnpm-lock.yaml.lock
 
-# ─── Build Outputs ───────────────────────────────────────────────────────────
-# Production builds and bundler outputs
+# ─── Build & Bundler Outputs ────────────────────────────────────────────────
 dist/
+**/dist/
 build/
+**/build/
 out/
 .vite/
+**/.vite/
 .next/
 .nuxt/
 .docusaurus/
@@ -33,17 +35,16 @@ out/
 .output/
 *.tsbuildinfo
 
-# ─── Environment Variables (⚠️ NEVER COMMIT THESE!) ─────────────────────────
-# All environment files containing sensitive credentials
+# ─── Environment Variables (⚠️ NEVER COMMIT SENSITIVE KEYS!) ────────────────
 .env
 .env.*
 !.env.example
-server/.env
-server/.env.*
-!server/.env.example
 client/.env
 client/.env.*
 !client/.env.example
+server/.env
+server/.env.*
+!server/.env.example
 .env.local
 .env.development
 .env.development.local
@@ -52,9 +53,9 @@ client/.env.*
 .env.production
 .env.production.local
 
-# ─── Logs ────────────────────────────────────────────────────────────────────
-# Application and package manager logs
+# ─── Logs & Runtime Diagnostics ─────────────────────────────────────────────
 logs/
+**/logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -67,7 +68,6 @@ error.log
 access.log
 
 # ─── Private Keys & Certificates (⚠️ NEVER COMMIT THESE!) ───────────────────
-# SSL certificates, private keys, and security credentials
 *.pem
 *.key
 *.p12
@@ -84,8 +84,7 @@ id_rsa.pub
 id_ed25519
 id_ed25519.pub
 
-# ─── Deployment Archives ─────────────────────────────────────────────────────
-# Generated deployment packages
+# ─── Deployment & Bundle Archives ────────────────────────────────────────────
 *.zip
 *.tar
 *.tar.gz
@@ -95,8 +94,7 @@ id_ed25519.pub
 *.war
 *.ear
 
-# ─── OS Generated Files ──────────────────────────────────────────────────────
-# System-specific files
+# ─── OS Generated & System Files ────────────────────────────────────────────
 .DS_Store
 .DS_Store?
 ._*
@@ -110,8 +108,7 @@ desktop.ini
 $RECYCLE.BIN/
 *.lnk
 
-# ─── IDE & Editor Config ─────────────────────────────────────────────────────
-# Editor-specific files and folders
+# ─── IDE & Editor Configurations ───────────────────────────────────────────
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
@@ -139,9 +136,9 @@ $RECYCLE.BIN/
 *.sln
 *.sw?
 
-# ─── Testing ─────────────────────────────────────────────────────────────────
-# Test coverage and reports
+# ─── Test & Coverage Outputs ────────────────────────────────────────────────
 coverage/
+**/coverage/
 .nyc_output/
 *.lcov
 .jest/
@@ -152,8 +149,7 @@ htmlcov/
 .pytest_cache/
 .hypothesis/
 
-# ─── Database ────────────────────────────────────────────────────────────────
-# Local database files
+# ─── Local Database Files ───────────────────────────────────────────────────
 *.sqlite
 *.sqlite3
 *.db
@@ -161,75 +157,30 @@ htmlcov/
 *.dump
 *.mongo
 
-# ─── Cloud & Deployment ──────────────────────────────────────────────────────
-# AWS Elastic Beanstalk
+# ─── Cloud Infrastructure & Serverless ──────────────────────────────────────
 .elasticbeanstalk/*
 !.elasticbeanstalk/config.yml
 !.elasticbeanstalk/*.cfg.yml
-
-# AWS Lambda
 .aws-sam/
+.amplify/
 .chalice/
-
-# Terraform
 *.tfstate
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
-
-# Docker
 docker-compose.override.yml
-.dockerignore
-
-# Serverless Framework
 .serverless/
 
-# ─── Cache & Temporary ───────────────────────────────────────────────────────
-# Cache folders and temporary files
+# ─── Temporary Storage & File Uploads ───────────────────────────────────────
+uploads/
+**/uploads/
+tmp/
+**/tmp/
+temp/
+**/temp/
 .cache/
 .parcel-cache/
 .turbo/
-.temp/
-.tmp/
-*.local
 .sass-cache/
 .eslintcache
-.stylelintccache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-# ─── Uploads & User Content ──────────────────────────────────────────────────
-# User-uploaded files (only if storing locally)
-uploads/
-tmp/
-temp/
-
-# ─── Misc ────────────────────────────────────────────────────────────────────
-# Other commonly ignored files
-.vscode-test
-.history/
-*.orig
-*.rej
-.lock-wscript
-lib-cov
-pids
-*.pid
-*.seed
-*.pid.lock
-.grunt
-.lock-wscript
-.node_repl_history
-*.tgz
-.npm
-.eslintcache
-
-# ════════════════════════════════════════════════════════════════════════════
-# Security Reminder:
-# ════════════════════════════════════════════════════════════════════════════
-# ✅ NEVER commit .env files with real credentials
-# ✅ NEVER commit private keys, certificates, or secrets
-# ✅ Always use .env.example for documentation
-# ✅ Review changes before committing sensitive files
-# ════════════════════════════════════════════════════════════════════════════
+.stylelintcache
