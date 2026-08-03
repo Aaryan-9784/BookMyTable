@@ -2,7 +2,7 @@
  * Authenticated booking page — upgraded 2-column layout, venue summary card, Razorpay gateway & promo discounts.
  */
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import toast from '../utils/toast.js';
 import api from '../services/api.js';
 import BookingForm from '../components/BookingForm.jsx';
@@ -28,6 +28,10 @@ function isPastDateStr(dateStr) {
 
 export default function BookTable() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const initialZone = searchParams.get('zone') || 'Fine Dining';
+  const initialGuests = parseInt(searchParams.get('guests'), 10) || 2;
+
   const navigate = useNavigate();
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -245,7 +249,8 @@ export default function BookTable() {
             submitting={submitting}
             defaultDate={minDate}
             defaultTime={slots[0] || "19:00"}
-            defaultGuests={2}
+            defaultGuests={initialGuests}
+            defaultZone={initialZone}
             minDate={minDate}
             timeSlots={slots}
           />

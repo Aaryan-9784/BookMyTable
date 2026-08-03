@@ -10,6 +10,8 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { getFallbackRestaurantImage } from '../utils/imageUtils.js';
 
+import { getZoneTokenFee, DINING_ZONES_META } from '../utils/zoneFeeUtils.js';
+
 function priceLabel(n) {
   if (n == null || Number.isNaN(Number(n))) return 'Moderate Fine Dining';
   const labels = { 1: 'Casual / Budget', 2: 'Moderate Fine Dining', 3: 'Premium Luxury', 4: 'Ultra Luxury' };
@@ -42,6 +44,11 @@ export default function RestaurantDetails() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [imgHovered, setImgHovered] = useState(false);
   const [failedImages, setFailedImages] = useState({});
+
+  /* Dining Zone & Guests Selection State */
+  const [selectedZone, setSelectedZone] = useState('Fine Dining');
+  const [selectedGuests, setSelectedGuests] = useState(2);
+  const [zoneDropdownOpen, setZoneDropdownOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -243,88 +250,227 @@ export default function RestaurantDetails() {
               </p>
             </div>
 
-            {/* ── CTA BOX ── */}
-            <div
-              className="rounded-2xl p-6 space-y-4"
-              style={{
-                background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
-                border: '1px solid rgba(212,175,55,0.2)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-luxury-gold">
-                    Refundable Token Deposit
-                  </p>
-                  <p className="font-sans text-2xl font-extrabold text-white">
-                    ₹{r.tokenFee ?? 150} <span className="text-xs font-normal text-white/40">/ guest</span>
-                  </p>
-                </div>
-                <div className="text-right text-xs text-white/50">
-                  <p>✓ Instant Table Lock</p>
-                  <p>✓ Zero Hidden Fees</p>
-                </div>
-              </div>
+            {/* ── DYNAMIC DINING ZONE & TOKEN DEPOSIT CTA BOX ── */}
+            {(() => {
+              const zoneTokenFee = getZoneTokenFee(r, selectedZone);
+              const numGuests = Math.max(1, Number(selectedGuests) || 1);
+              const totalDeposit = zoneTokenFee * numGuests;
+              const selectedZoneMeta = DINING_ZONES_META.find((z) => z.id === selectedZone) || { icon: '🕯️', label: selectedZone };
 
-              <div className="flex items-center gap-3">
-                {isAuthenticated ? (
-                  <Link
-                    to={`/restaurants/${id}/book`}
-                    className="flex flex-1 items-center justify-center gap-3 rounded-xl py-4 font-sans text-base font-bold text-[#0a0a0a] transition-all duration-300 hover:brightness-110 active:scale-[0.98]"
-                    style={{
-                      background: 'linear-gradient(135deg, #c9a84c 0%, #f5e6a3 50%, #c9a84c 100%)',
-                      boxShadow: '0 0 30px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.5)',
-                    }}
-                  >
-                    Reserve a Table Now
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
-                  </Link>
-                ) : (
-                  <Link
-                    to="/login"
-                    state={{ from: { pathname: `/restaurants/${id}/book` } }}
-                    className="flex flex-1 items-center justify-center gap-3 rounded-xl py-4 font-sans text-base font-bold text-luxury-gold transition-all duration-300 hover:bg-luxury-gold/10 active:scale-[0.98]"
-                    style={{
-                      border: '1px solid rgba(212,175,55,0.4)',
-                      boxShadow: '0 0 20px rgba(212,175,55,0.1)',
-                    }}
-                  >
-                    Log in to Reserve
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
-                  </Link>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => toggleWishlist(r)}
-                  className="flex h-[56px] shrink-0 items-center justify-center gap-2 rounded-xl px-4 font-sans text-sm font-bold transition-all duration-300 active:scale-95"
+              return (
+                <div
+                  className="rounded-3xl p-6 sm:p-7 space-y-5"
                   style={{
-                    background: wishlisted ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                    border: wishlisted ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255, 255, 255, 0.15)',
-                    color: wishlisted ? '#f87171' : '#ffffff',
+                    background: 'linear-gradient(160deg, rgba(28,28,32,0.95) 0%, rgba(14,14,16,0.98) 100%)',
+                    border: '1px solid rgba(212,175,55,0.3)',
+                    boxShadow: '0 12px 40px rgba(0,0,0,0.65), 0 0 25px rgba(212,175,55,0.08)',
                   }}
-                  title={wishlisted ? 'Remove from Wishlist' : 'Save to Wishlist'}
                 >
-                  <svg
-                    className={`h-5 w-5 transition-transform duration-300 ${wishlisted ? 'scale-110 fill-red-500 stroke-red-500' : 'fill-none stroke-current'}`}
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
+                  {/* ── 1. DINING ZONE SELECTOR (MATCHES IMAGE 2) ── */}
+                  <div className="space-y-2 relative">
+                    <label className="font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 block">
+                      DINING ZONE
+                    </label>
+                    
+                    <button
+                      type="button"
+                      onClick={() => setZoneDropdownOpen((prev) => !prev)}
+                      className="w-full flex items-center justify-between rounded-2xl px-4 py-3.5 font-sans text-sm font-semibold text-white transition-all duration-200"
+                      style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: zoneDropdownOpen ? '1px solid #d4af37' : '1px solid rgba(212,175,55,0.4)',
+                        boxShadow: zoneDropdownOpen ? '0 0 15px rgba(212,175,55,0.2)' : 'none',
+                      }}
+                    >
+                      <span className="flex items-center gap-3 font-medium text-white">
+                        <span className="text-base">{selectedZoneMeta.icon}</span>
+                        <span>{selectedZone}</span>
+                      </span>
+                      <svg
+                        className={`h-4 w-4 text-luxury-gold transition-transform duration-200 ${zoneDropdownOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2.5}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {/* Custom Dropdown List matching Image 2 design */}
+                    {zoneDropdownOpen && (
+                      <div
+                        className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl p-2 space-y-1 shadow-2xl overflow-hidden"
+                        style={{
+                          background: '#141416',
+                          border: '1px solid rgba(212,175,55,0.35)',
+                          backdropFilter: 'blur(20px)',
+                          boxShadow: '0 20px 50px rgba(0,0,0,0.9)',
+                        }}
+                      >
+                        {experiences.map((zoneName) => {
+                          const meta = DINING_ZONES_META.find((z) => z.id === zoneName) || { icon: EXPERIENCE_ICONS[zoneName] || '🕯️', label: zoneName };
+                          const isSelected = selectedZone === zoneName;
+                          const fee = getZoneTokenFee(r, zoneName);
+
+                          return (
+                            <button
+                              key={zoneName}
+                              type="button"
+                              onClick={() => {
+                                setSelectedZone(zoneName);
+                                setZoneDropdownOpen(false);
+                              }}
+                              className="w-full flex items-center justify-between rounded-xl px-4 py-3 font-sans text-sm font-medium transition-all duration-150"
+                              style={{
+                                background: isSelected ? 'rgba(212,175,55,0.15)' : 'transparent',
+                                color: isSelected ? '#d4af37' : 'rgba(255,255,255,0.85)',
+                              }}
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="text-base">{meta.icon}</span>
+                                <span>{zoneName}</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-xs text-white/40 font-normal">₹{fee}/guest</span>
+                                {isSelected && (
+                                  <svg className="h-4 w-4 text-luxury-gold stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                  </svg>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ── 2. NUMBER OF GUESTS SELECTOR ── */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
+                        NUMBER OF GUESTS
+                      </label>
+                      <span className="font-sans text-xs font-bold text-luxury-gold">
+                        {numGuests} {numGuests === 1 ? 'Guest' : 'Guests'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedGuests((g) => Math.max(1, (Number(g) || 1) - 1))}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-lg font-bold text-white transition-all hover:bg-white/10 active:scale-95"
+                      >
+                        –
+                      </button>
+
+                      <input
+                        type="number"
+                        min={1}
+                        max={50}
+                        value={selectedGuests}
+                        onChange={(e) => setSelectedGuests(Math.max(1, Math.min(50, parseInt(e.target.value, 10) || 1)))}
+                        className="w-full text-center rounded-xl border border-white/10 bg-white/[0.04] py-2.5 font-sans text-base font-bold text-white outline-none focus:border-luxury-gold/60"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedGuests((g) => Math.min(50, (Number(g) || 1) + 1))}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-lg font-bold text-white transition-all hover:bg-white/10 active:scale-95"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* ── 3. REFUNDABLE TOKEN DEPOSIT DISPLAY (MATCHES IMAGE 1) ── */}
+                  <div
+                    className="rounded-2xl p-4 space-y-1.5"
+                    style={{
+                      background: 'rgba(212,175,55,0.06)',
+                      border: '1px solid rgba(212,175,55,0.25)',
+                    }}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-                    />
-                  </svg>
-                  <span className="hidden sm:inline">{wishlisted ? 'Saved' : 'Wishlist'}</span>
-                </button>
-              </div>
-            </div>
+                    <p className="font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-luxury-gold">
+                      REFUNDABLE TOKEN DEPOSIT
+                    </p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-sans text-3xl font-extrabold text-white">
+                        ₹{zoneTokenFee}
+                      </span>
+                      <span className="text-xs font-medium text-white/50">
+                        / guest ({selectedZone})
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-white/70 pt-1 border-t border-white/10">
+                      <span>Total Deposit ({numGuests} × ₹{zoneTokenFee}):</span>
+                      <strong className="text-luxury-gold font-bold text-sm">₹{totalDeposit}</strong>
+                    </div>
+                  </div>
+
+                  {/* ── 4. RESERVE BUTTON WITH PARAMETERS ── */}
+                  <div className="flex items-center gap-3 pt-1">
+                    {isAuthenticated ? (
+                      <Link
+                        to={`/restaurants/${id}/book?zone=${encodeURIComponent(selectedZone)}&guests=${selectedGuests}`}
+                        className="flex flex-1 items-center justify-center gap-3 rounded-xl py-4 font-sans text-base font-bold text-[#0a0a0a] transition-all duration-300 hover:brightness-110 active:scale-[0.98]"
+                        style={{
+                          background: 'linear-gradient(135deg, #c9a84c 0%, #f5e6a3 50%, #c9a84c 100%)',
+                          boxShadow: '0 0 30px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.5)',
+                        }}
+                      >
+                        Reserve a Table Now
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        </svg>
+                      </Link>
+                    ) : (
+                      <Link
+                        to="/login"
+                        state={{ from: { pathname: `/restaurants/${id}/book`, search: `?zone=${encodeURIComponent(selectedZone)}&guests=${selectedGuests}` } }}
+                        className="flex flex-1 items-center justify-center gap-3 rounded-xl py-4 font-sans text-base font-bold text-luxury-gold transition-all duration-300 hover:bg-luxury-gold/10 active:scale-[0.98]"
+                        style={{
+                          border: '1px solid rgba(212,175,55,0.4)',
+                          boxShadow: '0 0 20px rgba(212,175,55,0.1)',
+                        }}
+                      >
+                        Log in to Reserve
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        </svg>
+                      </Link>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => toggleWishlist(r)}
+                      className="flex h-[56px] shrink-0 items-center justify-center gap-2 rounded-xl px-4 font-sans text-sm font-bold transition-all duration-300 active:scale-95"
+                      style={{
+                        background: wishlisted ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                        border: wishlisted ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255, 255, 255, 0.15)',
+                        color: wishlisted ? '#f87171' : '#ffffff',
+                      }}
+                      title={wishlisted ? 'Remove from Wishlist' : 'Save to Wishlist'}
+                    >
+                      <svg
+                        className={`h-5 w-5 transition-transform duration-300 ${wishlisted ? 'scale-110 fill-red-500 stroke-red-500' : 'fill-none stroke-current'}`}
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                        />
+                      </svg>
+                      <span className="hidden sm:inline">{wishlisted ? 'Saved' : 'Wishlist'}</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
           </div>
         </div>
@@ -362,7 +508,7 @@ export default function RestaurantDetails() {
               {
                 icon: '💳',
                 label: 'TOKEN DEPOSIT',
-                value: `₹${r.tokenFee ?? 150} / Seat`,
+                value: `₹${getZoneTokenFee(r, selectedZone)} / Seat (${selectedZone})`,
               },
             ].map(({ icon, label, value }) => (
               <div

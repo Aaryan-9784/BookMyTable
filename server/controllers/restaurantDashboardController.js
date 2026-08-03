@@ -49,21 +49,21 @@ async function getTargetRestaurant(req) {
 /**
  * Auto-seed initial tables if none exist for the restaurant
  */
-async function ensureDefaultTables(restaurantId, tokenFee = 150) {
+async function ensureDefaultTables(restaurantId, tokenFee = 200) {
   const count = await Table.countDocuments({ restaurantId });
   if (count === 0) {
     const defaultTables = [
       { restaurantId, tableNumber: 'T-01', capacity: 2, zone: 'Fine Dining', status: 'Available', tokenFee },
       { restaurantId, tableNumber: 'T-02', capacity: 2, zone: 'Fine Dining', status: 'Reserved', tokenFee },
       { restaurantId, tableNumber: 'T-03', capacity: 4, zone: 'Fine Dining', status: 'Available', tokenFee },
-      { restaurantId, tableNumber: 'T-04', capacity: 4, zone: 'Outdoor Terrace', status: 'Available', tokenFee },
-      { restaurantId, tableNumber: 'T-05', capacity: 6, zone: 'Outdoor Terrace', status: 'Available', tokenFee },
-      { restaurantId, tableNumber: 'VIP-01', capacity: 8, zone: 'VIP Dining', status: 'Reserved', tokenFee: tokenFee * 1.5 },
+      { restaurantId, tableNumber: 'T-04', capacity: 4, zone: 'Outdoor Terrace', status: 'Available', tokenFee: Math.round(tokenFee * 0.9) },
+      { restaurantId, tableNumber: 'T-05', capacity: 6, zone: 'Outdoor Terrace', status: 'Available', tokenFee: Math.round(tokenFee * 0.9) },
+      { restaurantId, tableNumber: 'VIP-01', capacity: 8, zone: 'VIP Dining', status: 'Reserved', tokenFee: tokenFee * 2 },
       { restaurantId, tableNumber: 'VIP-02', capacity: 10, zone: 'VIP Dining', status: 'Available', tokenFee: tokenFee * 2 },
-      { restaurantId, tableNumber: 'RT-01', capacity: 4, zone: 'Rooftop Dining', status: 'Available', tokenFee },
-      { restaurantId, tableNumber: 'BAR-01', capacity: 2, zone: 'Bar & Lounge', status: 'Available', tokenFee },
-      { restaurantId, tableNumber: 'PD-01', capacity: 6, zone: 'Private Dining', status: 'Available', tokenFee: tokenFee * 1.5 },
-      { restaurantId, tableNumber: 'LM-01', capacity: 4, zone: 'Live Music', status: 'Available', tokenFee },
+      { restaurantId, tableNumber: 'RT-01', capacity: 4, zone: 'Rooftop Dining', status: 'Available', tokenFee: Math.round(tokenFee * 1.25) },
+      { restaurantId, tableNumber: 'BAR-01', capacity: 2, zone: 'Bar & Lounge', status: 'Available', tokenFee: Math.round(tokenFee * 1.1) },
+      { restaurantId, tableNumber: 'PD-01', capacity: 6, zone: 'Private Dining', status: 'Available', tokenFee: Math.round(tokenFee * 1.75) },
+      { restaurantId, tableNumber: 'LM-01', capacity: 4, zone: 'Live Music', status: 'Available', tokenFee: Math.round(tokenFee * 1.2) },
     ];
     await Table.insertMany(defaultTables);
   }

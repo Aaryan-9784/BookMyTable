@@ -11,13 +11,15 @@ import api from '../services/api.js';
 import Loader from '../components/Loader.jsx';
 import { getFallbackRestaurantImage } from '../utils/imageUtils.js';
 
+import { getZoneTokenFee } from '../utils/zoneFeeUtils.js';
+
 /** Convert numbers to words for authentic receipt formatting */
 function numberToWords(num) {
   const n = Math.floor(Math.abs(num));
   if (n === 0) return 'Zero Rupees Only';
   const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
   const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-  
+
   function convert(val) {
     if (val < 20) return units[val];
     if (val < 100) return tens[Math.floor(val / 10)] + (val % 10 ? ' ' + units[val % 10] : '');
@@ -33,23 +35,28 @@ export default function BookingConfirmation() {
   const { id } = useParams();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    async function fetchBooking() {
+    let cancelled = false;
+    (async () => {
       try {
-        const res = await api.get(`/api/bookings/${id}`);
-        if (res.data?.success) {
-          setBooking(res.data.data);
+        const { data } = await api.get(`/api/bookings/my-bookings`);
+        const list = Array.isArray(data) ? data : data?.bookings || [];
+        const found = list.find((b) => String(b._id) === String(id));
+        if (cancelled) return;
+        if (found) {
+          setBooking(found);
         } else {
-          toast.error('Booking not found');
+          setError('Reservation receipt not found or expired.');
         }
-      } catch (err) {
-        toast.error(err.message || 'Failed to load booking details');
+      } catch (e) {
+        if (!cancelled) setError(e.message || 'Failed to load booking receipt');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    }
-    fetchBooking();
+    })();
+    return () => { cancelled = true; };
   }, [id]);
 
   const handlePrintReceipt = () => {
@@ -58,12 +65,12 @@ export default function BookingConfirmation() {
 
   if (loading) return <Loader />;
 
-  if (!booking) {
+  if (error || !booking) {
     return (
-      <div className="mx-auto max-w-lg px-4 py-20 text-center font-sans text-white/50">
-        <p className="text-lg font-semibold">Booking record not found.</p>
-        <Link to="/my-bookings" className="mt-4 inline-block font-bold text-luxury-gold hover:underline">
-          View all my bookings →
+      <div className="mx-auto max-w-lg px-4 py-20 text-center font-sans text-white/40 space-y-4">
+        <p>{error || 'Booking receipt not found.'}</p>
+        <Link to="/my-bookings" className="inline-block text-luxury-gold underline font-semibold">
+          Go to My Bookings
         </Link>
       </div>
     );
@@ -71,11 +78,11 @@ export default function BookingConfirmation() {
 
   const restaurant = booking.restaurantId || {};
   const heroImage = restaurant.imageUrl || getFallbackRestaurantImage(restaurant);
-  const tokenFeePerGuest = restaurant.tokenFee || 200;
   const numGuests = booking.guests || 1;
-  const grossDeposit = numGuests * tokenFeePerGuest;
   const discount = booking.discountAmount || 0;
-  const finalPaid = booking.finalPayable ?? Math.max(0, grossDeposit - discount);
+  const finalPaid = booking.finalPayable ?? 0;
+  const grossDeposit = finalPaid > 0 ? (finalPaid + discount) : (numGuests * getZoneTokenFee(restaurant, booking.tableZone));
+  const tokenFeePerGuest = Math.round(grossDeposit / numGuests);
   const amountInWords = numberToWords(finalPaid);
 
   const formattedDate = new Date(booking.date).toLocaleDateString('en-US', {

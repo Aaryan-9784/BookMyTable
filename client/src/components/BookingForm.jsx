@@ -8,6 +8,8 @@ import api from '../services/api.js';
 import { getFallbackRestaurantImage } from '../utils/imageUtils.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
+import { getZoneTokenFee, DINING_ZONES_META } from '../utils/zoneFeeUtils.js';
+
 const fieldBase = [
   'w-full rounded-xl border bg-white/[0.04] px-4 py-3.5 font-sans text-sm text-white',
   'placeholder:text-white/20 transition-all duration-200 focus:outline-none',
@@ -177,6 +179,7 @@ export default function BookingForm({
   defaultDate = '',
   defaultTime = '',
   defaultGuests = 2,
+  defaultZone = 'Fine Dining',
   minDate = '',
   timeSlots = null,
 }) {
@@ -207,6 +210,8 @@ export default function BookingForm({
     return `${String(outH).padStart(2, '0')}:${outM === 0 ? '00' : '30'}`;
   });
   const [guests, setGuests] = useState(defaultGuests);
+  const [selectedZone, setSelectedZone] = useState(defaultZone);
+  const [zoneDropdownOpen, setZoneDropdownOpen] = useState(false);
 
   /* Table Selection & Availability State */
   const [tablesList, setTablesList] = useState([]);
@@ -319,7 +324,8 @@ export default function BookingForm({
   }, [guests, appliedCoupon]);
 
   /* Calculation */
-  const tokenFeePerGuest = restaurant.tokenFee ?? 150;
+  const selectedTable = tablesList.find((t) => String(t._id) === String(selectedTableId));
+  const tokenFeePerGuest = getZoneTokenFee(restaurant, selectedZone, selectedTable);
   const baseDeposit = (Number(guests) || 1) * tokenFeePerGuest;
 
   let discountAmount = 0;
@@ -568,6 +574,89 @@ export default function BookingForm({
               {durationInfo.formatted} ({selectedTime} to {checkOutTime})
             </span>
           </div>
+          {/* ── DINING ZONE SELECTOR (MATCHES IMAGE 2 MOCKUP) ── */}
+          <div className="space-y-2 relative">
+            <label className="font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 block">
+              DINING ZONE *
+            </label>
+            
+            <button
+              type="button"
+              onClick={() => setZoneDropdownOpen((prev) => !prev)}
+              className="w-full flex items-center justify-between rounded-xl px-4 py-3.5 font-sans text-sm font-semibold text-white transition-all duration-200"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: zoneDropdownOpen ? '1px solid #d4af37' : '1px solid rgba(212,175,55,0.3)',
+                boxShadow: zoneDropdownOpen ? '0 0 15px rgba(212,175,55,0.15)' : 'none',
+              }}
+            >
+              <span className="flex items-center gap-3 font-medium text-white">
+                <span className="text-base">
+                  {DINING_ZONES_META.find((z) => z.id === selectedZone)?.icon || '🕯️'}
+                </span>
+                <span>{selectedZone}</span>
+              </span>
+              <svg
+                className={`h-4 w-4 text-luxury-gold transition-transform duration-200 ${zoneDropdownOpen ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {zoneDropdownOpen && (
+              <div
+                className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl p-2 space-y-1 shadow-2xl overflow-hidden"
+                style={{
+                  background: '#141416',
+                  border: '1px solid rgba(212,175,55,0.35)',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: '0 20px 50px rgba(0,0,0,0.95)',
+                }}
+              >
+                {(Array.isArray(restaurant.experiences) && restaurant.experiences.length > 0
+                  ? restaurant.experiences
+                  : DINING_ZONES_META.map((z) => z.id)
+                ).map((zoneName) => {
+                  const meta = DINING_ZONES_META.find((z) => z.id === zoneName) || { icon: '🕯️', label: zoneName };
+                  const isSelected = selectedZone === zoneName;
+                  const zoneFee = getZoneTokenFee(restaurant, zoneName);
+
+                  return (
+                    <button
+                      key={zoneName}
+                      type="button"
+                      onClick={() => {
+                        setSelectedZone(zoneName);
+                        setZoneDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between rounded-xl px-4 py-3 font-sans text-sm font-medium transition-all duration-150"
+                      style={{
+                        background: isSelected ? 'rgba(212,175,55,0.15)' : 'transparent',
+                        color: isSelected ? '#d4af37' : 'rgba(255,255,255,0.85)',
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-base">{meta.icon}</span>
+                        <span>{zoneName}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-white/40 font-normal">₹{zoneFee}/guest</span>
+                        {isSelected && (
+                          <svg className="h-4 w-4 text-luxury-gold stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                          </svg>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* Guest Selector (Manual Edit Support) */}
           <div>
@@ -815,8 +904,8 @@ export default function BookingForm({
 
           <div className="space-y-2 text-xs text-white/70 font-sans">
             <div className="flex justify-between">
-              <span>Token Deposit ({guests || 1} × ₹{tokenFeePerGuest})</span>
-              <span>₹{baseDeposit}</span>
+              <span>Token Deposit ({guests || 1} × ₹{tokenFeePerGuest} in {selectedZone})</span>
+              <span className="font-semibold text-white">₹{baseDeposit}</span>
             </div>
 
             {discountAmount > 0 && (

@@ -3,6 +3,7 @@ import toast from '../../utils/toast.js';
 import { restaurantApi } from '../services/restaurantApi.js';
 import LuxurySelect from '../../components/LuxurySelect.jsx';
 import RestaurantHeader from '../components/RestaurantHeader.jsx';
+import { getZoneTokenFee, DINING_ZONES_META } from '../../utils/zoneFeeUtils.js';
 
 const EXPERIENCE_OPTIONS = [
   { id: 'Fine Dining', label: 'Fine Dining', icon: '🕯️' },
@@ -540,6 +541,53 @@ export default function RestaurantSettings() {
                   options={PRICE_TIER_OPTIONS}
                   placeholder="Select Price Tier"
                 />
+              </div>
+            </div>
+
+            {/* Live Per-Zone Token Deposit Pricing Matrix */}
+            <div
+              className="mt-4 rounded-xl p-4 space-y-3"
+              style={{
+                background: 'rgba(212,175,55,0.04)',
+                border: '1px solid rgba(212,175,55,0.18)',
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-sans text-xs font-bold uppercase tracking-wider text-luxury-gold flex items-center gap-1.5">
+                  <span>🏛️</span> Dining Zone Token Deposit Rates
+                </span>
+                <span className="text-[11px] font-sans text-luxury-muted">
+                  Base Fee: <strong className="text-white">₹{tokenFee || 200}/guest</strong>
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                {DINING_ZONES_META.map((zone) => {
+                  const calculatedFee = getZoneTokenFee({ tokenFee: Number(tokenFee) || 200 }, zone.id);
+                  const isEnabled = experiences.includes(zone.id);
+
+                  return (
+                    <div
+                      key={zone.id}
+                      className="rounded-lg p-2.5 border text-left transition-all"
+                      style={{
+                        background: isEnabled ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.01)',
+                        borderColor: isEnabled ? 'rgba(212,175,55,0.3)' : 'rgba(255,255,255,0.06)',
+                        opacity: isEnabled ? 1 : 0.45,
+                      }}
+                    >
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-white truncate flex items-center gap-1">
+                          <span>{zone.icon}</span> {zone.label}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-baseline justify-between">
+                        <span className="text-luxury-gold font-bold text-sm">₹{calculatedFee}</span>
+                        <span className="text-[10px] text-white/40">/ guest</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
