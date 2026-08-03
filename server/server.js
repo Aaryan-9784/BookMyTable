@@ -78,6 +78,16 @@ if (services.length > 0) {
 // Create HTTP server
 const server = http.createServer(app);
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    logger.error(`Port ${PORT} is already in use by another process (EADDRINUSE).`);
+    logger.info(`Run 'npx kill-port ${PORT}' or terminate the process on port ${PORT}.`);
+  } else {
+    logger.error('Server failed to start', { error: err.message });
+  }
+  process.exit(1);
+});
+
 server.listen(PORT, '0.0.0.0', () => {
   logger.info(`BookMyTable API listening on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);

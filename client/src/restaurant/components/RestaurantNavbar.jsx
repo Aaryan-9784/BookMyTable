@@ -334,8 +334,8 @@ function ProfilePopup({ name, email, role, onClose, onLogout }) {
               label="Saved Wishlist"
             />
           </Link>
-          <Link to="/restaurant-dashboard" onClick={onClose}>
-            <MenuItem icon={<IconSwitchView />} label="Partner Portal" />
+          <Link to="/" onClick={onClose}>
+            <MenuItem icon={<IconSwitchView />} label="Customer Portal" />
           </Link>
         </div>
 
@@ -418,7 +418,7 @@ export default function RestaurantNavbar() {
 
   return (
     <header
-      className="sticky top-0 z-30 flex items-center justify-between px-5 md:px-8"
+      className="sticky top-0 z-[60] flex items-center justify-between px-5 md:px-8"
       style={{
         height: '64px',
         background: 'rgba(10, 10, 12, 0.90)',
@@ -521,7 +521,7 @@ export default function RestaurantNavbar() {
                 className="font-sans text-[9px] font-extrabold uppercase tracking-wider leading-tight mt-[2px]"
                 style={{ color: '#d4af37' }}
               >
-                {role === 'admin' ? 'Admin' : 'Restaurant Partner'}
+                {role === 'admin' ? 'ADMIN' : 'RESTAURANT'}
               </p>
             </div>
 
@@ -537,7 +537,7 @@ export default function RestaurantNavbar() {
             <ProfilePopup
               name={name}
               email={email}
-              role={role === 'admin' ? 'Admin' : 'Restaurant Partner'}
+              role={role === 'admin' ? 'ADMIN' : 'RESTAURANT'}
               onClose={() => setOpen(false)}
               onLogout={handleLogout}
             />

@@ -1,4 +1,15 @@
+import { useEffect } from 'react';
+
 export default function ConfirmModal({ open, title, message, confirmLabel = 'Confirm', cancelLabel = 'Cancel', onConfirm, onCancel, loading }) {
+  useEffect(() => {
+    if (open === false) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [open]);
+
   if (open === false) return null;
   return (
     <div

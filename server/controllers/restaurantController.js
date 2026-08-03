@@ -99,6 +99,13 @@ export async function getRestaurantById(req, res, next) {
     if (!doc) {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
+    const tables = await Table.find({ restaurantId: doc._id }).lean();
+    if (tables && tables.length > 0) {
+      const calculatedCapacity = tables.reduce((acc, t) => acc + (t.capacity || 0), 0);
+      doc.totalSeatingCapacity = calculatedCapacity;
+      doc.tables = tables;
+      Restaurant.findByIdAndUpdate(doc._id, { totalSeatingCapacity: calculatedCapacity }).exec();
+    }
     res.json(doc);
   } catch (e) {
     next(e);

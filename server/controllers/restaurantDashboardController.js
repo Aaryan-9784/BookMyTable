@@ -69,10 +69,11 @@ async function ensureDefaultTables(restaurantId, tokenFee = 150) {
 
 const DEFAULT_RESTAURANT_IMAGE = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80';
 
-function formatRestaurantResponse(r) {
+function formatRestaurantResponse(r, calculatedCapacity) {
   if (!r) return null;
   const img = r.imageUrl || (Array.isArray(r.imageUrls) && r.imageUrls[0]) || DEFAULT_RESTAURANT_IMAGE;
   const imgList = Array.isArray(r.imageUrls) && r.imageUrls.length ? r.imageUrls : [img];
+  const cap = calculatedCapacity !== undefined ? calculatedCapacity : (r.totalSeatingCapacity || 40);
   return {
     id: r._id,
     _id: r._id,
@@ -84,11 +85,22 @@ function formatRestaurantResponse(r) {
     imageUrls: imgList,
     tokenFee: r.tokenFee || 200,
     openingHours: r.openingHours || '11:00 AM - 11:00 PM',
-    totalSeatingCapacity: r.totalSeatingCapacity || 50,
+    totalSeatingCapacity: cap,
     priceRange: r.priceRange || 2,
     experiences: Array.isArray(r.experiences) && r.experiences.length ? r.experiences : ['Fine Dining', 'Outdoor Terrace'],
     approvalStatus: 'approved',
   };
+}
+
+async function syncRestaurantCapacity(restaurantId) {
+  try {
+    const tables = await Table.find({ restaurantId });
+    const total = tables.reduce((acc, t) => acc + (t.capacity || 0), 0);
+    await Restaurant.findByIdAndUpdate(restaurantId, { totalSeatingCapacity: total });
+    return total;
+  } catch (err) {
+    return 0;
+  }
 }
 
 /**
@@ -106,6 +118,9 @@ export async function getDashboardStats(req, res) {
   const totalTables = tables.length;
   const totalCapacity = tables.reduce((acc, t) => acc + (t.capacity || 0), 0);
 
+  // Sync DB
+  await Restaurant.findByIdAndUpdate(restaurant._id, { totalSeatingCapacity: totalCapacity });
+
   const bookings = await Booking.find({ restaurantId: restaurant._id })
     .populate('userId', 'name email phone')
     .sort({ date: -1, time: -1, createdAt: -1 });
@@ -118,27 +133,31 @@ export async function getDashboardStats(req, res) {
   const totalGuestsInBookings = activeConfirmedBookings.reduce((acc, b) => acc + (b.guests || 1), 0);
 
   const tokenFeeRate = restaurant.tokenFee || 150;
-  const totalTokenFees = activeConfirmedBookings.reduce((acc, b) => {
-    const fee = b.finalPayable > 0 ? b.finalPayable : (b.guests || 1) * tokenFeeRate;
-    return acc + fee;
-  }, 0);
+  const totalTokenFees = activeConfirmedBookings.reduce(
+    (sum, b) => sum + (b.totalAmount || (b.guests || 1) * tokenFeeRate),
+    0
+  );
+
+  const availableCount = tables.filter((t) => t.status === 'Available').length;
+  const reservedCount = tables.filter((t) => t.status === 'Reserved').length;
 
   const wishlistCount = await Wishlist.countDocuments({ restaurantId: restaurant._id });
   const allRestaurants = await Restaurant.find().select('_id name location category approvalStatus').lean();
 
   res.json({
     ok: true,
-    restaurant: formatRestaurantResponse(restaurant),
+    restaurant: formatRestaurantResponse(restaurant, totalCapacity),
     allRestaurants,
     stats: {
       totalTables,
       totalCapacity,
+      totalSeatingCapacity: totalCapacity,
       activeBookings,
       totalBookings: bookings.length,
       totalGuestsInBookings,
       totalTokenFees,
-      availableTablesCount: tables.filter((t) => t.status === 'Available').length,
-      reservedTablesCount: tables.filter((t) => t.status === 'Reserved').length,
+      availableCount,
+      reservedCount,
       wishlistCount,
     },
     recentBookings: bookings.slice(0, 8),
@@ -155,7 +174,10 @@ export async function getTables(req, res) {
   await ensureDefaultTables(restaurant._id, restaurant.tokenFee || 150);
 
   const tables = await Table.find({ restaurantId: restaurant._id }).sort({ tableNumber: 1 });
-  res.json({ ok: true, restaurant: formatRestaurantResponse(restaurant), tables });
+  const trueTotalCapacity = tables.reduce((sum, t) => sum + (t.capacity || 0), 0);
+  await Restaurant.findByIdAndUpdate(restaurant._id, { totalSeatingCapacity: trueTotalCapacity });
+
+  res.json({ ok: true, restaurant: formatRestaurantResponse(restaurant, trueTotalCapacity), tables });
 }
 
 /**
@@ -184,6 +206,8 @@ export async function createTable(req, res) {
     tokenFee: tokenFee !== undefined ? Number(tokenFee) : restaurant.tokenFee || 150,
   });
 
+  await syncRestaurantCapacity(restaurant._id);
+
   res.status(201).json({ ok: true, table: newTable });
 }
 
@@ -204,6 +228,8 @@ export async function updateTable(req, res) {
   if (tokenFee !== undefined) table.tokenFee = Number(tokenFee);
 
   await table.save();
+  await syncRestaurantCapacity(table.restaurantId);
+
   res.json({ ok: true, table });
 }
 
@@ -214,6 +240,8 @@ export async function deleteTable(req, res) {
   const { id } = req.params;
   const table = await Table.findByIdAndDelete(id);
   if (!table) return res.status(404).json({ ok: false, error: 'Table not found' });
+
+  await syncRestaurantCapacity(table.restaurantId);
 
   res.json({ ok: true, message: 'Table deleted successfully.' });
 }

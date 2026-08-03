@@ -357,7 +357,7 @@ export default function RestaurantDetails() {
               {
                 icon: '🪑',
                 label: 'CAPACITY',
-                value: `${r.totalSeatingCapacity || 40} Seats`,
+                value: `${(r.tables && r.tables.length > 0 ? r.tables.reduce((sum, t) => sum + (t.capacity || 0), 0) : (r.totalSeatingCapacity || 40))} Seats`,
               },
               {
                 icon: '💳',

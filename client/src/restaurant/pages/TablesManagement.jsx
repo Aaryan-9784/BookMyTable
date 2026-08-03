@@ -8,23 +8,22 @@ import LuxurySelect from '../../components/LuxurySelect.jsx';
 import LuxuryNumberInput from '../../components/LuxuryNumberInput.jsx';
 import RestaurantHeader from '../components/RestaurantHeader.jsx';
 
-/* ── OPTION CONFIGURATIONS ─────────────────────────────────── */
+/* ── OPTION CONFIGURATIONS — COUPON-ALIGNED SEATING CAPACITY TIERS ──────────────── */
 const CAPACITY_OPTIONS = [
   { value: 2, label: '2-Seater (Couple / Cozy Table)' },
   { value: 4, label: '4-Seater (Family / Standard Table)' },
-  { value: 6, label: '6-Seater (Group Table)' },
-  { value: 8, label: '8-Seater (VIP Dining)' },
-  { value: 10, label: '10-Seater (Large Party)' },
-  { value: 12, label: '12-Seater (Executive Banquet)' },
+  { value: 6, label: '6-Seater (Small Group Table)' },
+  { value: 8, label: '8-Seater (VIP Dining Table)' },
+  { value: 10, label: '10-Seater (Group Party - GROUP10)' },
+  { value: 15, label: '15-Seater (Grand Gathering - FEAST15)' },
+  { value: 20, label: '20-Seater (Banquet Tier - BANQUET20)' },
+  { value: 25, label: '25-Seater (Celebration Tier - CELEBRATE25)' },
+  { value: 50, label: '50-Seater (Mega Event - GIGA50)' },
+  { value: 75, label: '75-Seater (Royal Gala - ROYAL75)' },
+  { value: 100, label: '100-Seater (Grand Titan / VIP - TITAN100)' },
 ];
 
-const BULK_CAPACITY_OPTIONS = [
-  { value: 2, label: '2-Seater' },
-  { value: 4, label: '4-Seater' },
-  { value: 6, label: '6-Seater' },
-  { value: 8, label: '8-Seater (VIP)' },
-  { value: 10, label: '10-Seater' },
-];
+
 
 const ZONE_OPTIONS = [
   { value: 'Fine Dining', label: 'Fine Dining' },
@@ -172,19 +171,33 @@ function StatCard({ line1, line2, label, value, sub, Icon, accent = false }) {
 }
 
 /* ── MODAL WRAPPER (shared style) ───────────────────────────── */
-function Modal({ onClose, children }) {
+function Modal({ onClose, maxWidth = 'max-w-md', children }) {
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && onClose) {
+          onClose();
+        }
+      }}
     >
       <div
-        className="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
+        className={`w-full ${maxWidth} rounded-2xl shadow-2xl overflow-hidden`}
         style={{
           background: 'linear-gradient(160deg, #1a1a1a 0%, #141414 100%)',
           border: '1px solid rgba(212,175,55,0.2)',
           boxShadow: '0 32px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.04)',
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {children}
       </div>
@@ -362,21 +375,23 @@ export default function TablesManagement() {
   const [capacity,    setCapacity]    = useState(4);
   const [zone,        setZone]        = useState('Fine Dining');
   const [status,      setStatus]      = useState('Available');
-  const [tokenFee,    setTokenFee]    = useState(150);
+  const [tokenFee,    setTokenFee]    = useState(200);
   const [savingTable, setSavingTable] = useState(false);
 
   /* Bulk modal */
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkCount,     setBulkCount]     = useState(4);
   const [bulkCapacity,  setBulkCapacity]  = useState(4);
+  const [bulkPrefix,    setBulkPrefix]    = useState('T-4S-');
   const [bulkZone,      setBulkZone]      = useState('Fine Dining');
-  const [bulkTokenFee,  setBulkTokenFee]  = useState(150);
+  const [bulkStatus,    setBulkStatus]    = useState('Available');
+  const [bulkTokenFee,  setBulkTokenFee]  = useState(200);
 
   /* Restaurant modal */
   const [showRestModal, setShowRestModal] = useState(false);
   const [restForm, setRestForm] = useState({
     name: '', location: '', category: 'Multi-cuisine',
-    description: '', tokenFee: 150, openingHours: '11:00 AM - 11:00 PM',
+    description: '', tokenFee: 200, openingHours: '11:00 AM - 11:00 PM',
   });
   const [savingRest, setSavingRest] = useState(false);
 
@@ -397,7 +412,7 @@ export default function TablesManagement() {
         location:     rData.location     || '',
         category:     rData.category     || 'Multi-cuisine',
         description:  rData.description  || '',
-        tokenFee:     rData.tokenFee     || 150,
+        tokenFee:     rData.tokenFee     || 200,
         openingHours: rData.openingHours || '11:00 AM - 11:00 PM',
       });
     } catch (err) {
@@ -415,15 +430,25 @@ export default function TablesManagement() {
     setEditTableItem(null);
     setTableNumber(`T-${String(tables.length + 1).padStart(2, '0')}`);
     setCapacity(4); setZone('Fine Dining'); setStatus('Available');
-    setTokenFee(restaurant?.tokenFee || 150);
+    setTokenFee(restaurant?.tokenFee || 200);
     setShowTableModal(true);
   };
   const openEditTable = (t) => {
     setEditTableItem(t);
     setTableNumber(t.tableNumber); setCapacity(t.capacity);
     setZone(t.zone); setStatus(t.status);
-    setTokenFee(t.tokenFee || restaurant?.tokenFee || 150);
+    setTokenFee(t.tokenFee || restaurant?.tokenFee || 200);
     setShowTableModal(true);
+  };
+
+  const openBulkModal = () => {
+    setBulkCount(4);
+    setBulkCapacity(4);
+    setBulkPrefix('T-4S-');
+    setBulkZone('Fine Dining');
+    setBulkStatus('Available');
+    setBulkTokenFee(restaurant?.tokenFee || 200);
+    setShowBulkModal(true);
   };
 
   const handleTableSubmit = async (e) => {
@@ -455,13 +480,16 @@ export default function TablesManagement() {
     try {
       const count = Number(bulkCount) || 1;
       const cap   = Number(bulkCapacity) || 4;
-      const fee   = Number(bulkTokenFee) || 150;
+      const fee   = Number(bulkTokenFee) || 200;
+      const bStat = bulkStatus || 'Available';
+      const pfx   = (bulkPrefix || `T-${cap}S-`).trim();
       let created = 0;
       for (let i = 1; i <= count; i++) {
         try {
+          const numStr = String(tables.length + i).padStart(2, '0');
           await restaurantApi.createTable({
-            tableNumber: `T-${cap}S-${String(tables.length + i).padStart(2, '0')}`,
-            capacity: cap, zone: bulkZone, status: 'Available', tokenFee: fee,
+            tableNumber: `${pfx}${numStr}`,
+            capacity: cap, zone: bulkZone, status: bStat, tokenFee: fee,
           });
           created++;
         } catch { /* ignore duplicate */ }
@@ -665,7 +693,7 @@ export default function TablesManagement() {
 
           <button
             type="button"
-            onClick={() => setShowBulkModal(true)}
+            onClick={openBulkModal}
             className="group flex items-center gap-2 rounded-xl px-5 py-2.5 font-sans text-xs font-semibold transition-all duration-300 hover:-translate-y-[1px] active:scale-[0.97]"
             style={{
               background: 'linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(212,175,55,0.03) 100%)',
@@ -982,7 +1010,7 @@ export default function TablesManagement() {
         <Modal onClose={() => setShowTableModal(false)}>
           <ModalHeader
             title={editTableItem ? `Edit Table ${editTableItem.tableNumber}` : 'Add New Table'}
-            sub={editTableItem ? 'Update table capacity, zone, and token fee' : 'Configure a new seating position'}
+            sub={editTableItem ? 'Update table capacity, zone, status, and token fee' : 'Configure a new seating position'}
             onClose={() => setShowTableModal(false)}
           />
           <form onSubmit={handleTableSubmit}>
@@ -1036,9 +1064,18 @@ export default function TablesManagement() {
                 </Field>
               </div>
 
-              <p className="font-sans text-[10px] text-luxury-muted">
-                Token fee is charged per guest at the time of reservation for this table.
-              </p>
+              <div
+                className="flex items-start gap-3 rounded-xl p-3.5"
+                style={{ background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.15)' }}
+              >
+                <svg width="14" height="14" className="mt-0.5 shrink-0 text-luxury-gold/60" fill="none" viewBox="0 0 14 14">
+                  <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.2" />
+                  <path d="M7 5.5v1.5l1 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                </svg>
+                <p className="font-sans text-[11px] text-luxury-muted leading-relaxed">
+                  Token fee of <strong className="text-white/80 font-medium">₹{tokenFee || 200}</strong> is charged per guest at the time of reservation for this table.
+                </p>
+              </div>
             </div>
             <ModalFooter
               onCancel={() => setShowTableModal(false)}
@@ -1074,12 +1111,28 @@ export default function TablesManagement() {
                 />
               </Field>
 
+              <Field label="Seating Capacity">
+                <LuxurySelect
+                  value={bulkCapacity}
+                  onChange={(val) => setBulkCapacity(Number(val))}
+                  options={CAPACITY_OPTIONS}
+                />
+              </Field>
+
+              <Field label="Dining Zone">
+                <LuxurySelect
+                  value={bulkZone}
+                  onChange={(val) => setBulkZone(val)}
+                  options={ZONE_OPTIONS}
+                />
+              </Field>
+
               <div className="grid grid-cols-2 gap-3">
-                <Field label="Seating Capacity">
+                <Field label="Table Status">
                   <LuxurySelect
-                    value={bulkCapacity}
-                    onChange={(val) => setBulkCapacity(Number(val))}
-                    options={BULK_CAPACITY_OPTIONS}
+                    value={bulkStatus}
+                    onChange={(val) => setBulkStatus(val)}
+                    options={STATUS_OPTIONS}
                   />
                 </Field>
 
@@ -1095,14 +1148,6 @@ export default function TablesManagement() {
                 </Field>
               </div>
 
-              <Field label="Dining Zone">
-                <LuxurySelect
-                  value={bulkZone}
-                  onChange={(val) => setBulkZone(val)}
-                  options={ZONE_OPTIONS}
-                />
-              </Field>
-
               <div
                 className="flex items-start gap-3 rounded-xl p-3.5"
                 style={{ background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.15)' }}
@@ -1112,7 +1157,7 @@ export default function TablesManagement() {
                   <path d="M7 5.5v1.5l1 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                 </svg>
                 <p className="font-sans text-[11px] text-luxury-muted leading-relaxed">
-                  Tables will be auto-numbered as <strong className="text-white/60">T-{bulkCapacity}S-XX</strong>. Duplicates are automatically skipped.
+                  Token fee of <strong className="text-white/80 font-medium">₹{bulkTokenFee || 200}</strong> is charged per guest at the time of reservation for these tables. Tables will be auto-numbered as <strong className="text-white/80 font-medium">T-{bulkCapacity}S-XX</strong>.
                 </p>
               </div>
             </div>
@@ -1129,97 +1174,85 @@ export default function TablesManagement() {
           MODAL: Edit Restaurant Profile
       ════════════════════════════════════════════════════════ */}
       {showRestModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
-        >
-          <div
-            className="w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
-            style={{
-              background: 'linear-gradient(160deg, #1a1a1a 0%, #141414 100%)',
-              border: '1px solid rgba(212,175,55,0.2)',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.04)',
-            }}
-          >
-            <ModalHeader
-              title="Restaurant Profile"
-              sub="Update your restaurant details — submitted for Admin review on save"
-              onClose={() => setShowRestModal(false)}
-            />
-            <form onSubmit={handleRestSubmit} className="flex flex-col flex-1 overflow-hidden">
-              <div className="space-y-4 overflow-y-auto px-6 py-5 flex-1">
-                <Field label="Restaurant Name *">
-                  <input
-                    type="text" required
-                    value={restForm.name}
-                    onChange={(e) => setRestForm({ ...restForm, name: e.target.value })}
-                    placeholder="e.g. Royal Spice Bistro"
-                    className={inputCls} style={inputStyle}
-                  />
-                </Field>
+        <Modal onClose={() => setShowRestModal(false)} maxWidth="max-w-lg">
+          <ModalHeader
+            title="Restaurant Profile"
+            sub="Update your restaurant details — submitted for Admin review on save"
+            onClose={() => setShowRestModal(false)}
+          />
+          <form onSubmit={handleRestSubmit} className="flex flex-col flex-1 overflow-hidden">
+            <div className="space-y-4 overflow-y-auto px-6 py-5 flex-1 max-h-[70vh]">
+              <Field label="Restaurant Name *">
+                <input
+                  type="text" required
+                  value={restForm.name}
+                  onChange={(e) => setRestForm({ ...restForm, name: e.target.value })}
+                  placeholder="e.g. Royal Spice Bistro"
+                  className={inputCls} style={inputStyle}
+                />
+              </Field>
 
-                <Field label="Location / Address *">
-                  <input
-                    type="text" required
-                    value={restForm.location}
-                    onChange={(e) => setRestForm({ ...restForm, location: e.target.value })}
-                    placeholder="e.g. Bandra West, Mumbai"
-                    className={inputCls} style={inputStyle}
-                  />
-                </Field>
+              <Field label="Location / Address *">
+                <input
+                  type="text" required
+                  value={restForm.location}
+                  onChange={(e) => setRestForm({ ...restForm, location: e.target.value })}
+                  placeholder="e.g. Bandra West, Mumbai"
+                  className={inputCls} style={inputStyle}
+                />
+              </Field>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Cuisine Category">
-                    <input
-                      type="text"
-                      value={restForm.category}
-                      onChange={(e) => setRestForm({ ...restForm, category: e.target.value })}
-                      placeholder="e.g. Fine Dining, Italian"
-                      className={inputCls} style={inputStyle}
-                    />
-                  </Field>
-
-                  <Field label="Base Token Fee (₹)">
-                    <input
-                      type="number"
-                      min="0"
-                      value={restForm.tokenFee}
-                      onChange={(e) => setRestForm({ ...restForm, tokenFee: e.target.value })}
-                      className={inputCls}
-                      style={inputStyle}
-                    />
-                  </Field>
-                </div>
-
-                <Field label="Opening Hours">
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Cuisine Category">
                   <input
                     type="text"
-                    value={restForm.openingHours}
-                    onChange={(e) => setRestForm({ ...restForm, openingHours: e.target.value })}
-                    placeholder="e.g. 11:00 AM - 11:00 PM"
+                    value={restForm.category}
+                    onChange={(e) => setRestForm({ ...restForm, category: e.target.value })}
+                    placeholder="e.g. Fine Dining, Italian"
                     className={inputCls} style={inputStyle}
                   />
                 </Field>
 
-                <Field label="Description">
-                  <textarea
-                    rows={3}
-                    value={restForm.description}
-                    onChange={(e) => setRestForm({ ...restForm, description: e.target.value })}
-                    placeholder="Describe your ambiance, menu specialties, and dining experience…"
-                    className={inputCls + ' resize-none'} style={inputStyle}
+                <Field label="Base Token Fee (₹)">
+                  <input
+                    type="number"
+                    min="0"
+                    value={restForm.tokenFee}
+                    onChange={(e) => setRestForm({ ...restForm, tokenFee: e.target.value })}
+                    className={inputCls}
+                    style={inputStyle}
                   />
                 </Field>
               </div>
 
-              <ModalFooter
-                onCancel={() => setShowRestModal(false)}
-                submitLabel="Save & Submit for Review"
-                loading={savingRest}
-              />
-            </form>
-          </div>
-        </div>
+              <Field label="Opening Hours">
+                <input
+                  type="text"
+                  value={restForm.openingHours}
+                  onChange={(e) => setRestForm({ ...restForm, openingHours: e.target.value })}
+                  placeholder="e.g. 11:00 AM - 11:00 PM"
+                  className={inputCls} style={inputStyle}
+                />
+              </Field>
+
+              <Field label="Description">
+                <textarea
+                  rows={3}
+                  value={restForm.description}
+                  onChange={(e) => setRestForm({ ...restForm, description: e.target.value })}
+                  placeholder="Describe your ambiance, menu specialties, and dining experience…"
+                  className={inputCls + ' resize-none'} style={inputStyle}
+                />
+              </Field>
+            </div>
+
+            <ModalFooter
+              onCancel={() => setShowRestModal(false)}
+              submitLabel="Save & Submit for Review"
+              loading={savingRest}
+            />
+          </form>
+        </Modal>
       )}
 
       {/* Confirm Delete */}

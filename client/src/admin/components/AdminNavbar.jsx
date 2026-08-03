@@ -271,8 +271,8 @@ function ProfilePopup({ name, email, role, onClose, onLogout }) {
               label="Saved Wishlist"
             />
           </Link>
-          <Link to="/admin" onClick={onClose}>
-            <MenuItem icon={<IconSwitchView />} label="Admin Console" />
+          <Link to="/" onClick={onClose}>
+            <MenuItem icon={<IconSwitchView />} label="Customer Portal" />
           </Link>
         </div>
 

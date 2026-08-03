@@ -132,7 +132,7 @@ function NavItem({ to, label, Icon, end }) {
 export default function RestaurantSidebar() {
   return (
     <aside
-      className="hidden md:flex flex-col w-[228px] shrink-0 sticky top-0 h-screen overflow-hidden"
+      className="hidden md:flex flex-col w-[228px] shrink-0 sticky top-0 h-screen overflow-hidden z-[60]"
       style={{
         background: 'linear-gradient(175deg, #181818 0%, #121212 50%, #0d0d0d 100%)',
         borderRight: '1px solid rgba(212,175,55,0.08)',
