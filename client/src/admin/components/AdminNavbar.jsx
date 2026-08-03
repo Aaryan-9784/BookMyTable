@@ -272,7 +272,7 @@ function ProfilePopup({ name, email, role, onClose, onLogout }) {
             />
           </Link>
           <Link to="/" onClick={onClose}>
-            <MenuItem icon={<IconSwitchView />} label="Customer Portal" />
+            <MenuItem icon={<IconSwitchView />} label="Home Page" />
           </Link>
         </div>
 
