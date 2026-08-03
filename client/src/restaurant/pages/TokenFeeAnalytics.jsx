@@ -14,10 +14,13 @@ function IconRevenue() {
     </svg>
   );
 }
-function IconAvgFee() {
+function IconBookings() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path d="M2 13.5h14M3.5 10l3.5-5 3.5 3.5L14.5 3" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="2" y="3" width="14" height="13" rx="2" stroke="#d4af37" strokeWidth="1.4" />
+      <path d="M6 1.5v3M12 1.5v3" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M2 7.5h14" stroke="#d4af37" strokeWidth="1.4" />
+      <path d="M6 11l2 2 4-3" stroke="#d4af37" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -49,26 +52,8 @@ function IconRefresh() {
   );
 }
 
-/* ── STAT CARD (matches Dashboard/TablesManagement) ─────────── */
-function StatCard({ line1, line2, label, value, sub, Icon, accent = false }) {
-  let l1 = line1;
-  let l2 = line2;
-  if (!l1 && label) {
-    const parts = label.trim().split(/\s+/);
-    if (parts.length >= 2) {
-      if (parts.length === 3 && parts[0].toLowerCase() === 'token') {
-        l1 = `${parts[0]} ${parts[1]}`;
-        l2 = parts[2];
-      } else {
-        l1 = parts[0];
-        l2 = parts.slice(1).join(' ');
-      }
-    } else {
-      l1 = label;
-      l2 = '';
-    }
-  }
-
+/* ── STAT CARD ─────────────────────────────────────────────── */
+function StatCard({ label, value, sub, Icon, accent = false }) {
   return (
     <div
       className="relative overflow-hidden rounded-2xl p-6 transition-all duration-300 group"
@@ -89,10 +74,7 @@ function StatCard({ line1, line2, label, value, sub, Icon, accent = false }) {
         />
       )}
       <div className="flex items-start justify-between mb-4">
-        <div className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted font-semibold leading-[1.3] flex flex-col justify-center min-h-[2.4rem]">
-          <span>{l1}</span>
-          {l2 && <span>{l2}</span>}
-        </div>
+        <p className="font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted font-semibold">{label}</p>
         <div
           className="flex h-9 w-9 items-center justify-center rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-110"
           style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.20)' }}
@@ -100,8 +82,8 @@ function StatCard({ line1, line2, label, value, sub, Icon, accent = false }) {
           <Icon />
         </div>
       </div>
-      <p className="font-display leading-none text-white font-bold" style={{ fontSize: '2.6rem' }}>{value}</p>
-      {sub && <p className="mt-2 font-sans text-xs text-luxury-muted">{sub}</p>}
+      <p className="font-display leading-none text-white font-bold text-3xl truncate">{value}</p>
+      {sub && <p className="mt-2 font-sans text-xs text-luxury-muted truncate">{sub}</p>}
       <div
         className="absolute bottom-0 left-0 right-0 h-[2px]"
         style={{
@@ -123,11 +105,7 @@ const ZONE_COLORS = {
   'Gourmet Cuisine':    { bg: 'rgba(236,72,153,0.12)', color: '#fbcfe8' },
   'Private Dining':     { bg: 'rgba(99,102,241,0.12)', color: '#a5b4fc' },
   'Live Music':         { bg: 'rgba(14,165,233,0.12)', color: '#7dd3fc' },
-  // Legacy backward compatibility
   'Main Hall':          { bg: 'rgba(212,175,55,0.12)', color: '#f5e27a' },
-  'VIP Private Dining': { bg: 'rgba(234,179,8,0.12)',  color: '#fef08a' },
-  'Rooftop':            { bg: 'rgba(168,85,247,0.12)', color: '#d8b4fe' },
-  'Bar Counter':        { bg: 'rgba(249,115,22,0.12)', color: '#fdba74' },
 };
 function ZoneChip({ zone }) {
   const cfg = ZONE_COLORS[zone] || { bg: 'rgba(255,255,255,0.06)', color: '#aaa' };
@@ -136,25 +114,26 @@ function ZoneChip({ zone }) {
       className="rounded-full px-2.5 py-0.5 font-sans text-[10px] font-semibold"
       style={{ background: cfg.bg, color: cfg.color }}
     >
-      {zone}
+      {zone || 'General'}
     </span>
   );
 }
 
-/* ── TABLE STATUS BADGE ─────────────────────────────────────── */
-function TableStatusBadge({ status }) {
+/* ── BOOKING STATUS BADGE ───────────────────────────────────── */
+function BookingStatusBadge({ status }) {
   const cfgs = {
-    Available:   { bg: 'rgba(34,197,94,0.10)',   border: 'rgba(34,197,94,0.25)',   color: '#4ade80' },
-    Reserved:    { bg: 'rgba(212,175,55,0.10)',  border: 'rgba(212,175,55,0.28)',  color: '#d4af37' },
-    Maintenance: { bg: 'rgba(239,68,68,0.08)',   border: 'rgba(239,68,68,0.22)',   color: '#f87171' },
+    confirmed:  { bg: 'rgba(34,197,94,0.10)', border: 'rgba(34,197,94,0.25)', color: '#4ade80', label: 'Confirmed' },
+    'checked-in':{ bg: 'rgba(14,165,233,0.10)', border: 'rgba(14,165,233,0.25)', color: '#38bdf8', label: 'Checked In' },
+    completed:  { bg: 'rgba(168,85,247,0.10)', border: 'rgba(168,85,247,0.25)', color: '#c084fc', label: 'Completed' },
+    cancelled:  { bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.22)', color: '#f87171', label: 'Cancelled' },
   };
-  const cfg = cfgs[status] || { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)', color: '#888' };
+  const cfg = cfgs[status] || { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)', color: '#888', label: status };
   return (
     <span
-      className="inline-block rounded-full px-3 py-1 font-sans text-[10px] font-bold uppercase tracking-wider"
+      className="inline-block rounded-full px-2.5 py-0.5 font-sans text-[10px] font-bold uppercase tracking-wider"
       style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
     >
-      {status}
+      {cfg.label}
     </span>
   );
 }
@@ -181,28 +160,12 @@ function SectionCard({ title, sub, children, action }) {
   );
 }
 
-/* ── EMPTY STATE ────────────────────────────────────────────── */
-function EmptyState({ icon, title, sub }) {
-  return (
-    <div className="flex flex-col items-center gap-3 py-10 text-center">
-      <div
-        className="flex h-12 w-12 items-center justify-center rounded-xl"
-        style={{ background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.12)' }}
-      >
-        {icon}
-      </div>
-      <p className="font-sans text-sm text-luxury-muted">{title}</p>
-      {sub && <p className="font-sans text-xs text-white/20">{sub}</p>}
-    </div>
-  );
-}
-
 /* ── MAIN COMPONENT ─────────────────────────────────────────── */
 export default function TokenFeeAnalytics() {
   const cachedAnalyticsRes = restaurantApi.getCache('analytics_default')?.data;
-  const [data,       setData]       = useState(() => cachedAnalyticsRes?.analytics || null);
+  const [data, setData] = useState(() => cachedAnalyticsRes?.analytics || null);
   const [restaurant, setRestaurant] = useState(() => cachedAnalyticsRes?.restaurant || restaurantApi.getActiveRestaurant() || {});
-  const [loading,    setLoading]    = useState(() => !cachedAnalyticsRes);
+  const [loading, setLoading] = useState(() => !cachedAnalyticsRes);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = useCallback(async (silent = false) => {
@@ -225,32 +188,54 @@ export default function TokenFeeAnalytics() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const analytics        = data || {};
-  const zoneBreakdown    = analytics.zoneBreakdown    || {};
-  const capacityBreakdown = analytics.capacityBreakdown || {};
-  const tableLeaderboard = analytics.tableLeaderboard  || [];
+  if (loading) {
+    return (
+      <div className="py-20 flex justify-center">
+        <Loader />
+      </div>
+    );
+  }
 
-  const totalZones = Object.keys(zoneBreakdown).length;
+  const analytics = data || {};
+  const zoneBreakdown = analytics.zoneBreakdown || {};
+  const tableLeaderboard = analytics.tableLeaderboard || [];
+  const recentTransactions = analytics.recentTransactions || [];
+
+  const totalRevenue = analytics.totalTokenRevenue || 0;
+  const confirmedCount = analytics.totalConfirmedBookings || 0;
+  const totalGuests = analytics.totalGuestsServed || 0;
+  const tokenRate = analytics.tokenFeeRate || restaurant?.tokenFee || 200;
+
+  // Calculate earnings per zone
+  const zoneEarningsMap = {};
+  tableLeaderboard.forEach((t) => {
+    if (!zoneEarningsMap[t.zone]) {
+      zoneEarningsMap[t.zone] = { tableCount: 0, seats: 0, revenue: 0 };
+    }
+    zoneEarningsMap[t.zone].tableCount += 1;
+    zoneEarningsMap[t.zone].seats += (t.capacity || 0);
+    zoneEarningsMap[t.zone].revenue += (t.earnedRevenue || 0);
+  });
 
   return (
-    <div className="max-w-[1100px] mx-auto">
+    <div className="max-w-[1100px] mx-auto pb-16">
 
       {/* ── Page Header Row ─────────────────────────────────── */}
       <RestaurantHeader
         restaurant={restaurant}
-        title="Token Fee Analytics"
-        description="Financial breakdown by seating capacity, dining zones, and individual tables"
+        title="Token Fee Overview"
+        description="Clear breakdown of token fees collected, diner payments, and table earnings"
         extraMeta={
           <>
             <span className="text-white/20">·</span>
             <span className="flex items-center gap-1.5 text-white/90 font-medium">
               <span className="text-luxury-gold">💎</span> Token Rate:{' '}
-              <strong className="text-luxury-gold font-bold">₹{analytics.tokenFeeRate || restaurant?.tokenFee || 200}</strong>
+              <strong className="text-luxury-gold font-bold">₹{tokenRate} / seat</strong>
             </span>
             <span className="text-white/20">·</span>
             <span className="flex items-center gap-1.5 text-white/90 font-medium">
-              <span className="text-luxury-gold">💰</span> Token Revenue:{' '}
-              <strong className="text-emerald-400 font-bold">{fmt(analytics.totalTokenRevenue || 0)}</strong>
+              <span className="text-luxury-gold">💰</span> Total Revenue:{' '}
+              <strong className="text-emerald-400 font-bold">{fmt(totalRevenue)}</strong>
             </span>
           </>
         }
@@ -271,42 +256,35 @@ export default function TokenFeeAnalytics() {
               type="button"
               onClick={() => {
                 downloadCSV(
-                  `token_fee_analytics_${today()}.csv`,
+                  `token_fee_summary_${today()}.csv`,
                   [
                     {
-                      title: 'Performance Metrics',
+                      title: 'Token Fee Overview',
                       headers: ['Metric', 'Value'],
                       rows: [
-                        ['Total Token Revenue',      fmt(analytics.totalTokenRevenue)],
-                        ['Total Confirmed Bookings', analytics.totalConfirmedBookings || 0],
-                        ['Avg Fee / Reservation',    fmt(analytics.avgTokenFeePerBooking)],
-                        ['Avg Guests / Booking',     analytics.avgGuestsPerBooking || 0],
-                        ['Total Guests Served',      analytics.totalGuestsServed || 0],
-                        ['Standard Token Rate',      fmt(analytics.tokenFeeRate || 150)],
+                        ['Total Money Collected', fmt(totalRevenue)],
+                        ['Total Active Bookings', confirmedCount],
+                        ['Total Guests Served', totalGuests],
+                        ['Token Fee Per Person', fmt(tokenRate)],
                       ],
                     },
                     {
-                      title: 'Dining Zone Distribution',
-                      headers: ['Zone', 'Tables'],
-                      rows: Object.entries(zoneBreakdown).map(([z, c]) => [z, c]),
-                    },
-                    {
-                      title: 'Capacity Breakdown',
-                      headers: ['Capacity', 'Tables', 'Total Seats', 'Avg Token Fee'],
-                      rows: Object.entries(capacityBreakdown).map(([cap, item]) => [
-                        cap, item.count, item.totalCapacity, fmt(item.avgTokenFee),
+                      title: 'Diner Payments Log',
+                      headers: ['Customer', 'Date', 'Time', 'Guests', 'Table', 'Status', 'Amount Paid'],
+                      rows: recentTransactions.map((tx) => [
+                        tx.customerName, tx.date, tx.time, tx.guests, tx.tableNumber, tx.status, fmt(tx.amount),
                       ]),
                     },
                     {
-                      title: 'Table Inventory',
-                      headers: ['Table Number', 'Capacity', 'Zone', 'Status', 'Token Fee'],
+                      title: 'Table Earnings',
+                      headers: ['Table Number', 'Capacity', 'Zone', 'Bookings', 'Total Earned'],
                       rows: tableLeaderboard.map((t) => [
-                        t.tableNumber, `${t.capacity}-Seater`, t.zone, t.status, fmt(t.tokenFee),
+                        t.tableNumber, `${t.capacity}-Seater`, t.zone, t.bookingCount || 0, fmt(t.earnedRevenue || 0),
                       ]),
                     },
-                  ],
+                  ]
                 );
-                toast.success('Analytics exported as CSV!');
+                toast.success('Downloaded Token Fee Summary CSV!');
               }}
               className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-95"
               style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #f0d060 55%, #c9a84c 100%)', boxShadow: '0 0 18px rgba(212,175,55,0.25)' }}
@@ -315,273 +293,181 @@ export default function TokenFeeAnalytics() {
                 <path d="M7 1.5v7M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M1.5 10.5v1a1 1 0 001 1h9a1 1 0 001-1v-1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
               </svg>
-              Export Analytics
+              Export Report
             </button>
           </>
         }
       />
 
-
-      {/* ── 4-KPI Stat Cards ────────────────────────────────── */}
+      {/* ── 4 Key Numbers (Simple & Clear) ──────────────────── */}
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 mb-8">
         <StatCard
-          label="Total Token Revenue"
-          value={`₹${(analytics.totalTokenRevenue || 0).toLocaleString()}`}
-          sub={`From ${analytics.totalConfirmedBookings || 0} confirmed bookings`}
+          label="Total Money Collected"
+          value={`₹${totalRevenue.toLocaleString()}`}
+          sub={`From ${confirmedCount} confirmed bookings`}
           Icon={IconRevenue}
           accent
         />
         <StatCard
-          label="Avg Fee / Reservation"
-          value={`₹${analytics.avgTokenFeePerBooking || 0}`}
-          sub={`Avg ${analytics.avgGuestsPerBooking || 0} guests per booking`}
-          Icon={IconAvgFee}
+          label="Confirmed Bookings"
+          value={confirmedCount}
+          sub="Active table reservations"
+          Icon={IconBookings}
         />
         <StatCard
-          label="Total Guests Served"
-          value={analytics.totalGuestsServed || 0}
-          sub="Confirmed guest count"
+          label="Total Guests Booked"
+          value={totalGuests}
+          sub="Total diners reserved"
           Icon={IconGuests}
         />
         <StatCard
-          label="Standard Token Rate"
-          value={`₹${analytics.tokenFeeRate || 150}`}
-          sub="Base rate per guest"
+          label="Token Rate Per Seat"
+          value={`₹${tokenRate}`}
+          sub="Deposit amount per guest"
           Icon={IconRate}
         />
       </div>
 
-      {/* ── Capacity Analysis ────────────────────────────────── */}
+      {/* ── Card 1: Recent Diner Payments ────────────────────── */}
+      <div className="mb-8">
+        <SectionCard
+          title="💳 Customer Payments Log"
+          sub="List of customer payments collected for table reservations"
+        >
+          {recentTransactions.length === 0 ? (
+            <div className="py-10 text-center text-luxury-muted text-xs">
+              No customer payments recorded yet
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left font-sans text-xs">
+                <thead>
+                  <tr className="border-b border-white/[0.06] text-[10px] font-bold uppercase tracking-wider text-luxury-muted">
+                    <th className="pb-3 font-semibold">Customer</th>
+                    <th className="pb-3 font-semibold">Date & Time</th>
+                    <th className="pb-3 font-semibold">Party Size</th>
+                    <th className="pb-3 font-semibold">Assigned Table</th>
+                    <th className="pb-3 font-semibold">Status</th>
+                    <th className="pb-3 font-semibold text-right">Payment Paid</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.04]">
+                  {recentTransactions.map((tx) => (
+                    <tr key={tx.id} className="transition-colors hover:bg-white/[0.02]">
+                      <td className="py-3.5 font-medium text-white">
+                        <div className="font-bold text-white text-sm">{tx.customerName}</div>
+                        <div className="text-[11px] text-luxury-muted">{tx.customerEmail}</div>
+                      </td>
+                      <td className="py-3.5 text-white/80">
+                        <div className="font-semibold text-white">{tx.date}</div>
+                        <div className="text-[11px] text-luxury-gold">{tx.time}</div>
+                      </td>
+                      <td className="py-3.5 font-bold text-white text-sm">
+                        {tx.guests} <span className="font-normal text-xs text-luxury-muted">Guests</span>
+                      </td>
+                      <td className="py-3.5 text-white/80">
+                        <div className="font-semibold text-white">{tx.tableNumber}</div>
+                        <div className="text-[10px] text-luxury-muted">{tx.tableZone}</div>
+                      </td>
+                      <td className="py-3.5">
+                        <BookingStatusBadge status={tx.status} />
+                      </td>
+                      <td className="py-3.5 text-right font-bold text-emerald-400 text-sm">
+                        ₹{(tx.amount || 0).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </SectionCard>
+      </div>
+
+      {/* ── Card 2: Dining Zone Earnings ────────────────────── */}
+      <div className="mb-8">
+        <SectionCard
+          title="🏰 Money Collected by Dining Area"
+          sub="Total revenue generated across your restaurant seating zones"
+        >
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {Object.entries(zoneEarningsMap).map(([zName, info]) => (
+              <div
+                key={zName}
+                className="group relative overflow-hidden rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5"
+                style={{
+                  background: 'linear-gradient(160deg, #181818 0%, #121212 100%)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                }}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <ZoneChip zone={zName} />
+                  <span className="font-sans text-xs font-bold text-luxury-gold">
+                    {info.tableCount} Table{info.tableCount !== 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 mt-2">
+                  <div className="flex items-center justify-between font-sans text-xs text-luxury-muted">
+                    <span>Total Capacity:</span>
+                    <span className="text-white font-semibold">{info.seats} Seats</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-1 border-t border-white/[0.06]">
+                    <span className="font-sans text-xs font-bold text-luxury-gold">Total Earned:</span>
+                    <span className="font-display text-base font-bold text-emerald-400">
+                      ₹{info.revenue.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      </div>
+
+      {/* ── Card 3: Individual Table Earnings ──────────────── */}
       <div className="mb-6">
         <SectionCard
-          title="Seating Capacity vs Token Fee Analysis"
-          sub="Breakdown of seating infrastructure by table capacity and average token fee structure"
+          title="🏆 Money Earned by Each Table"
+          sub="Table-by-table seating capacity, zone assignment, and total money earned"
         >
-          {Object.keys(capacityBreakdown).length === 0 ? (
-            <EmptyState
-              icon={
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 20 20" stroke="rgba(212,175,55,0.4)" strokeWidth={1.25}>
-                  <rect x="3" y="5" width="14" height="10" rx="2" />
-                  <path strokeLinecap="round" d="M5 15v3M15 15v3M6 2v3M14 2v3" />
-                </svg>
-              }
-              title="No seating capacity data recorded"
-              sub="Add tables with seating configurations to see the breakdown"
-            />
+          {tableLeaderboard.length === 0 ? (
+            <div className="py-8 text-center text-luxury-muted text-xs">
+              No tables found
+            </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-              {Object.entries(capacityBreakdown).map(([capName, item]) => (
-                <div
-                  key={capName}
-                  className="group rounded-xl p-4 transition-all duration-200 hover:-translate-y-0.5"
-                  style={{
-                    background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid rgba(255,255,255,0.07)',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.border = '1px solid rgba(212,175,55,0.22)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.border = '1px solid rgba(255,255,255,0.07)'; }}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-display text-base font-bold text-white group-hover:text-luxury-gold transition-colors duration-200">
-                      {capName}
-                    </span>
-                    <span
-                      className="rounded-full px-2.5 py-0.5 font-sans text-[10px] font-bold"
-                      style={{
-                        background: 'rgba(212,175,55,0.08)',
-                        border: '1px solid rgba(212,175,55,0.2)',
-                        color: '#d4af37',
-                      }}
-                    >
-                      {item.count} Table{item.count !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-sans text-[11px] text-luxury-muted">Total Seating</span>
-                      <span className="font-sans text-xs font-semibold text-white">{item.totalCapacity} Seats</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="font-sans text-[11px] text-luxury-muted">Avg Token Fee</span>
-                      <span className="font-sans text-xs font-bold text-emerald-400">₹{item.avgTokenFee} / table</span>
-                    </div>
-                    {/* Mini bar visual */}
-                    <div className="mt-2 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${Math.min(100, (item.avgTokenFee / 500) * 100)}%`,
-                          background: 'linear-gradient(90deg, #d4af37, #f5e27a)',
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left font-sans text-xs">
+                <thead>
+                  <tr className="border-b border-white/[0.06] text-[10px] font-bold uppercase tracking-wider text-luxury-muted">
+                    <th className="pb-3 font-semibold">Table</th>
+                    <th className="pb-3 font-semibold">Capacity</th>
+                    <th className="pb-3 font-semibold">Dining Area</th>
+                    <th className="pb-3 font-semibold text-center">Bookings Count</th>
+                    <th className="pb-3 font-semibold text-right">Total Earned</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.04]">
+                  {tableLeaderboard.map((t) => (
+                    <tr key={t.id} className="transition-colors hover:bg-white/[0.02]">
+                      <td className="py-3.5 font-display font-bold text-white text-sm">
+                        {t.tableNumber}
+                      </td>
+                      <td className="py-3.5 text-white/80">{t.capacity}-Seater</td>
+                      <td className="py-3.5"><ZoneChip zone={t.zone} /></td>
+                      <td className="py-3.5 text-center font-bold text-white">{t.bookingCount || 0}</td>
+                      <td className="py-3.5 text-right font-bold text-emerald-400 text-sm">
+                        ₹{(t.earnedRevenue || 0).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </SectionCard>
       </div>
 
-      {/* ── Zone Distribution + Policy ──────────────────────── */}
-      <div className="mb-6 grid gap-6 md:grid-cols-2">
-
-        {/* Dining Zone Distribution */}
-        <SectionCard
-          title="Dining Zone Distribution"
-          sub={totalZones > 0 ? `${totalZones} active zone${totalZones !== 1 ? 's' : ''} configured` : undefined}
-        >
-          {Object.keys(zoneBreakdown).length === 0 ? (
-            <EmptyState
-              icon={
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 20 20" stroke="rgba(212,175,55,0.4)" strokeWidth={1.25}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 3a7 7 0 100 14A7 7 0 0010 3zM10 3v7l4 2" />
-                </svg>
-              }
-              title="No dining zones recorded"
-              sub="Zones appear once tables with zone assignments are created"
-            />
-          ) : (
-            <div className="space-y-2.5">
-              {Object.entries(zoneBreakdown).map(([zName, zCount]) => (
-                <div
-                  key={zName}
-                  className="flex items-center justify-between rounded-xl px-4 py-3 transition-colors duration-150"
-                  style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <ZoneChip zone={zName} />
-                    <span className="font-sans text-sm font-medium text-white">{zName}</span>
-                  </div>
-                  <span
-                    className="font-sans text-xs font-bold"
-                    style={{ color: '#d4af37' }}
-                  >
-                    {zCount} Table{zCount !== 1 ? 's' : ''}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </SectionCard>
-
-        {/* Token Fee Policy */}
-        <div
-          className="rounded-2xl p-6 flex flex-col justify-between"
-          style={{
-            background: 'linear-gradient(150deg, #1a1800 0%, #141200 100%)',
-            border: '1px solid rgba(212,175,55,0.2)',
-            boxShadow: '0 0 32px rgba(212,175,55,0.04)',
-          }}
-        >
-          <div>
-            <div className="flex items-center gap-2.5 mb-3">
-              <div
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
-                style={{ background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.25)' }}
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="6" stroke="#d4af37" strokeWidth="1.3" />
-                  <path d="M8 5v3.5l2 1.5" stroke="#d4af37" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <h3 className="font-display text-lg font-bold text-luxury-gold">
-                Token Fee Policy & Financial Flow
-              </h3>
-            </div>
-            <p className="font-sans text-xs text-luxury-muted leading-relaxed mb-4">
-              Token fees collected during table reservations act as an advance deposit for diners. This guarantees table allocation, prevents no-shows, and ensures smooth revenue flow for high-demand seating capacities.
-            </p>
-          </div>
-          <div
-            className="rounded-xl p-4"
-            style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(212,175,55,0.1)' }}
-          >
-            <p className="font-sans text-[11px] text-white/70 leading-relaxed">
-              <strong className="text-luxury-gold/80">Table-Wise Custom Fees:</strong>{' '}
-              You can assign custom token fee rates to VIP or larger capacity tables in the{' '}
-              <em className="text-luxury-gold/60">Add Restaurant & Tables</em> page.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Table Token Fee Inventory ───────────────────────── */}
-      <div
-        className="overflow-hidden rounded-2xl"
-        style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.07)' }}
-      >
-        <div
-          className="flex items-center justify-between px-6 py-5"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
-        >
-          <div>
-            <h2 className="font-display text-lg font-semibold text-white">
-              Individual Table Token Fee Inventory
-            </h2>
-            <p className="mt-0.5 font-sans text-xs text-luxury-muted">
-              Table-by-table capacity, zone assignment, and token fee rates
-            </p>
-          </div>
-          <span
-            className="rounded-full px-3 py-1 font-sans text-[11px] font-semibold text-luxury-muted"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            {tableLeaderboard.length} Table{tableLeaderboard.length !== 1 ? 's' : ''}
-          </span>
-        </div>
-
-        {tableLeaderboard.length === 0 ? (
-          <div className="px-6 py-5">
-            <EmptyState
-              icon={
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 20 20" stroke="rgba(212,175,55,0.4)" strokeWidth={1.25}>
-                  <rect x="3" y="5" width="14" height="10" rx="2" />
-                  <path strokeLinecap="round" d="M5 15v3M15 15v3M6 2v3M14 2v3" />
-                </svg>
-              }
-              title="No tables found"
-              sub="Add tables to see the token fee inventory"
-            />
-          </div>
-        ) : (
-          <>
-            {/* Column headers */}
-            <div
-              className="grid px-6 py-2.5 font-sans text-[10px] uppercase tracking-[0.18em] text-luxury-muted"
-              style={{
-                gridTemplateColumns: '1fr 1fr 1.5fr 1fr 1fr',
-                borderBottom: '1px solid rgba(255,255,255,0.04)',
-                background: 'rgba(0,0,0,0.2)',
-              }}
-            >
-              <span>Table</span>
-              <span>Capacity</span>
-              <span>Zone</span>
-              <span>Status</span>
-              <span className="text-right">Token Fee</span>
-            </div>
-
-            <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
-              {tableLeaderboard.map((t) => (
-                <div
-                  key={t.id}
-                  className="grid items-center px-6 py-4 transition-colors duration-150 hover:bg-white/[0.025]"
-                  style={{ gridTemplateColumns: '1fr 1fr 1.5fr 1fr 1fr' }}
-                >
-                  <span className="font-display font-bold text-white">{t.tableNumber}</span>
-                  <span className="font-sans text-sm text-white/80">{t.capacity}-Seater</span>
-                  <span><ZoneChip zone={t.zone} /></span>
-                  <span><TableStatusBadge status={t.status} /></span>
-                  <span className="text-right font-sans text-sm font-bold text-emerald-400">
-                    ₹{t.tokenFee}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
     </div>
   );
 }

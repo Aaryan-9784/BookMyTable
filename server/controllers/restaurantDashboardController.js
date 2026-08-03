@@ -348,23 +348,105 @@ export async function getAnalytics(req, res) {
   const restaurant = await getTargetRestaurant(req);
   if (!restaurant) return res.status(404).json({ ok: false, error: 'Restaurant not found' });
 
-  const bookings = await Booking.find({ restaurantId: restaurant._id });
-  const tables = await Table.find({ restaurantId: restaurant._id });
+  await ensureDefaultTables(restaurant._id, restaurant.tokenFee || 150);
 
-  const confirmedBookings = bookings.filter((b) => b.status === 'confirmed');
+  const bookings = await Booking.find({ restaurantId: restaurant._id })
+    .populate('userId', 'fullName name email phone')
+    .sort({ createdAt: -1 });
+  const tables = await Table.find({ restaurantId: restaurant._id }).sort({ tableNumber: 1 });
+
+  const validBookings = bookings.filter((b) => ['confirmed', 'checked-in', 'completed'].includes(b.status));
   const cancelledBookings = bookings.filter((b) => b.status === 'cancelled');
 
-  const totalGuests = confirmedBookings.reduce((acc, b) => acc + (b.guests || 1), 0);
+  const totalGuests = validBookings.reduce((acc, b) => acc + (b.guests || 1), 0);
   const tokenFeeRate = restaurant.tokenFee || 150;
   
-  // Calculate total token fees using table-wise token fee if available
-  const totalTokenRevenue = confirmedBookings.reduce((acc, b) => {
+  // Calculate total token fees using finalPayable or guests * rate
+  const totalTokenRevenue = validBookings.reduce((acc, b) => {
+    if (b.finalPayable && b.finalPayable > 0) return acc + b.finalPayable;
     const tableFee = b.tokenFee || tokenFeeRate;
     return acc + (b.guests || 1) * tableFee;
   }, 0);
 
-  const avgTokenFeePerBooking = confirmedBookings.length ? Math.round(totalTokenRevenue / confirmedBookings.length) : 0;
-  const avgGuestsPerBooking = confirmedBookings.length ? (totalGuests / confirmedBookings.length).toFixed(1) : '0';
+  const avgTokenFeePerBooking = validBookings.length ? Math.round(totalTokenRevenue / validBookings.length) : 0;
+  const avgGuestsPerBooking = validBookings.length ? (totalGuests / validBookings.length).toFixed(1) : '0';
+
+  // Group ALL bookings by table for multi-status filtering
+  const tableStatsAll = {};
+  const tableStatsConfirmed = {};
+  const tableStatsCancelled = {};
+  const tableBookingsMap = {};
+
+  tables.forEach((t) => {
+    tableStatsAll[String(t._id)] = { count: 0, revenue: 0 };
+    tableStatsConfirmed[String(t._id)] = { count: 0, revenue: 0 };
+    tableStatsCancelled[String(t._id)] = { count: 0, revenue: 0 };
+    tableBookingsMap[String(t._id)] = [];
+  });
+
+  const capacityTableMap = {};
+  tables.forEach((t) => {
+    if (!capacityTableMap[t.capacity]) capacityTableMap[t.capacity] = [];
+    capacityTableMap[t.capacity].push(t);
+  });
+
+  const sortedCapacities = Object.keys(capacityTableMap).map(Number).sort((a, b) => a - b);
+  let autoAssignCounter = 0;
+
+  for (const b of bookings) {
+    const bookingRevenue = (b.finalPayable && b.finalPayable > 0)
+      ? b.finalPayable
+      : (b.guests || 1) * (b.tokenFee || tokenFeeRate);
+
+    let matchedTable = null;
+
+    if (b.tableId && tableStatsAll[String(b.tableId)]) {
+      matchedTable = tables.find((t) => String(t._id) === String(b.tableId));
+    } else if (b.tableNumber && b.tableNumber !== 'Auto-Assigned' && tableStatsAll[b.tableNumber]) {
+      matchedTable = tables.find((t) => t.tableNumber === b.tableNumber);
+    }
+
+    if (!matchedTable && tables.length > 0) {
+      const targetCap = sortedCapacities.find((cap) => cap >= (b.guests || 1)) || sortedCapacities[sortedCapacities.length - 1];
+      const candidateTables = capacityTableMap[targetCap] || tables;
+      matchedTable = candidateTables[autoAssignCounter % candidateTables.length];
+      autoAssignCounter++;
+
+      // Link booking in database to physical table
+      if (b.tableNumber === 'Auto-Assigned' || !b.tableNumber || !b.tableId) {
+        b.tableId = matchedTable._id;
+        b.tableNumber = matchedTable.tableNumber;
+        b.tableCapacity = matchedTable.capacity;
+        b.tableZone = matchedTable.zone;
+        await b.save().catch(() => {});
+      }
+    }
+
+    if (matchedTable) {
+      const tId = String(matchedTable._id);
+      tableStatsAll[tId].count += 1;
+      tableStatsAll[tId].revenue += bookingRevenue;
+
+      if (['confirmed', 'checked-in', 'completed'].includes(b.status)) {
+        tableStatsConfirmed[tId].count += 1;
+        tableStatsConfirmed[tId].revenue += bookingRevenue;
+      } else if (b.status === 'cancelled') {
+        tableStatsCancelled[tId].count += 1;
+        tableStatsCancelled[tId].revenue += bookingRevenue;
+      }
+
+      tableBookingsMap[tId].push({
+        id: b._id,
+        customerName: b.userId?.fullName || b.userId?.name || 'Guest Diner',
+        customerEmail: b.userId?.email || 'N/A',
+        guests: b.guests,
+        date: b.date,
+        time: b.time,
+        status: b.status,
+        amount: bookingRevenue,
+      });
+    }
+  }
 
   // Capacity Breakdown (e.g. 2-seater, 4-seater, etc.)
   const capacityBreakdown = tables.reduce((acc, t) => {
@@ -378,25 +460,64 @@ export async function getAnalytics(req, res) {
     return acc;
   }, {});
 
-  // Compute average token fee for each capacity category
   Object.keys(capacityBreakdown).forEach((key) => {
     const item = capacityBreakdown[key];
     item.avgTokenFee = Math.round(item.totalTokenFee / item.count);
   });
 
   const zoneBreakdown = tables.reduce((acc, t) => {
-    acc[t.zone] = (acc[t.zone] || 0) + 1;
+    if (typeof acc[t.zone] === 'object' && acc[t.zone] !== null) {
+      acc[t.zone].tableCount += 1;
+      acc[t.zone].seats += (t.capacity || 0);
+    } else {
+      acc[t.zone] = { tableCount: 1, seats: (t.capacity || 0) };
+    }
     return acc;
   }, {});
 
-  // Table leaderboard (tables with their seating capacity and token fee)
-  const tableLeaderboard = tables.map((t) => ({
-    id: t._id,
-    tableNumber: t.tableNumber,
-    capacity: t.capacity,
-    zone: t.zone,
-    tokenFee: t.tokenFee || tokenFeeRate,
-    status: t.status,
+  // Table leaderboard with multi-status stats & assigned guest bookings
+  const tableLeaderboard = tables.map((t) => {
+    const tId = String(t._id);
+    const confirmedStat = tableStatsConfirmed[tId] || { count: 0, revenue: 0 };
+    const allStat = tableStatsAll[tId] || { count: 0, revenue: 0 };
+    const cancelledStat = tableStatsCancelled[tId] || { count: 0, revenue: 0 };
+    const assignedBookingsList = tableBookingsMap[tId] || [];
+
+    let currentStatus = t.status;
+    if (confirmedStat.count > 0 && currentStatus === 'Available') {
+      currentStatus = 'Reserved';
+    }
+
+    return {
+      id: t._id,
+      tableNumber: t.tableNumber,
+      capacity: t.capacity,
+      zone: t.zone,
+      tokenFee: t.tokenFee || tokenFeeRate,
+      status: currentStatus,
+      bookingCount: confirmedStat.count,
+      earnedRevenue: confirmedStat.revenue,
+      allBookingCount: allStat.count,
+      allRevenue: allStat.revenue,
+      cancelledBookingCount: cancelledStat.count,
+      cancelledRevenue: cancelledStat.revenue,
+      assignedBookings: assignedBookingsList,
+    };
+  });
+
+  // Financial transactions log (all bookings with details)
+  const recentTransactions = bookings.map((b) => ({
+    id: b._id,
+    customerName: b.userId?.fullName || b.userId?.name || 'Guest Diner',
+    customerEmail: b.userId?.email || 'N/A',
+    date: b.date,
+    time: b.time,
+    guests: b.guests,
+    tableNumber: b.tableNumber || 'Assigned Table',
+    tableZone: b.tableZone || 'Main Hall',
+    status: b.status,
+    amount: b.finalPayable || (b.guests || 1) * (b.tokenFee || tokenFeeRate),
+    createdAt: b.createdAt,
   }));
 
   res.json({
@@ -405,7 +526,7 @@ export async function getAnalytics(req, res) {
     analytics: {
       tokenFeeRate,
       totalTokenRevenue,
-      totalConfirmedBookings: confirmedBookings.length,
+      totalConfirmedBookings: validBookings.length,
       totalCancelledBookings: cancelledBookings.length,
       totalGuestsServed: totalGuests,
       avgTokenFeePerBooking,
@@ -413,6 +534,7 @@ export async function getAnalytics(req, res) {
       zoneBreakdown,
       capacityBreakdown,
       tableLeaderboard,
+      recentTransactions,
       totalTables: tables.length,
       totalSeatingCapacity: tables.reduce((acc, t) => acc + (t.capacity || 0), 0),
     },

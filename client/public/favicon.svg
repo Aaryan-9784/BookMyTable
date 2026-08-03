@@ -1,52 +1,56 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
-    <!-- Background Gradient -->
-    <linearGradient id="fav-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#141416" />
-      <stop offset="50%" stop-color="#0a0a0c" />
-      <stop offset="100%" stop-color="#040405" />
-    </linearGradient>
-
-    <!-- Ultra High-Contrast Metallic Gold -->
+    <!-- Ultra High-Contrast 3D Champagne Gold Gradient -->
     <linearGradient id="fav-gold" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFF5C0" />
-      <stop offset="35%" stop-color="#F5E27A" />
-      <stop offset="70%" stop-color="#D4AF37" />
-      <stop offset="100%" stop-color="#B38918" />
+      <stop offset="0%" stop-color="#FFF6CC" />
+      <stop offset="25%" stop-color="#F5E27A" />
+      <stop offset="55%" stop-color="#D4AF37" />
+      <stop offset="85%" stop-color="#AA820A" />
+      <stop offset="100%" stop-color="#6E5200" />
     </linearGradient>
 
-    <!-- Subtle Glow for Maximum Visibility -->
-    <radialGradient id="fav-glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#D4AF37" stop-opacity="0.4" />
-      <stop offset="100%" stop-color="#D4AF37" stop-opacity="0" />
-    </radialGradient>
+    <!-- Contrast Drop Shadow so favicon is perfectly visible on BOTH Dark & Light Browser Tabs -->
+    <filter id="fav-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.85" />
+      <feDropShadow dx="0" dy="0" stdDeviation="1" flood-color="#000000" flood-opacity="0.5" />
+    </filter>
   </defs>
 
-  <!-- Background Base Container -->
-  <rect width="64" height="64" rx="18" fill="url(#fav-bg)" />
-  
-  <!-- Outer Gold Border Frame -->
-  <rect x="2" y="2" width="60" height="60" rx="16" fill="none" stroke="url(#fav-gold)" stroke-width="2.5" stroke-opacity="0.9" />
+  <!-- 100% TRANSPARENT BACKGROUND - NO BOX, NO CONTAINER, NO BORDER -->
 
-  <!-- Center Ambient Radial Glow -->
-  <circle cx="32" cy="32" r="22" fill="url(#fav-glow)" />
-
-  <!-- Bold, High-Visibility 'B' Monogram -->
-  <!-- Main B Shape -->
-  <path 
-    d="M 19 13 H 35 C 42.5 13, 47 16.5, 47 22 C 47 26.2, 44 28.8, 39.5 29.8 C 45 30.8, 48 34, 48 39.5 C 48 45.5, 43 49, 34.5 49 H 19 Z" 
-    fill="url(#fav-gold)" 
-  />
-
-  <!-- Top Inner Cutout -->
-  <path 
-    d="M 27 19.5 H 34 C 37.8 19.5, 39.8 20.8, 39.8 23 C 39.8 25.2, 37.8 26.5, 34 26.5 H 27 Z" 
-    fill="#0a0a0c" 
-  />
-
-  <!-- Bottom Inner Cutout -->
-  <path 
-    d="M 27 33 H 34.5 C 38.5 33, 40.8 34.5, 40.8 37 C 40.8 39.5, 38.5 41, 34.5 41 H 27 Z" 
-    fill="#0a0a0c" 
-  />
+  <!-- Standalone Luxury Serif 'B' Monogram -->
+  <g filter="url(#fav-shadow)">
+    <path 
+      fill-rule="evenodd" 
+      d="
+        M 8 7 
+        H 36 
+        C 45.5 7, 51 11, 51 18.5 
+        C 51 23.5, 47.5 26.5, 42 28 
+        C 49 29.5, 54 33.5, 54 41.5 
+        C 54 50, 47 53.5, 36 53.5 
+        H 8 
+        V 47 
+        H 14.5 
+        V 13.5 
+        H 8 
+        Z
+        
+        M 22 13.5 
+        H 35 
+        C 40.5 13.5, 43.5 15.2, 43.5 18.5 
+        C 43.5 21.8, 40.5 23.5, 35 23.5 
+        H 22 
+        Z
+        
+        M 22 29.5 
+        H 36 
+        C 42 29.5, 45.5 31.5, 45.5 35.8 
+        C 45.5 40.1, 42 42.5, 36 42.5 
+        H 22 
+        Z
+      " 
+      fill="url(#fav-gold)" 
+    />
+  </g>
 </svg>

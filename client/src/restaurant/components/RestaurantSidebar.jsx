@@ -39,10 +39,14 @@ function TableIcon({ active }) {
   const c = active ? '#d4af37' : '#606060';
   return (
     <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-      <rect x="4.5" y="6.5" width="11" height="7" rx="1.8" stroke={c} strokeWidth="1.5" />
-      <path d="M6 13.5v3M14 13.5v3" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M6.5 3.5h7M6.5 16.5h7" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M10 3.5v3M10 13.5v3" stroke={c} strokeWidth="1.3" />
+      {/* Table surface */}
+      <rect x="5" y="8.2" width="10" height="1.8" rx="0.9" fill={c} fillOpacity={active ? "0.9" : "0.5"} />
+      {/* Table legs */}
+      <path d="M7.2 10v6M12.8 10v6" stroke={c} strokeWidth="1.4" strokeLinecap="round" />
+      {/* Left Chair */}
+      <path d="M2.5 4.5v6.5M2.5 11h2.5M2.5 11v5" stroke={c} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      {/* Right Chair */}
+      <path d="M17.5 4.5v6.5M15 11h2.5M17.5 11v5" stroke={c} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

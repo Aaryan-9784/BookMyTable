@@ -15,6 +15,21 @@ const EXPERIENCE_OPTIONS = [
   { id: 'Live Music', label: 'Live Music', icon: '🎵' },
 ];
 
+const CATEGORIES = [
+  'Multi-cuisine', 'Indian', 'North Indian', 'South Indian',
+  'Italian', 'Chinese', 'Japanese', 'Continental', 'Cafe',
+  'Fine dining', 'Mexican', 'Thai', 'Mediterranean', 'Bakery & Desserts',
+];
+
+const CATEGORY_OPTIONS = CATEGORIES.map((c) => ({ value: c, label: c }));
+
+const PRICE_TIER_OPTIONS = [
+  { value: 1, label: 'Casual / Budget' },
+  { value: 2, label: 'Moderate Fine Dining' },
+  { value: 3, label: 'Premium Luxury' },
+  { value: 4, label: 'Ultra Luxury' },
+];
+
 /* ── SVG ICONS (matches Partner Console theme) ──────────────── */
 function IconRefresh() {
   return (
@@ -202,8 +217,23 @@ export default function RestaurantSettings() {
       return;
     }
 
+    if (!tokenFee || isNaN(Number(tokenFee)) || Number(tokenFee) < 0) {
+      toast.error('Please enter a valid Token Fee per seat (₹)');
+      return;
+    }
+
+    if (!capacity || isNaN(Number(capacity)) || Number(capacity) < 1) {
+      toast.error('Please enter a valid Total Seating Capacity');
+      return;
+    }
+
     if (!experiences.length) {
-      toast.error('Please select at least 1 seating & dining experience option');
+      toast.error('Please select at least 1 seating experience option');
+      return;
+    }
+
+    if (!imageUrls.length) {
+      toast.error('Please upload or add at least 1 restaurant photo');
       return;
     }
 
@@ -243,7 +273,7 @@ export default function RestaurantSettings() {
             <span className="text-white/20">·</span>
             <span className="flex items-center gap-1.5 text-white/90 font-medium">
               <span className="text-luxury-gold">⏰</span> Hours:{' '}
-              <strong className="text-white font-medium">{openingHours || '11:00 AM - 11:00 PM'}</strong>
+              <strong className="text-white font-medium">{openingHours || '11:00 AM to 11:00 PM'}</strong>
             </span>
             <span className="text-white/20">·</span>
             <span className="flex items-center gap-1.5 text-white/90 font-medium">
@@ -313,149 +343,229 @@ export default function RestaurantSettings() {
               Configure parameters shown on your public restaurant marketplace listing
             </p>
           </div>
-          <span
-            className="rounded-full px-3.5 py-1 font-sans text-[10px] font-bold uppercase tracking-wider text-luxury-gold"
-            style={{ background: 'rgba(212,175,55,0.10)', border: '1px solid rgba(212,175,55,0.25)' }}
-          >
-            {restaurant?.approvalStatus === 'approved' ? 'Approved & Live' : 'Pending Review'}
-          </span>
+          {restaurant?.approvalStatus === 'approved' ? (
+            <span
+              className="rounded-full px-3.5 py-1.5 font-sans text-[10px] font-bold uppercase tracking-wider text-emerald-400"
+              style={{
+                background: 'rgba(16, 185, 129, 0.12)',
+                border: '1px solid rgba(16, 185, 129, 0.35)',
+                boxShadow: '0 0 16px rgba(16, 185, 129, 0.15)',
+              }}
+            >
+              Approved & Live
+            </span>
+          ) : restaurant?.approvalStatus === 'rejected' ? (
+            <span
+              className="rounded-full px-3.5 py-1.5 font-sans text-[10px] font-bold uppercase tracking-wider text-red-400"
+              style={{
+                background: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.35)',
+                boxShadow: '0 0 16px rgba(239, 68, 68, 0.15)',
+              }}
+            >
+              Rejected
+            </span>
+          ) : (
+            <span
+              className="rounded-full px-3.5 py-1.5 font-sans text-[10px] font-bold uppercase tracking-wider text-amber-400"
+              style={{
+                background: 'rgba(245, 158, 11, 0.12)',
+                border: '1px solid rgba(245, 158, 11, 0.35)',
+                boxShadow: '0 0 16px rgba(245, 158, 11, 0.15)',
+              }}
+            >
+              Pending Review
+            </span>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-7">
-          {/* Section 1: Basic Identity */}
-          <div className="space-y-4">
-            <h3 className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-luxury-gold flex items-center gap-2">
-              <span>🍴</span> Basic Details & Location
-            </h3>
-            <div className="grid gap-5 sm:grid-cols-3">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Card 1: Basic Details & Location (Matched with Admin Create/Edit) */}
+          <div
+            className="rounded-2xl p-6 space-y-5"
+            style={{
+              background: 'linear-gradient(160deg, #181818 0%, #121212 100%)',
+              border: '1px solid rgba(212,175,55,0.14)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            }}
+          >
+            <div className="flex items-center gap-2 border-b border-white/[0.07] pb-3">
+              <span className="text-luxury-gold text-base">🍴</span>
+              <h2 className="font-display text-base font-semibold text-white">
+                Basic Details & Location
+              </h2>
+            </div>
+
+            <div className="space-y-4">
               <div>
-                <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
+                <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-2">
                   Restaurant Name *
                 </label>
                 <input
                   type="text"
+                  required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white outline-none focus:border-luxury-gold/60"
-                  required
+                  placeholder="e.g. The Golden Fork & Grill"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-sans text-sm text-white placeholder-white/20 outline-none transition-colors duration-200 focus:border-luxury-gold/60"
                 />
               </div>
 
-              <div>
-                <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
-                  Location / Address *
-                </label>
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white outline-none focus:border-luxury-gold/60"
-                  required
-                />
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-2">
+                    Location / Address *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="e.g. Bandra West, Mumbai"
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-sans text-sm text-white placeholder-white/20 outline-none transition-colors duration-200 focus:border-luxury-gold/60"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-2">
+                    Cuisine / Category *
+                  </label>
+                  <LuxurySelect
+                    value={category}
+                    onChange={(val) => setCategory(val)}
+                    options={CATEGORY_OPTIONS}
+                    placeholder="Select Cuisine"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-2">
+                    Opening Hours *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={openingHours}
+                    onChange={(e) => setOpeningHours(e.target.value)}
+                    placeholder="e.g. 11:00 AM - 11:00 PM"
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-sans text-sm text-white placeholder-white/20 outline-none transition-colors duration-200 focus:border-luxury-gold/60"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
-                  Cuisine / Category *
+                <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-2">
+                  Description & Ambiance *
                 </label>
-                <LuxurySelect
-                  value={category}
-                  onChange={(val) => setCategory(val)}
-                  options={['Multi-cuisine', 'Indian', 'North Indian', 'South Indian', 'Italian', 'Chinese', 'Japanese', 'Continental', 'Cafe', 'Fine dining', 'Mexican', 'Thai', 'Mediterranean', 'Bakery & Desserts']}
+                <textarea
+                  rows={3}
+                  required
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe the dining atmosphere, signature dishes, chef specialties, seating style..."
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-sans text-sm text-white placeholder-white/20 outline-none transition-colors duration-200 focus:border-luxury-gold/60 resize-none"
                 />
               </div>
             </div>
           </div>
 
-          {/* Section 2: Seating & Economics */}
-          <div className="space-y-4 pt-2">
-            <h3 className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-luxury-gold flex items-center gap-2">
-              <span>💰</span> Seating & Platform Economics
-            </h3>
-            <div className="grid gap-5 sm:grid-cols-3">
+          {/* Card 2: Seating & Platform Economics (Matched with Admin Create/Edit) */}
+          <div
+            className="rounded-2xl p-6 space-y-5"
+            style={{
+              background: 'linear-gradient(160deg, #181818 0%, #121212 100%)',
+              border: '1px solid rgba(212,175,55,0.14)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            }}
+          >
+            <div className="flex items-center gap-2 border-b border-white/[0.07] pb-3">
+              <span className="text-luxury-gold text-base">💰</span>
+              <h2 className="font-display text-base font-semibold text-white">
+                Seating & Platform Economics
+              </h2>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-4">
               <div>
-                <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
+                <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-2">
                   Token Fee Per Seat (₹) *
                 </label>
-                <div className="flex items-center rounded-xl border border-white/10 bg-white/[0.04] overflow-hidden">
-                  <span className="px-3 font-sans font-bold text-luxury-gold">₹</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={tokenFee}
-                    onChange={(e) => setTokenFee(e.target.value)}
-                    onBlur={() => {
-                      if (!tokenFee || isNaN(Number(tokenFee))) setTokenFee('150');
-                      else setTokenFee(String(Math.max(0, parseInt(tokenFee, 10))));
-                    }}
-                    className="w-full bg-transparent py-3 font-sans text-sm font-bold text-luxury-gold outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    required
-                  />
-                </div>
+                <input
+                  type="number"
+                  min="0"
+                  max="5000"
+                  maxLength={5}
+                  required
+                  value={tokenFee}
+                  onChange={(e) => setTokenFee(e.target.value.slice(0, 5))}
+                  onBlur={() => {
+                    if (tokenFee !== '' && !isNaN(Number(tokenFee))) {
+                      setTokenFee(String(Math.min(5000, Math.max(0, parseInt(tokenFee, 10)))));
+                    }
+                  }}
+                  placeholder="e.g. 150"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-sans text-sm text-white placeholder-white/20 outline-none transition-colors duration-200 focus:border-luxury-gold/60 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
               </div>
 
               <div>
-                <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
+                <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-2">
                   Total Seating Capacity *
                 </label>
-                <div className="flex items-center rounded-xl border border-white/10 bg-white/[0.04] overflow-hidden">
-                  <span className="px-3 text-luxury-muted">🪑</span>
-                  <input
-                    type="number"
-                    min="1"
-                    value={capacity}
-                    onChange={(e) => setCapacity(e.target.value)}
-                    onBlur={() => {
-                      if (!capacity || isNaN(Number(capacity))) setCapacity('40');
-                      else setCapacity(String(Math.max(1, parseInt(capacity, 10))));
-                    }}
-                    className="w-full bg-transparent py-3 font-sans text-sm font-bold text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    required
-                  />
-                </div>
+                <input
+                  type="number"
+                  min="1"
+                  max="2000"
+                  maxLength={4}
+                  required
+                  value={capacity}
+                  onChange={(e) => setCapacity(e.target.value.slice(0, 4))}
+                  onBlur={() => {
+                    if (capacity !== '' && !isNaN(Number(capacity))) {
+                      setCapacity(String(Math.min(2000, Math.max(1, parseInt(capacity, 10)))));
+                    }
+                  }}
+                  placeholder="e.g. 40"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-sans text-sm text-white placeholder-white/20 outline-none transition-colors duration-200 focus:border-luxury-gold/60 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
               </div>
 
               <div>
-                <label className="block font-sans text-[10px] uppercase tracking-[0.16em] text-luxury-muted mb-2 font-bold">
-                  Opening Hours *
+                <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-2">
+                  Price Tier Level *
                 </label>
-                <input
-                  type="text"
-                  value={openingHours}
-                  onChange={(e) => setOpeningHours(e.target.value)}
-                  placeholder="e.g. 11:00 AM - 11:00 PM"
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white outline-none focus:border-luxury-gold/60"
-                  required
+                <LuxurySelect
+                  value={priceRange}
+                  onChange={(val) => setPriceRange(Number(val))}
+                  options={PRICE_TIER_OPTIONS}
+                  placeholder="Select Price Tier"
                 />
               </div>
             </div>
           </div>
 
-          {/* Section 3: Dining Tier */}
-          <div className="space-y-4 pt-2">
-            <h3 className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-luxury-gold flex items-center gap-2">
-              <span>⭐</span> Price Tier Level
-            </h3>
-            <div>
-              <LuxurySelect
-                value={priceRange}
-                onChange={(val) => setPriceRange(Number(val))}
-                options={[
-                  { value: 1, label: 'Casual / Budget' },
-                  { value: 2, label: 'Moderate Fine Dining' },
-                  { value: 3, label: 'Premium Luxury' },
-                  { value: 4, label: 'Ultra Luxury' },
-                ]}
-              />
+          {/* Card 3: Seating & Dining Experiences (Matched with Admin Create/Edit) */}
+          <div
+            className="rounded-2xl p-6 space-y-4"
+            style={{
+              background: 'linear-gradient(160deg, #181818 0%, #121212 100%)',
+              border: '1px solid rgba(212,175,55,0.14)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            }}
+          >
+            <div className="flex items-center justify-between border-b border-white/[0.07] pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-luxury-gold text-base">🥂</span>
+                <h2 className="font-display text-base font-semibold text-white">
+                  Seating & Dining Experiences
+                </h2>
+              </div>
+              <span className="font-sans text-[11px] text-luxury-gold font-semibold">
+                {experiences.length} selected
+              </span>
             </div>
-          </div>
 
-          {/* Section 4: Experiences & Seating */}
-          <div className="space-y-4 pt-2">
-            <h3 className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-luxury-gold flex items-center gap-2">
-              <span>🥂</span> Reserve Tables By Experiences & Seating
-            </h3>
-            <div className="flex flex-wrap gap-2.5">
+            <div className="flex flex-wrap gap-2 pt-1">
               {EXPERIENCE_OPTIONS.map((exp) => {
                 const active = experiences.includes(exp.id);
                 return (
@@ -463,19 +573,19 @@ export default function RestaurantSettings() {
                     key={exp.id}
                     type="button"
                     onClick={() => toggleExperience(exp.id)}
-                    className="flex items-center gap-2 rounded-full px-4 py-2.5 font-sans text-xs font-semibold transition-all duration-200"
+                    className="flex items-center gap-2 rounded-full px-3.5 py-2 font-sans text-xs font-medium transition-all duration-200"
                     style={
                       active
                         ? {
                             background: 'linear-gradient(135deg, rgba(212,175,55,0.22) 0%, rgba(212,175,55,0.08) 100%)',
-                            border: '1px solid rgba(212,175,55,0.60)',
+                            border: '1px solid rgba(212,175,55,0.50)',
                             color: '#ffffff',
-                            boxShadow: '0 0 16px rgba(212,175,55,0.18)',
+                            boxShadow: '0 0 14px rgba(212,175,55,0.15)',
                           }
                         : {
                             background: 'rgba(255,255,255,0.03)',
-                            border: '1px solid rgba(255,255,255,0.09)',
-                            color: '#a0a0a0',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            color: '#999',
                           }
                     }
                   >
@@ -488,25 +598,40 @@ export default function RestaurantSettings() {
             </div>
           </div>
 
-          {/* Section 5: Gallery & Photos */}
-          <div className="space-y-4 pt-2">
-            <h3 className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-luxury-gold flex items-center gap-2">
-              <span>🖼️</span> Restaurant Imagery & Gallery
-            </h3>
+          {/* Card 4: Restaurant Imagery & Gallery (Matched with Admin Create/Edit) */}
+          <div
+            className="rounded-2xl p-6 space-y-4"
+            style={{
+              background: 'linear-gradient(160deg, #181818 0%, #121212 100%)',
+              border: '1px solid rgba(212,175,55,0.14)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            }}
+          >
+            <div className="flex items-center justify-between border-b border-white/[0.07] pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-luxury-gold text-base">🖼️</span>
+                <h2 className="font-display text-base font-semibold text-white">
+                  Photo Gallery
+                </h2>
+              </div>
+              <span className="font-sans text-[11px] text-luxury-gold font-semibold">
+                {imageUrls.length} photo{imageUrls.length !== 1 ? 's' : ''}
+              </span>
+            </div>
 
-            {/* Drag & Drop Upload Zone */}
+            {/* Upload Drop Zone */}
             <div
               onClick={() => document.getElementById('partner-file-input')?.click()}
-              className="group relative flex cursor-pointer flex-col items-center justify-center rounded-2xl py-7 px-4 text-center transition-all duration-200"
+              className="group flex cursor-pointer flex-col items-center justify-center rounded-xl py-6 px-4 text-center transition-all duration-200 hover:border-luxury-gold/50"
               style={{
-                border: imageUrls.length ? '1.5px dashed rgba(212,175,55,0.40)' : '1.5px dashed rgba(212,175,55,0.25)',
+                border: imageUrls.length ? '1.5px dashed rgba(212,175,55,0.35)' : '1.5px dashed rgba(212,175,55,0.20)',
                 background: 'rgba(255,255,255,0.02)',
               }}
             >
               <p className="font-sans text-xs font-semibold text-white">
-                {uploading ? 'Uploading imagery…' : 'Drop photos here or click to upload gallery images'}
+                {uploading ? 'Uploading imagery…' : 'Click or drop photos here to upload gallery images *'}
               </p>
-              <p className="mt-1 font-sans text-[11px] text-luxury-muted">
+              <p className="mt-1 font-sans text-[10px] text-luxury-muted">
                 Supports PNG, JPG, WEBP formats
               </p>
               <input
@@ -523,31 +648,31 @@ export default function RestaurantSettings() {
             {/* Visual OR Separator Divider */}
             <div className="relative flex items-center justify-center my-1.5">
               <div className="w-full border-t border-white/[0.08]" />
-              <span className="absolute bg-[#141414] px-3 font-sans text-[10px] font-bold uppercase tracking-widest text-luxury-muted">
+              <span className="absolute bg-[#151515] px-3 font-sans text-[10px] font-bold uppercase tracking-widest text-luxury-muted">
                 OR
               </span>
             </div>
 
-            {/* Add via URL option */}
+            {/* Add via URL */}
             <div className="flex gap-2">
               <input
                 type="url"
                 value={imageUrlInput}
                 onChange={(e) => setImageUrlInput(e.target.value)}
                 placeholder="Paste direct image URL (https://...)"
-                className="flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 font-sans text-xs text-white outline-none"
+                className="flex-1 rounded-xl border border-white/10 bg-white/[0.035] px-4 py-2.5 font-sans text-xs text-white placeholder-white/20 outline-none focus:border-luxury-gold/60"
               />
               <button
                 type="button"
                 onClick={handleAddImageUrl}
-                className="rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-luxury-gold transition-colors shrink-0"
+                className="rounded-xl px-4 py-2.5 font-sans text-xs font-semibold text-luxury-gold shrink-0 transition-colors"
                 style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.25)' }}
               >
                 Add URL
               </button>
             </div>
 
-            {/* Preview grid */}
+            {/* Thumbnail grid */}
             {imageUrls.length > 0 && (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-2">
                 {imageUrls.map((url, i) => (
@@ -559,7 +684,7 @@ export default function RestaurantSettings() {
                     <img src={url} alt={`Gallery ${i + 1}`} className="h-full w-full object-cover" />
                     {i === 0 && (
                       <span className="absolute left-2 top-2 rounded-full px-2 py-0.5 font-sans text-[9px] font-bold uppercase tracking-wider text-black bg-luxury-gold font-semibold">
-                        Cover Photo
+                        Cover
                       </span>
                     )}
                     <div
@@ -569,8 +694,8 @@ export default function RestaurantSettings() {
                       <button
                         type="button"
                         onClick={() => setImageUrls((prev) => prev.filter((u) => u !== url))}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-red-400 hover:bg-red-500/20"
-                        style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-red-400"
+                        style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.25)' }}
                       >
                         ✕
                       </button>
@@ -581,27 +706,12 @@ export default function RestaurantSettings() {
             )}
           </div>
 
-          {/* Section 6: Description */}
-          <div className="space-y-4 pt-2">
-            <h3 className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-luxury-gold flex items-center gap-2">
-              <span>📜</span> Restaurant Overview & Ambiance
-            </h3>
-            <textarea
-              rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Tell guests about your dining atmosphere, chef specialties, seating style, and service..."
-              className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-sans text-sm text-white placeholder-white/30 outline-none focus:border-luxury-gold/60 resize-none"
-              required
-            />
-          </div>
-
-          {/* Save Button */}
-          <div className="pt-4 border-t border-white/[0.06]">
+          {/* Submit Action Button */}
+          <div className="pt-2">
             <button
               type="submit"
               disabled={saving || uploading}
-              className="w-full rounded-2xl py-4 font-sans text-xs font-bold uppercase tracking-wider text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-[0.99] disabled:opacity-50"
+              className="w-full rounded-xl py-4 font-sans text-xs font-bold uppercase tracking-wider text-[#0b0b0c] transition-all duration-200 hover:brightness-110 active:scale-[0.99] disabled:opacity-50"
               style={{
                 background: 'linear-gradient(135deg, #d4af37 0%, #f0cc55 45%, #c9a227 100%)',
                 boxShadow: '0 0 24px rgba(212,175,55,0.30)',
