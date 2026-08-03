@@ -3,7 +3,7 @@
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../services/api.js';
 import RestaurantCard from '../components/RestaurantCard.jsx';
@@ -176,6 +176,7 @@ function priceTicks(n) {
 }
 
 export default function Restaurants() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const page      = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
   const sort      = searchParams.get('sort') || 'newest';
@@ -280,31 +281,46 @@ export default function Restaurants() {
 
   return (
     <div
-      className="min-h-screen"
-      style={{ background: 'linear-gradient(180deg, #0b0b0c 0%, #121212 40%, #1a1a1a 100%)' }}
+      className="min-h-screen pb-16 pt-8 text-white"
+      style={{ background: 'linear-gradient(180deg, #0b0b0c 0%, #121212 50%, #1a1a1a 100%)' }}
     >
-      <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
+      <div className="mx-auto max-w-[1200px] px-4 md:px-8">
+
+        {/* Back Button */}
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="group mb-6 inline-flex items-center gap-2 px-1 py-1 font-sans text-sm font-medium text-gray-400 transition-all duration-200 hover:text-amber-400"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="transition-transform duration-200 group-hover:-translate-x-1">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          Back
+        </button>
 
         {/* ── PAGE HEADER ── */}
         <header className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="mb-2 font-sans text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-luxury-gold/70">
-              Curated Collection
+            <p className="mb-2 font-sans text-[0.65rem] font-bold uppercase tracking-[0.28em] text-luxury-gold/80">
+              CURATED COLLECTION
             </p>
             <h1 className="font-display text-4xl font-light text-white md:text-5xl lg:text-6xl">
               Restaurants
             </h1>
-            <div className="mt-3 h-px w-12" style={{ background: 'linear-gradient(90deg, #d4af37, transparent)' }} />
+            <div className="mt-3 h-0.5 w-20" style={{ background: 'linear-gradient(90deg, #d4af37 0%, rgba(212,175,55,0.2) 80%, transparent 100%)' }} />
+            <p className="mt-3 font-sans text-sm text-white/40 max-w-xl">
+              Explore and book verified fine dining destinations with real-time seating availability.
+            </p>
           </div>
           {!loading && (
             <div
-              className="flex items-center gap-2 self-start rounded-full px-4 py-2 md:self-auto"
-              style={{ background: 'rgba(212,175,55,0.07)', border: '1px solid rgba(212,175,55,0.2)' }}
+              className="flex items-center gap-2.5 self-start rounded-full px-4 py-2 md:self-auto"
+              style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.25)' }}
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-luxury-gold/60" />
-              <span className="font-sans text-sm text-luxury-gold/80">
-                <span className="font-semibold text-luxury-gold">{data.total}</span>
-                {data.total === 1 ? ' venue' : ' venues'}
+              <span className="h-2 w-2 rounded-full bg-luxury-gold" />
+              <span className="font-sans text-xs font-semibold text-luxury-gold">
+                <span>{data.total}</span>
+                {data.total === 1 ? ' Venue Available' : ' Venues Available'}
               </span>
             </div>
           )}

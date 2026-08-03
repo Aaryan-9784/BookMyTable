@@ -22,7 +22,7 @@ export default function Wishlist() {
 
   return (
     <div
-      className="min-h-screen pb-16 pt-8"
+      className="min-h-screen pb-16 pt-8 text-white"
       style={{ background: 'linear-gradient(180deg, #0b0b0c 0%, #121212 50%, #1a1a1a 100%)' }}
     >
       <div className="mx-auto max-w-[1200px] px-4 md:px-8">
@@ -47,8 +47,8 @@ export default function Wishlist() {
               <h1 className="font-display text-4xl font-light text-white md:text-5xl">
                 My Wishlist <span className="font-sans text-xl text-luxury-gold/80">({wishlistCount})</span>
               </h1>
-              <div className="mt-3 h-px w-20" style={{ background: 'linear-gradient(90deg, #d4af37, transparent)' }} />
-              <p className="mt-3 font-sans text-sm text-white/40">
+              <div className="mt-3.5 h-0.5 w-20" style={{ background: 'linear-gradient(90deg, #d4af37 0%, rgba(212,175,55,0.2) 80%, transparent 100%)' }} />
+              <p className="mt-3 font-sans text-sm text-white/40 max-w-xl">
                 Quickly access and book tables at your favorite fine dining destinations
               </p>
             </div>

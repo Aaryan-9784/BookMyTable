@@ -213,7 +213,7 @@ export default function GuestReviews() {
               <h1 className="font-display text-4xl font-light text-white md:text-5xl">
                 Reviews & Ratings {selectedRestaurant && <span className="font-sans text-xl text-luxury-gold/80">({totalReviews})</span>}
               </h1>
-              <div className="mt-3 h-px w-20" style={{ background: 'linear-gradient(90deg, #d4af37, transparent)' }} />
+              <div className="mt-3.5 h-0.5 w-20" style={{ background: 'linear-gradient(90deg, #d4af37 0%, rgba(212,175,55,0.2) 80%, transparent 100%)' }} />
               <p className="mt-3 font-sans text-sm text-white/40 max-w-xl">
                 Read authentic diner experiences and share your feedback for fine dining venues across BookMyTable.
               </p>

@@ -87,10 +87,10 @@ export default function Profile() {
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen pb-16 pt-8 text-white"
       style={{ background: 'linear-gradient(180deg, #0b0b0c 0%, #121212 50%, #1a1a1a 100%)' }}
     >
-      <div className="mx-auto max-w-[1100px] px-4 py-12 md:px-8 md:py-16">
+      <div className="mx-auto max-w-[1200px] px-4 md:px-8">
 
         {/* ── EDIT PROFILE MODAL ── */}
         <EditProfileModal
@@ -118,12 +118,12 @@ export default function Profile() {
         </button>
 
         <header className="mb-10">
-          <p className="mb-2.5 font-sans text-[0.65rem] font-bold uppercase tracking-[0.28em] text-luxury-gold/80">
+          <p className="mb-2 font-sans text-[0.65rem] font-bold uppercase tracking-[0.28em] text-luxury-gold/80">
             YOUR ACCOUNT
           </p>
           <h1 className="font-display text-4xl font-light text-white md:text-5xl">Profile</h1>
-          <div className="mt-3.5 h-px w-16" style={{ background: 'linear-gradient(90deg, #d4af37, transparent)' }} />
-          <p className="mt-4 font-sans text-sm text-white/40">Manage your dining identity & dashboard access</p>
+          <div className="mt-3.5 h-0.5 w-20" style={{ background: 'linear-gradient(90deg, #d4af37 0%, rgba(212,175,55,0.2) 80%, transparent 100%)' }} />
+          <p className="mt-3 font-sans text-sm text-white/40 max-w-xl">Manage your dining identity & dashboard access</p>
         </header>
 
         {/* ── PROFILE CARD ── */}

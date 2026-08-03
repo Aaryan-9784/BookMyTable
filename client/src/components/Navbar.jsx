@@ -9,10 +9,10 @@ import { useNotifications } from '../context/NotificationContext.jsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 
 const navLinkClass = ({ isActive }) =>
-  `relative font-sans text-sm font-medium tracking-wide transition-all duration-300
-   after:absolute after:-bottom-1 after:left-0 after:h-px after:transition-all after:duration-300
+  `relative font-sans text-sm font-medium tracking-wide transition-all duration-300 py-1
+   after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:transition-all after:duration-300
    ${isActive
-     ? 'text-luxury-gold after:w-full after:bg-luxury-gold'
+     ? 'text-luxury-gold after:w-full after:bg-luxury-gold filter drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]'
      : 'text-white/70 hover:text-white after:w-0 after:bg-luxury-gold hover:after:w-full'
    }`;
 
@@ -117,8 +117,10 @@ function Avatar({ initials, size = 30, showStatus = true }) {
 }
 
 /* ── MENU ITEM ────────────────────────────────────────────── */
-function MenuItem({ icon, label, onClick, danger }) {
+function MenuItem({ icon, label, onClick, danger, active }) {
   const [hov, setHov] = useState(false);
+  const isHighlighted = active || hov;
+
   return (
     <button
       type="button"
@@ -127,21 +129,25 @@ function MenuItem({ icon, label, onClick, danger }) {
       onMouseLeave={() => setHov(false)}
       className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 font-sans text-[13px] font-medium text-left transition-all duration-180"
       style={{
-        color: danger ? (hov ? '#f87171' : '#888') : (hov ? '#d4af37' : '#aaa'),
+        color: danger
+          ? (hov ? '#f87171' : '#888')
+          : (isHighlighted ? '#f5e27a' : '#aaa'),
         background: danger
-          ? hov ? 'rgba(239,68,68,0.08)' : 'transparent'
-          : hov ? 'rgba(212,175,55,0.08)' : 'transparent',
+          ? (hov ? 'rgba(239,68,68,0.08)' : 'transparent')
+          : (active ? 'rgba(212,175,55,0.18)' : hov ? 'rgba(212,175,55,0.08)' : 'transparent'),
+        border: !danger && active ? '1px solid rgba(212,175,55,0.30)' : '1px solid transparent',
+        boxShadow: !danger && active ? '0 0 12px rgba(212,175,55,0.15)' : 'none',
       }}
     >
       <span
         style={{
-          color: danger ? (hov ? '#f87171' : '#555') : (hov ? '#d4af37' : '#555'),
+          color: danger ? (hov ? '#f87171' : '#555') : (isHighlighted ? '#d4af37' : '#666'),
           transition: 'color 0.18s ease',
         }}
       >
         {icon}
       </span>
-      <span className="flex-1 leading-none">{label}</span>
+      <span className="flex-1 leading-none font-medium">{label}</span>
     </button>
   );
 }
@@ -237,7 +243,7 @@ function IconCalendar() {
 }
 
 /* ── PROFILE POPUP MENU ────────────────────────────────────── */
-function ProfilePopup({ name, email, role, isCustomer, isRestaurant, isAdmin, onClose, onLogout }) {
+function ProfilePopup({ name, email, role, isCustomer, isRestaurant, isAdmin, onClose, onLogout, currentPath }) {
   const userInitials = initials(name);
   return (
     <div
@@ -248,8 +254,8 @@ function ProfilePopup({ name, email, role, isCustomer, isRestaurant, isAdmin, on
         className="overflow-hidden rounded-2xl"
         style={{
           background: 'linear-gradient(160deg, #1e1e1e 0%, #141414 100%)',
-          border: '1px solid rgba(212,175,55,0.13)',
-          boxShadow: '0 24px 64px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.025), inset 0 1px 0 rgba(255,255,255,0.04)',
+          border: '1px solid rgba(212,175,55,0.18)',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.05)',
           backdropFilter: 'blur(28px)',
           WebkitBackdropFilter: 'blur(28px)',
         }}
@@ -280,13 +286,13 @@ function ProfilePopup({ name, email, role, isCustomer, isRestaurant, isAdmin, on
         </div>
 
         {/* Menu Links */}
-        <div className="px-2 py-2">
+        <div className="px-2 py-2 space-y-0.5">
           <Link to="/profile" onClick={onClose}>
-            <MenuItem icon={<IconProfile />} label="View Profile" />
+            <MenuItem icon={<IconProfile />} label="View Profile" active={currentPath === '/profile'} />
           </Link>
 
           <Link to="/my-bookings" onClick={onClose}>
-            <MenuItem icon={<IconCalendar />} label="My Bookings" />
+            <MenuItem icon={<IconCalendar />} label="My Bookings" active={currentPath === '/my-bookings'} />
           </Link>
 
           <Link to="/wishlist" onClick={onClose}>
@@ -297,18 +303,19 @@ function ProfilePopup({ name, email, role, isCustomer, isRestaurant, isAdmin, on
                 </svg>
               }
               label="Saved Wishlist"
+              active={currentPath === '/wishlist'}
             />
           </Link>
 
           {isRestaurant && (
             <Link to="/restaurant-dashboard" onClick={onClose}>
-              <MenuItem icon={<IconSwitchView />} label="Partner Portal" />
+              <MenuItem icon={<IconSwitchView />} label="Partner Portal" active={currentPath?.startsWith('/restaurant-dashboard')} />
             </Link>
           )}
 
           {isAdmin && (
             <Link to="/admin" onClick={onClose}>
-              <MenuItem icon={<IconSwitchView />} label="Admin Console" />
+              <MenuItem icon={<IconSwitchView />} label="Admin Console" active={currentPath?.startsWith('/admin')} />
             </Link>
           )}
         </div>
@@ -420,8 +427,9 @@ export default function Navbar() {
         </Link>
 
         {/* Center links */}
-        <div className="hidden items-center md:flex" style={{ gap: '1.5rem' }}>
+        <div className="hidden items-center md:flex" style={{ gap: '2rem' }}>
           <NavLink to="/restaurants" className={navLinkClass}>Restaurants</NavLink>
+          <NavLink to="/reviews" className={navLinkClass}>Reviews & Ratings</NavLink>
         </div>
 
         {/* Right Actions & Profile Pill */}
@@ -504,6 +512,7 @@ export default function Navbar() {
                     isAdmin={isAdmin}
                     onClose={() => setOpen(false)}
                     onLogout={handleLogout}
+                    currentPath={location.pathname}
                   />
                 )}
               </div>
@@ -523,7 +532,8 @@ export default function Navbar() {
       {/* Mobile nav */}
       <div className="flex border-t px-6 py-3 md:hidden" style={{ borderColor: 'rgba(212,175,55,0.07)' }}>
         <div className="flex w-full items-center justify-around">
-          <NavLink to="/restaurants" className={navLinkClass}>Venues</NavLink>
+          <NavLink to="/restaurants" className={navLinkClass}>Restaurants</NavLink>
+          <NavLink to="/reviews" className={navLinkClass}>Reviews</NavLink>
           {isAuthenticated && (
             <>
               <NavLink to="/my-bookings" className={navLinkClass}>Bookings</NavLink>
@@ -537,4 +547,5 @@ export default function Navbar() {
     </header>
   );
 }
+
 

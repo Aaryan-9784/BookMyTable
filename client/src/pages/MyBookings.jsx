@@ -84,10 +84,10 @@ export default function MyBookings() {
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen pb-16 pt-8 text-white"
       style={{ background: 'linear-gradient(180deg, #0b0b0c 0%, #121212 50%, #1a1a1a 100%)' }}
     >
-      <div className="mx-auto max-w-3xl px-4 py-14 md:px-6 md:py-20">
+      <div className="mx-auto max-w-[1200px] px-4 md:px-8">
 
         <button
           type="button"
@@ -101,16 +101,16 @@ export default function MyBookings() {
         </button>
 
         {/* ── PAGE HEADER ── */}
-        <header className="mb-12">
-          <p className="mb-3 font-sans text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-luxury-gold/70">
-            Your account
+        <header className="mb-10">
+          <p className="mb-2 font-sans text-[0.65rem] font-bold uppercase tracking-[0.28em] text-luxury-gold/80">
+            YOUR ACCOUNT
           </p>
           <h1 className="font-display text-4xl font-light text-white md:text-5xl">
-            My bookings
+            My Bookings <span className="font-sans text-xl text-luxury-gold/80">({rows.length})</span>
           </h1>
-          <div className="mt-3 h-px w-12" style={{ background: 'linear-gradient(90deg, #d4af37, transparent)' }} />
-          <p className="mt-4 font-sans text-sm text-white/35">
-            Your curated dining experiences
+          <div className="mt-3.5 h-0.5 w-20" style={{ background: 'linear-gradient(90deg, #d4af37 0%, rgba(212,175,55,0.2) 80%, transparent 100%)' }} />
+          <p className="mt-3 font-sans text-sm text-white/40 max-w-xl">
+            View and manage your active dining reservations and booking history
           </p>
         </header>
 
