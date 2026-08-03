@@ -95,7 +95,7 @@ export default function RestaurantDetails() {
 
   const experiences = Array.isArray(r.experiences) && r.experiences.length > 0
     ? r.experiences
-    : ['Fine Dining', 'Outdoor Terrace'];
+    : ['Fine Dining', 'Outdoor Terrace', 'Private Dining', 'Live Music'];
 
   const defaultReviews = [
     {

@@ -26,14 +26,14 @@ const CAPACITY_OPTIONS = [
 
 
 const ZONE_OPTIONS = [
-  { value: 'Fine Dining', label: 'Fine Dining' },
-  { value: 'Outdoor Terrace', label: 'Outdoor Terrace' },
-  { value: 'Rooftop Dining', label: 'Rooftop Dining' },
-  { value: 'VIP Dining', label: 'VIP Dining' },
-  { value: 'Bar & Lounge', label: 'Bar & Lounge' },
-  { value: 'Gourmet Cuisine', label: 'Gourmet Cuisine' },
-  { value: 'Private Dining', label: 'Private Dining' },
-  { value: 'Live Music', label: 'Live Music' },
+  { value: 'Fine Dining', label: 'Fine Dining', icon: '🕯️' },
+  { value: 'Outdoor Terrace', label: 'Outdoor Terrace', icon: '🌿' },
+  { value: 'Rooftop Dining', label: 'Rooftop Dining', icon: '🌆' },
+  { value: 'VIP Dining', label: 'VIP Dining', icon: '👑' },
+  { value: 'Bar & Lounge', label: 'Bar & Lounge', icon: '🍸' },
+  { value: 'Gourmet Cuisine', label: 'Gourmet Cuisine', icon: '🍲' },
+  { value: 'Private Dining', label: 'Private Dining', icon: '🍷' },
+  { value: 'Live Music', label: 'Live Music', icon: '🎵' },
 ];
 
 const STATUS_OPTIONS = [
@@ -310,14 +310,27 @@ const ZONE_COLORS = {
   'Bar Counter':        { bg: 'rgba(249,115,22,0.12)', color: '#fdba74' },
 };
 
+const ZONE_ICONS = {
+  'Fine Dining': '🕯️',
+  'Outdoor Terrace': '🌿',
+  'Rooftop Dining': '🌆',
+  'VIP Dining': '👑',
+  'Bar & Lounge': '🍸',
+  'Gourmet Cuisine': '🍲',
+  'Private Dining': '🍷',
+  'Live Music': '🎵',
+};
+
 function ZoneChip({ zone }) {
   const cfg = ZONE_COLORS[zone] || { bg: 'rgba(255,255,255,0.06)', color: '#aaa' };
+  const icon = ZONE_ICONS[zone];
   return (
     <span
-      className="rounded-full px-2.5 py-0.5 font-sans text-[10px] font-semibold"
+      className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-sans text-[10px] font-semibold"
       style={{ background: cfg.bg, color: cfg.color }}
     >
-      {zone}
+      {icon && <span>{icon}</span>}
+      <span>{zone}</span>
     </span>
   );
 }

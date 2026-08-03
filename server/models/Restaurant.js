@@ -82,7 +82,7 @@ const restaurantSchema = new mongoose.Schema(
     },
     experiences: {
       type: [String],
-      default: ['Fine Dining', 'Outdoor Terrace'],
+      default: ['Fine Dining', 'Outdoor Terrace', 'Private Dining', 'Live Music'],
     },
     approvalStatus: {
       type: String,

@@ -196,7 +196,7 @@ export async function createRestaurantAdmin(req, res, next) {
       ownerId = null,
       ownerEmail = null,
       ownerName = null,
-      experiences = ['Fine Dining', 'Outdoor Terrace'],
+      experiences = ['Fine Dining', 'Outdoor Terrace', 'Private Dining', 'Live Music'],
     } = req.body;
 
     let finalOwnerId = ownerId || null;
@@ -233,7 +233,7 @@ export async function createRestaurantAdmin(req, res, next) {
       totalSeatingCapacity: Number(totalSeatingCapacity) || 40,
       openingHours: openingHours || '11:00 AM - 11:00 PM',
       ownerId: finalOwnerId,
-      experiences: Array.isArray(experiences) ? experiences : ['Fine Dining', 'Outdoor Terrace'],
+      experiences: Array.isArray(experiences) ? experiences : ['Fine Dining', 'Outdoor Terrace', 'Private Dining', 'Live Music'],
     });
     res.status(201).json(r);
   } catch (e) {

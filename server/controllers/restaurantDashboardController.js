@@ -62,6 +62,8 @@ async function ensureDefaultTables(restaurantId, tokenFee = 150) {
       { restaurantId, tableNumber: 'VIP-02', capacity: 10, zone: 'VIP Dining', status: 'Available', tokenFee: tokenFee * 2 },
       { restaurantId, tableNumber: 'RT-01', capacity: 4, zone: 'Rooftop Dining', status: 'Available', tokenFee },
       { restaurantId, tableNumber: 'BAR-01', capacity: 2, zone: 'Bar & Lounge', status: 'Available', tokenFee },
+      { restaurantId, tableNumber: 'PD-01', capacity: 6, zone: 'Private Dining', status: 'Available', tokenFee: tokenFee * 1.5 },
+      { restaurantId, tableNumber: 'LM-01', capacity: 4, zone: 'Live Music', status: 'Available', tokenFee },
     ];
     await Table.insertMany(defaultTables);
   }
@@ -87,7 +89,7 @@ function formatRestaurantResponse(r, calculatedCapacity) {
     openingHours: r.openingHours || '11:00 AM - 11:00 PM',
     totalSeatingCapacity: cap,
     priceRange: r.priceRange || 2,
-    experiences: Array.isArray(r.experiences) && r.experiences.length ? r.experiences : ['Fine Dining', 'Outdoor Terrace'],
+    experiences: Array.isArray(r.experiences) && r.experiences.length ? r.experiences : ['Fine Dining', 'Outdoor Terrace', 'Private Dining', 'Live Music'],
     approvalStatus: 'approved',
   };
 }

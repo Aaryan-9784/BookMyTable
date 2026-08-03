@@ -138,7 +138,7 @@ export default function RestaurantSettings() {
   const [openingHours, setOpeningHours] = useState(initialRest?.openingHours || '11:00 AM - 11:00 PM');
   const [priceRange, setPriceRange] = useState(initialRest?.priceRange || 2);
   const [category, setCategory] = useState(initialRest?.category || 'Multi-cuisine');
-  const [experiences, setExperiences] = useState(Array.isArray(initialRest?.experiences) && initialRest.experiences.length ? initialRest.experiences : ['Fine Dining', 'Outdoor Terrace']);
+  const [experiences, setExperiences] = useState(Array.isArray(initialRest?.experiences) && initialRest.experiences.length ? initialRest.experiences : ['Fine Dining', 'Outdoor Terrace', 'Private Dining', 'Live Music']);
   const [imageUrls, setImageUrls] = useState(Array.isArray(initialRest?.imageUrls) && initialRest.imageUrls.length ? initialRest.imageUrls : initialRest?.imageUrl ? [initialRest.imageUrl] : []);
   const [imageUrlInput, setImageUrlInput] = useState('');
 
@@ -157,7 +157,7 @@ export default function RestaurantSettings() {
       setCapacity(String(r.totalSeatingCapacity ?? 40));
       setOpeningHours(r.openingHours || '11:00 AM - 11:00 PM');
       setPriceRange(r.priceRange || 2);
-      setExperiences(Array.isArray(r.experiences) && r.experiences.length ? r.experiences : ['Fine Dining', 'Outdoor Terrace']);
+      setExperiences(Array.isArray(r.experiences) && r.experiences.length ? r.experiences : ['Fine Dining', 'Outdoor Terrace', 'Private Dining', 'Live Music']);
       setImageUrls(Array.isArray(r.imageUrls) && r.imageUrls.length ? r.imageUrls : r.imageUrl ? [r.imageUrl] : []);
     } catch (err) {
       toast.error(err.message || 'Failed to load restaurant settings');

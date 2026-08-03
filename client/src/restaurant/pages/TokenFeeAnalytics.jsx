@@ -107,14 +107,27 @@ const ZONE_COLORS = {
   'Live Music':         { bg: 'rgba(14,165,233,0.12)', color: '#7dd3fc' },
   'Main Hall':          { bg: 'rgba(212,175,55,0.12)', color: '#f5e27a' },
 };
+const ZONE_ICONS = {
+  'Fine Dining': '🕯️',
+  'Outdoor Terrace': '🌿',
+  'Rooftop Dining': '🌆',
+  'VIP Dining': '👑',
+  'Bar & Lounge': '🍸',
+  'Gourmet Cuisine': '🍲',
+  'Private Dining': '🍷',
+  'Live Music': '🎵',
+};
+
 function ZoneChip({ zone }) {
   const cfg = ZONE_COLORS[zone] || { bg: 'rgba(255,255,255,0.06)', color: '#aaa' };
+  const icon = ZONE_ICONS[zone];
   return (
     <span
-      className="rounded-full px-2.5 py-0.5 font-sans text-[10px] font-semibold"
+      className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-sans text-[10px] font-semibold"
       style={{ background: cfg.bg, color: cfg.color }}
     >
-      {zone || 'General'}
+      {icon && <span>{icon}</span>}
+      <span>{zone || 'General'}</span>
     </span>
   );
 }
