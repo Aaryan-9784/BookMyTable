@@ -5,7 +5,7 @@ import './loadEnv.js';
 import http from 'http';
 import app from './app.js';
 import connectDB from './config/db.js';
-import { connectRedis } from './config/redis.js';
+import { connectRedis, isRedisConnected } from './config/redis.js';
 import { validateConfiguration, printConfigSummary } from './utils/configValidator.js';
 import { createLogger } from './utils/logger.js';
 import { handleUnhandledRejection, handleUncaughtException } from './middleware/errorHandler.js';
@@ -48,22 +48,18 @@ try {
 // Connect to Redis (optional in development, required in production)
 try {
   await connectRedis();
-  logger.info('Redis connected successfully');
+  if (isRedisConnected()) {
+    logger.info('Redis connected successfully');
+  }
 } catch (err) {
-  logger.error('Redis connection failed', { error: err.message });
   if (process.env.NODE_ENV === 'production') {
-    logger.error('Redis is required in production. Exiting...');
+    logger.error('Redis is required in production. Exiting...', { error: err.message });
     process.exit(1);
-  } else {
-    logger.warn('Continuing without Redis (development mode - using memory fallback)');
   }
 }
 
 // Log active services
-const services = [];
-if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  services.push('Supabase Auth');
-}
+const services = ['MongoDB Auth'];
 if (process.env.CLOUDINARY_CLOUD_NAME) {
   services.push('Cloudinary CDN');
 }
@@ -89,7 +85,26 @@ server.on('error', (err) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
+  const innerWidth = 58;
+  const lEmpty = '║' + ' '.repeat(innerWidth) + '║';
+  const lTitle = '║  🚀 BookMyTable Backend API Running Successfully!        ║';
+  const urlText = `• Server URL:    http://localhost:${PORT}`;
+  const envText = `• Environment:   ${process.env.NODE_ENV || 'development'}`;
+  const lUrl = '║  ' + urlText + ' '.repeat(Math.max(0, innerWidth - 2 - urlText.length)) + '║';
+  const lEnv = '║  ' + envText + ' '.repeat(Math.max(0, innerWidth - 2 - envText.length)) + '║';
+
+  console.log([
+    '',
+    '╔' + '═'.repeat(innerWidth) + '╗',
+    lEmpty,
+    lTitle,
+    lEmpty,
+    lUrl,
+    lEnv,
+    lEmpty,
+    '╚' + '═'.repeat(innerWidth) + '╝',
+    '',
+  ].join('\n'));
+
   logger.info(`BookMyTable API listening on port ${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  logger.info('Server started successfully');
 });

@@ -32,10 +32,7 @@ export default function ForgotPassword() {
     }
     setLoading(true);
     try {
-      // 1. Trigger Supabase / local auth reset request
-      await forgotPassword(email.trim()).catch(() => {});
-
-      // 2. Dispatch 6-digit verification code to user's email via Gmail SMTP
+      // Dispatch 6-digit verification code to user's email
       await api.post('/api/auth/send-login-otp', { email: email.trim() });
 
       toast.success(`Verification code sent to ${email.trim()}`);

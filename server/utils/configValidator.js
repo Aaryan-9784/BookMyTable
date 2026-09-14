@@ -70,56 +70,6 @@ function validateFormat(name, value, pattern, message, result) {
   return true;
 }
 
-/**
- * Validate Supabase configuration
- */
-function validateSupabase(result) {
-  const url = process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  // Check if Supabase is configured at all
-  if (!url && !serviceKey) {
-    result.addWarning('Supabase not configured - authentication will not work');
-    return;
-  }
-
-  // If partially configured, that's an error
-  if (!url) {
-    result.addError('SUPABASE_URL is required when using Supabase authentication');
-  } else {
-    // Validate URL format
-    validateFormat(
-      'SUPABASE_URL',
-      url,
-      /^https:\/\/[a-z0-9-]+\.supabase\.co$/,
-      'must be a valid Supabase URL (e.g., https://xxx.supabase.co)',
-      result
-    );
-
-    // Check for placeholder values
-    if (url.includes('your-supabase-project') || url.includes('xyzcompany')) {
-      result.addError('SUPABASE_URL contains placeholder value - replace with actual Supabase project URL');
-    }
-  }
-
-  if (!serviceKey) {
-    result.addError('SUPABASE_SERVICE_ROLE_KEY is required when using Supabase authentication');
-  } else {
-    // Check for placeholder values
-    if (serviceKey.includes('your-supabase') || serviceKey.includes('dummykey')) {
-      result.addError('SUPABASE_SERVICE_ROLE_KEY contains placeholder value - replace with actual key');
-    }
-
-    // Validate key format (Supabase keys are typically JWT-like)
-    if (serviceKey.length < 100) {
-      result.addWarning('SUPABASE_SERVICE_ROLE_KEY seems too short - verify it is correct');
-    }
-  }
-
-  if (url && serviceKey && !url.includes('placeholder') && !serviceKey.includes('placeholder')) {
-    result.addInfo('Supabase authentication configured');
-  }
-}
 
 /**
  * Validate database configuration
@@ -295,7 +245,6 @@ export function validateConfiguration() {
 
   try {
     validateDatabase(result);
-    validateSupabase(result);
     validateSecurity(result);
     validateEmail(result);
     validateCloudinary(result);
@@ -329,7 +278,7 @@ export function printConfigSummary() {
     nodeEnv: process.env.NODE_ENV || 'development',
     port: process.env.PORT || '5000',
     databaseConfigured: Boolean(process.env.MONGODB_URI),
-    supabaseConfigured: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY),
+    authMode: 'MongoDB Native JWT',
     emailConfigured: Boolean(process.env.GMAIL_APP_PASSWORD || process.env.RESEND_API_KEY),
     cloudinaryConfigured: Boolean(process.env.CLOUDINARY_CLOUD_NAME),
     devAuthEnabled: process.env.DEV_AUTH_ENABLED === 'true',

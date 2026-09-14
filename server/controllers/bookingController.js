@@ -4,7 +4,7 @@
 import mongoose from 'mongoose';
 import { validationResult, body, param } from 'express-validator';
 import Booking from '../models/Booking.js';
-import { sendBookingEmail, sendCancellationEmail } from '../utils/resendEmail.js';
+import { sendBookingEmail, sendCancellationEmail } from '../utils/emailService.js';
 import { pushToUser } from '../utils/sseManager.js';
 import { createLogger } from '../utils/logger.js';
 import { validateBooking, validateCancellation } from '../utils/bookingValidator.js';

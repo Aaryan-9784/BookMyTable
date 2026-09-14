@@ -10,7 +10,7 @@ import {
   createRestaurantValidators,
   addRestaurantReview,
 } from '../controllers/restaurantController.js';
-import { verifyCognitoToken } from '../middleware/verifyCognitoToken.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { createSanitizationMiddleware } from '../middleware/inputSanitizer.js';
@@ -26,7 +26,7 @@ router.get('/:id/tables', asyncHandler(getRestaurantTables));
 router.post('/:id/reviews', asyncHandler(addRestaurantReview));
 router.post(
   '/',
-  verifyCognitoToken,
+  authMiddleware,
   requireAdmin,
   sanitizeRestaurant,
   createRestaurantValidators,

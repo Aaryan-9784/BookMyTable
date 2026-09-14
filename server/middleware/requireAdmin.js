@@ -1,5 +1,5 @@
 /**
- * Must run after verifyCognitoToken — restricts route to admin role or ADMIN_EMAILS match.
+ * Must run after authMiddleware — restricts route to admin role or ADMIN_EMAILS match.
  */
 export function requireAdmin(req, res, next) {
   if (!req.user) {

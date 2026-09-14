@@ -63,6 +63,7 @@ async function attemptConnection(uri, attempt = 1) {
     isConnected = true;
     reconnectAttempts = 0;
 
+    console.log(`\n  ✅ MongoDB Database Connected Successfully: ${mongoose.connection.host} (${mongoose.connection.name || 'bookmytable'})\n`);
     logger.info('MongoDB connected successfully', {
       host: mongoose.connection.host,
       database: mongoose.connection.name,
@@ -70,6 +71,11 @@ async function attemptConnection(uri, attempt = 1) {
 
     return true;
   } catch (error) {
+    if (error.message && error.message.toLowerCase().includes('bad auth')) {
+      logger.error('❌ MONGODB AUTHENTICATION FAILED: The database username or password in MONGODB_URI is incorrect in MongoDB Atlas.');
+      logger.info('👉 FIX: Go to cloud.mongodb.com -> Security -> Database Access -> Verify user or click "Edit" to reset password.');
+    }
+
     logger.error(`MongoDB connection attempt ${attempt} failed`, {
       error: error.message,
       code: error.code,

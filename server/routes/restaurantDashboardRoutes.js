@@ -16,7 +16,7 @@ import {
   updateSettings,
 } from '../controllers/restaurantDashboardController.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
-import { verifyCognitoToken } from '../middleware/verifyCognitoToken.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 import { requireRole } from '../middleware/requireRole.js';
 import { conditionalCsrfProtection } from '../middleware/csrfProtection.js';
 import { createSanitizationMiddleware } from '../middleware/inputSanitizer.js';
@@ -27,7 +27,7 @@ const router = Router();
 const sanitizeRestaurant = createSanitizationMiddleware('restaurant');
 
 // Protect routes for admin and restaurant roles
-router.use(verifyCognitoToken, requireRole(['admin', 'restaurant']));
+router.use(authMiddleware, requireRole(['admin', 'restaurant']));
 
 // Stats
 router.get('/stats', asyncHandler(getDashboardStats));

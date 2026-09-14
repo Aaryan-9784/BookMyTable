@@ -1,11 +1,207 @@
 /**
- * Auth Controller — Login 2FA OTP generation and verification via Resend.
+ * Auth Controller — Pure MongoDB Authentication & OTP verification.
  */
-import { sendLoginOtpEmail, sendWelcomeEmail } from '../utils/resendEmail.js';
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import { sendLoginOtpEmail, sendWelcomeEmail } from '../utils/emailService.js';
 import { createLogger } from '../utils/logger.js';
 import { generateOTP, storeOTP, verifyOTP } from '../services/otpService.js';
 
 const logger = createLogger('Auth');
+
+/**
+ * Determine user role based on email & environment variables
+ */
+function determineRole(email) {
+  const emailLower = (email || '').toLowerCase().trim();
+  const adminEmails = (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (adminEmails.includes(emailLower)) {
+    return 'admin';
+  }
+
+  // All new accounts get customer role by default
+  return 'customer';
+}
+
+/**
+ * Generate a signed JWT token for the user
+ */
+function generateToken(user) {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET is not configured on the server');
+  }
+
+  return jwt.sign(
+    {
+      sub: String(user._id),
+      id: String(user._id),
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      restaurantId: user.restaurantId || null,
+      user_metadata: {
+        full_name: user.name,
+      },
+    },
+    secret,
+    { expiresIn: '7d' }
+  );
+}
+
+/**
+ * POST /api/auth/register (or /api/auth/signup)
+ * Register a new user in MongoDB
+ */
+export async function register(req, res, next) {
+  try {
+    const { email, password, fullName, phone } = req.body || {};
+
+    if (!email || !password || !fullName) {
+      return res.status(400).json({ message: 'Email, password, and full name are required' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if user already exists
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) {
+      return res.status(409).json({ message: 'An account with this email already exists' });
+    }
+
+    const assignedRole = determineRole(normalizedEmail);
+
+    const user = new User({
+      email: normalizedEmail,
+      name: fullName.trim(),
+      password,
+      phone: phone ? phone.trim() : '',
+      role: assignedRole,
+    });
+
+    await user.save();
+    logger.info('User registered successfully in MongoDB', { email: normalizedEmail, role: assignedRole });
+
+    const token = generateToken(user);
+
+    res.status(201).json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        phone: user.phone,
+      },
+      message: 'Registration successful',
+    });
+  } catch (err) {
+    logger.error('Registration failed', { error: err.message });
+    next(err);
+  }
+}
+
+/**
+ * POST /api/auth/login
+ * Log in a user using MongoDB credentials
+ */
+export async function login(req, res, next) {
+  try {
+    const { email, password } = req.body || {};
+
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Find user with password included
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Ensure accounts listed in ADMIN_EMAILS have the admin role
+    const adminEmails = (process.env.ADMIN_EMAILS || '')
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (adminEmails.includes(normalizedEmail) && user.role !== 'admin') {
+      user.role = 'admin';
+      await user.save();
+    }
+
+    const token = generateToken(user);
+    logger.info('User logged in successfully via MongoDB', { email: normalizedEmail, role: user.role });
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        phone: user.phone,
+      },
+      message: 'Login successful',
+    });
+  } catch (err) {
+    logger.error('Login failed', { error: err.message });
+    next(err);
+  }
+}
+
+/**
+ * POST /api/auth/reset-password
+ * Reset user password in MongoDB
+ */
+export async function resetPassword(req, res, next) {
+  try {
+    const { email, newPassword } = req.body || {};
+
+    if (!email || !newPassword) {
+      return res.status(400).json({ message: 'Email and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      return res.status(404).json({ message: 'No account found with this email' });
+    }
+
+    user.password = newPassword;
+    await user.save(); // Triggers Mongoose bcrypt pre-save hash hook
+
+    logger.info('User password reset successfully in MongoDB', { email: normalizedEmail });
+
+    res.json({
+      ok: true,
+      message: 'Password updated successfully',
+    });
+  } catch (err) {
+    logger.error('Password reset failed', { error: err.message });
+    next(err);
+  }
+}
 
 /**
  * POST /api/auth/send-login-otp

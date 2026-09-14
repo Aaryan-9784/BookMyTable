@@ -1,10 +1,8 @@
 /**
- * Auth Context Provider — Supabase Auth + JWT Session Token + MongoDB User Sync.
- * Supports 50,000 free monthly active users with zero sandbox limitations.
+ * Auth Context Provider — Pure MongoDB Authentication & JWT Session Token.
  */
 import React, { createContext, useCallback, useContext, useMemo, useState, useEffect } from 'react';
 import api from '../services/api.js';
-import { supabase } from '../config/supabase.js';
 import { STORAGE_ID_TOKEN, STORAGE_EMAIL } from '../utils/constants.js';
 import { SESSION_INVALID_EVENT } from '../utils/authSession.js';
 
@@ -25,19 +23,6 @@ function writeCachedProfile(data) {
     if (data) localStorage.setItem(STORAGE_PROFILE, JSON.stringify(data));
     else localStorage.removeItem(STORAGE_PROFILE);
   } catch {}
-}
-
-function isRealSupabaseConfigured() {
-  const url = import.meta.env.VITE_SUPABASE_URL || '';
-  const key = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-  return Boolean(
-    url &&
-    !url.includes('your-supabase-project') &&
-    !url.includes('xyzcompany') &&
-    key &&
-    !key.includes('your-supabase-anon-key') &&
-    !key.includes('dummykey')
-  );
 }
 
 export function AuthProvider({ children }) {
@@ -125,7 +110,9 @@ export function AuthProvider({ children }) {
         if (mounted) setProfileLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [idToken]);
 
   const setIdToken = useCallback((token) => {
@@ -133,61 +120,48 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
-   * Supabase Auth / Dev Auth — Login
+   * MongoDB Login
    */
   const login = useCallback(async (userEmail, password) => {
     const trimmedEmail = (userEmail || '').trim();
     setLoading(true);
 
     try {
-      let token = null;
+      const res = await api.post('/api/auth/login', {
+        email: trimmedEmail,
+        password,
+      });
 
-      // Validate Supabase configuration or fall back to development authentication
-      if (isRealSupabaseConfigured()) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: trimmedEmail,
-          password,
-        });
-
-        if (error) {
-          setLoading(false);
-          throw new Error(error.message);
-        }
-
-        token = data?.session?.access_token;
-      } else {
-        // Fallback to backend dev-auth login
-        const res = await api.post('/api/dev-auth/login', {
-          email: trimmedEmail,
-          password,
-        });
-        token = res.data?.token;
-      }
-
+      const token = res.data?.token;
       if (!token) {
         setLoading(false);
         throw new Error('Authentication failed - no token received');
       }
 
-      // Store token securely
       localStorage.setItem(STORAGE_ID_TOKEN, token);
       setIdTokenState(token);
       setEmailState(trimmedEmail);
-      setLoading(false);
 
-      // Fetch user profile
-      let fetchedProfile = null;
-      try {
-        const { data: profileData } = await api.get('/api/users/profile');
-        setRole(profileData.role || 'customer');
-        setProfile(profileData);
-        writeCachedProfile(profileData);
-        fetchedProfile = profileData;
-      } catch (profileError) {
-        console.error('Failed to fetch profile:', profileError);
+      const user = res.data?.user || {};
+      if (user.role) {
+        setRole(user.role);
+      }
+      if (user.name) {
+        localStorage.setItem('bookmytable_full_name', user.name);
       }
 
-      return { token, profile: fetchedProfile };
+      setProfile(user);
+      writeCachedProfile(user);
+      setLoading(false);
+
+      // Refresh full profile in background
+      api.get('/api/users/profile').then(({ data }) => {
+        setProfile(data);
+        setRole(data.role || user.role || 'customer');
+        writeCachedProfile(data);
+      }).catch(() => {});
+
+      return { token, profile: user };
     } catch (err) {
       setLoading(false);
       throw err;
@@ -195,52 +169,31 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
-   * Supabase Auth / Dev Auth — Sign Up
+   * MongoDB Sign Up / Register
    */
   const signUp = useCallback(async (userEmail, password, fullName) => {
     const trimmedEmail = (userEmail || '').trim();
     const trimmedName = (fullName || '').trim();
-    
+
     if (!trimmedName) {
       throw new Error('Full name is required');
     }
 
     localStorage.setItem('bookmytable_full_name', trimmedName);
     setLoading(true);
-    
-    try {
-      let userConfirmed = false;
 
-      if (isRealSupabaseConfigured()) {
-        const { data, error } = await supabase.auth.signUp({
-          email: trimmedEmail,
-          password,
-          options: {
-            data: { full_name: trimmedName },
-          },
-        });
-        
-        if (error) {
-          setLoading(false);
-          throw new Error(error.message);
-        }
-        
-        userConfirmed = Boolean(data?.user?.confirmed_at);
-      } else {
-        // Fallback to backend dev-auth signup
-        const res = await api.post('/api/dev-auth/signup', {
-          email: trimmedEmail,
-          password,
-          fullName: trimmedName,
-        });
-        userConfirmed = Boolean(res.data?.userConfirmed);
-      }
+    try {
+      const res = await api.post('/api/auth/register', {
+        email: trimmedEmail,
+        password,
+        fullName: trimmedName,
+      });
 
       setLoading(false);
       return {
-        userConfirmed,
+        userConfirmed: true,
         email: trimmedEmail,
-        cognitoUsername: trimmedEmail,
+        user: res.data?.user,
       };
     } catch (err) {
       setLoading(false);
@@ -249,64 +202,29 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
-   * Supabase Auth — Confirm Sign Up
+   * Confirm Sign Up
    */
-  const confirmSignUp = useCallback(async (emailStr, code) => {
-    setLoading(true);
-    try {
-      if (isRealSupabaseConfigured()) {
-        const { error } = await supabase.auth.verifyOtp({
-          email: emailStr.trim(),
-          token: code.trim(),
-          type: 'signup',
-        });
-        if (error) {
-          setLoading(false);
-          throw new Error(error.message);
-        }
-      }
-      setLoading(false);
-      return true;
-    } catch (err) {
-      setLoading(false);
-      throw err;
-    }
+  const confirmSignUp = useCallback(async () => {
+    return true;
   }, []);
 
   /**
-   * Supabase Auth — Forgot Password
+   * Forgot Password
    */
   const forgotPassword = useCallback(async (emailStr) => {
-    setLoading(true);
-    try {
-      if (isRealSupabaseConfigured()) {
-        const { error } = await supabase.auth.resetPasswordForEmail(emailStr.trim());
-        if (error) {
-          setLoading(false);
-          throw new Error(error.message);
-        }
-      }
-      setLoading(false);
-      return true;
-    } catch (err) {
-      setLoading(false);
-      throw err;
-    }
+    return true;
   }, []);
 
   /**
-   * Supabase Auth — Confirm Password
+   * Confirm Password Reset
    */
   const confirmPassword = useCallback(async (emailStr, code, newPassword) => {
     setLoading(true);
     try {
-      if (isRealSupabaseConfigured()) {
-        const { error } = await supabase.auth.updateUser({ password: newPassword });
-        if (error) {
-          setLoading(false);
-          throw new Error(error.message);
-        }
-      }
+      await api.post('/api/auth/reset-password', {
+        email: emailStr.trim(),
+        newPassword,
+      });
       setLoading(false);
       return true;
     } catch (err) {
@@ -319,17 +237,13 @@ export function AuthProvider({ children }) {
    * Resend Code
    */
   const resendConfirmationCode = useCallback(async (emailStr) => {
-    return forgotPassword(emailStr);
-  }, [forgotPassword]);
+    return true;
+  }, []);
 
   /**
    * Logout
    */
   const logout = useCallback(async () => {
-    try {
-      await supabase.auth.signOut().catch(() => {});
-    } catch {}
-
     setIdTokenState(null);
     setEmailState('');
     setProfile(null);

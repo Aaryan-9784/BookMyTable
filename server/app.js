@@ -15,7 +15,6 @@ import restaurantDashboardRoutes from './routes/restaurantDashboardRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
-import devAuthRoutes from './routes/devAuthRoutes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
 import { cookieParser, csrfErrorHandler } from './middleware/csrfProtection.js';
@@ -33,7 +32,7 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for React
       styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles
       imgSrc: ["'self'", "data:", "https:", "blob:"], // Allow images from CDNs
-      connectSrc: ["'self'", "https://api.bookmytable.me", "https://*.supabase.co"],
+      connectSrc: ["'self'", "https://api.bookmytable.me"],
       fontSrc: ["'self'", "data:"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
@@ -108,11 +107,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/restaurant-dashboard', restaurantDashboardRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/wishlist', wishlistRoutes);
-
-// Development-only authentication routes (disabled in production)
-if (process.env.NODE_ENV !== 'production') {
-  app.use('/api/dev-auth', devAuthRoutes);
-}
+app.use('/api/dev-auth', authRoutes);
 
 app.use(notFoundHandler);
 app.use(csrfErrorHandler); // Handle CSRF errors before general error handler

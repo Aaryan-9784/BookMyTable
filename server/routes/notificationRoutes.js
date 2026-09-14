@@ -7,14 +7,14 @@
  * before the standard verifyCognitoToken middleware runs.
  */
 import express from 'express';
-import { verifyCognitoToken } from '../middleware/verifyCognitoToken.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 import { addClient, removeClient } from '../utils/sseManager.js';
 
 const router = express.Router();
 
 /**
  * Middleware: lift ?token= query param into Authorization header
- * so verifyCognitoToken can process it normally.
+ * so authMiddleware can process it normally.
  */
 function injectQueryToken(req, res, next) {
   const qToken = req.query.token;
@@ -28,7 +28,7 @@ function injectQueryToken(req, res, next) {
  * GET /api/notifications/stream
  * Opens a long-lived SSE connection for the authenticated user.
  */
-router.get('/stream', injectQueryToken, verifyCognitoToken, (req, res) => {
+router.get('/stream', injectQueryToken, authMiddleware, (req, res) => {
   const userId = String(req.user._id);
 
   res.setHeader('Content-Type', 'text/event-stream');

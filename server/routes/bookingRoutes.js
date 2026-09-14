@@ -13,7 +13,7 @@ import {
   cancelBooking,
   cancelBookingValidators,
 } from '../controllers/bookingController.js';
-import { verifyCognitoToken } from '../middleware/verifyCognitoToken.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { bookingLimiter } from '../middleware/rateLimiter.js';
 import { conditionalCsrfProtection } from '../middleware/csrfProtection.js';
@@ -24,7 +24,7 @@ const router = Router();
 // Apply input sanitization to booking data
 const sanitizeBooking = createSanitizationMiddleware('booking');
 
-router.use(verifyCognitoToken);
+router.use(authMiddleware);
 
 // Safe methods - no CSRF needed
 router.get('/my', asyncHandler(listMyBookings));

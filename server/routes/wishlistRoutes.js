@@ -1,5 +1,5 @@
 import express from 'express';
-import { verifyCognitoToken } from '../middleware/verifyCognitoToken.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 import {
   getWishlist,
   toggleWishlist,
@@ -10,7 +10,7 @@ import {
 const router = express.Router();
 
 // Protected endpoints
-router.use(verifyCognitoToken);
+router.use(authMiddleware);
 
 router.get('/', getWishlist);
 router.post('/toggle/:restaurantId', toggleWishlist);

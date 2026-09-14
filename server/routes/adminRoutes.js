@@ -22,7 +22,7 @@ import {
   restaurantUpdateValidators,
   updateRoleValidators,
 } from '../controllers/adminController.js';
-import { verifyCognitoToken } from '../middleware/verifyCognitoToken.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { adminLimiter } from '../middleware/rateLimiter.js';
@@ -32,7 +32,7 @@ import { createSanitizationMiddleware } from '../middleware/inputSanitizer.js';
 const router = Router();
 
 // Apply rate limiting to all admin routes: 100 requests per 15 minutes per user
-router.use(adminLimiter, verifyCognitoToken, requireAdmin);
+router.use(adminLimiter, authMiddleware, requireAdmin);
 
 // Input sanitization for different data types
 const sanitizeRestaurant = createSanitizationMiddleware('restaurant');

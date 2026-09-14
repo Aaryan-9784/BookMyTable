@@ -2,7 +2,7 @@
  * Redis Client Configuration
  * 
  * Provides connection to Redis for caching, session management, and OTP storage.
- * Falls back gracefully when Redis is unavailable (development mode).
+ * Falls back gracefully to in-memory store when Redis is unavailable (development mode).
  */
 
 import Redis from 'ioredis';
@@ -17,37 +17,41 @@ let isConnected = false;
  * Create Redis client with configuration
  */
 function createRedisClient() {
-  const redisUrl = process.env.REDIS_URL;
+  const redisUrl = (process.env.REDIS_URL || '').trim();
   const redisHost = process.env.REDIS_HOST || 'localhost';
   const redisPort = Number(process.env.REDIS_PORT) || 6379;
   const redisPassword = process.env.REDIS_PASSWORD;
   const redisDb = Number(process.env.REDIS_DB) || 0;
+  const isDevelopment = process.env.NODE_ENV !== 'production';
 
-  // If Redis URL is provided, use it (production/cloud)
+  // In development, stop reconnect loops if server is not present
+  const retryStrategy = (times) => {
+    if (isDevelopment && times > 1) {
+      return null; // Stop reconnecting immediately in dev
+    }
+    return Math.min(times * 50, 2000);
+  };
+
   if (redisUrl) {
-    logger.info('Connecting to Redis using URL');
     return new Redis(redisUrl, {
-      maxRetriesPerRequest: 3,
+      maxRetriesPerRequest: 1,
       enableReadyCheck: true,
       lazyConnect: true,
+      connectTimeout: 2000,
+      retryStrategy,
     });
   }
 
-  // Otherwise use host/port configuration (local development)
-  logger.info('Connecting to Redis', { host: redisHost, port: redisPort });
   return new Redis({
     host: redisHost,
     port: redisPort,
     password: redisPassword || undefined,
     db: redisDb,
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: 1,
     enableReadyCheck: true,
     lazyConnect: true,
-    retryStrategy(times) {
-      const delay = Math.min(times * 50, 2000);
-      logger.warn(`Redis retry attempt ${times}, waiting ${delay}ms`);
-      return delay;
-    },
+    connectTimeout: 2000,
+    retryStrategy,
   });
 }
 
@@ -55,16 +59,16 @@ function createRedisClient() {
  * Initialize Redis connection
  */
 export async function connectRedis() {
-  if (redisClient) {
+  if (redisClient && isConnected) {
     return redisClient;
   }
 
-  // Skip Redis connection in development if no Redis URL is configured
-  const redisUrl = process.env.REDIS_URL;
+  const redisUrl = (process.env.REDIS_URL || '').trim();
   const isDevelopment = process.env.NODE_ENV !== 'production';
-  
-  if (isDevelopment && !redisUrl) {
-    logger.info('Redis not configured - using in-memory storage for development');
+
+  // If in development and REDIS_URL is not set or empty, skip Redis entirely
+  if (isDevelopment && (!redisUrl || redisUrl === '')) {
+    logger.info('Redis not configured — using fast in-memory fallback for development');
     redisClient = null;
     isConnected = false;
     return null;
@@ -73,7 +77,6 @@ export async function connectRedis() {
   try {
     redisClient = createRedisClient();
 
-    // Set up event handlers
     redisClient.on('connect', () => {
       logger.info('Redis client connecting...');
     });
@@ -84,39 +87,40 @@ export async function connectRedis() {
     });
 
     redisClient.on('error', (err) => {
-      logger.error('Redis client error', { error: err.message });
+      if (!isDevelopment) {
+        logger.error('Redis client error', { error: err.message });
+      }
       isConnected = false;
     });
 
     redisClient.on('close', () => {
-      logger.warn('Redis connection closed');
       isConnected = false;
     });
 
-    redisClient.on('reconnecting', () => {
-      logger.info('Redis client reconnecting...');
-    });
-
-    // Attempt to connect
+    // Attempt connection with timeout
     await redisClient.connect();
-    
-    // Test connection
     await redisClient.ping();
-    
+
+    isConnected = true;
     logger.info('Redis connected successfully');
     return redisClient;
   } catch (error) {
-    logger.error('Failed to connect to Redis', { error: error.message });
-    
-    // In development, allow app to continue without Redis
-    if (process.env.NODE_ENV !== 'production') {
-      logger.warn('Running without Redis in development mode');
+    // Clean up failed client so it doesn't loop reconnect in background
+    if (redisClient) {
+      try {
+        redisClient.disconnect(false);
+      } catch (e) {}
       redisClient = null;
-      isConnected = false;
+    }
+    isConnected = false;
+
+    if (isDevelopment) {
+      logger.warn('Local Redis not detected — continuing with in-memory storage fallback');
       return null;
     }
-    
-    // In production, Redis is required for proper operation
+
+    // In production, Redis is required for multi-server deployments
+    logger.error('Failed to connect to Redis in production', { error: error.message });
     throw error;
   }
 }
@@ -125,9 +129,6 @@ export async function connectRedis() {
  * Get Redis client instance
  */
 export function getRedisClient() {
-  if (!redisClient) {
-    logger.warn('Redis client not initialized');
-  }
   return redisClient;
 }
 
@@ -139,44 +140,20 @@ export function isRedisConnected() {
 }
 
 /**
- * Close Redis connection
+ * Disconnect Redis
  */
 export async function disconnectRedis() {
   if (redisClient) {
-    logger.info('Closing Redis connection');
-    await redisClient.quit();
-    redisClient = null;
-    isConnected = false;
-  }
-}
-
-/**
- * Redis health check
- */
-export async function checkRedisHealth() {
-  if (!redisClient || !isConnected) {
-    return {
-      status: 'disconnected',
-      message: 'Redis is not connected',
-    };
-  }
-
-  try {
-    const start = Date.now();
-    await redisClient.ping();
-    const latency = Date.now() - start;
-
-    return {
-      status: 'healthy',
-      latency: `${latency}ms`,
-      connected: true,
-    };
-  } catch (error) {
-    return {
-      status: 'error',
-      message: error.message,
-      connected: false,
-    };
+    try {
+      await redisClient.quit();
+    } catch (err) {
+      try {
+        redisClient.disconnect(false);
+      } catch (e) {}
+    } finally {
+      redisClient = null;
+      isConnected = false;
+    }
   }
 }
 
@@ -185,5 +162,4 @@ export default {
   getRedisClient,
   isRedisConnected,
   disconnectRedis,
-  checkRedisHealth,
 };

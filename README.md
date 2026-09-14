@@ -2,254 +2,349 @@
 
 # 🍽️ BookMyTable
 
-### Premium Full-Stack MERN Restaurant Reservation & Management Platform
+### **Enterprise Full-Stack MERN Restaurant Reservation & Venue Management Platform**
 
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-5.0-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express-4.0-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![AWS](https://img.shields.io/badge/AWS-Amplify%20%7C%20Beanstalk-232F3E?style=flat-square&logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
+*A modern, high-concurrency reservation engine featuring native JWT authentication, multi-tier Role-Based Access Control (RBAC), dining zone management, real-time Server-Sent Events (SSE), automated transactional emails, and a luxury obsidian-gold UI.*
 
-**Live Demo:** [bookmytable.me](https://bookmytable.me)
+<br/>
 
-A full-stack, enterprise-grade restaurant reservation platform built with modern web technologies, multi-role access control, real-time notification streams, wishlist tracking, dining zone seating management, and a luxury dark-gold obsidian design system.
+[![React](https://img.shields.io/badge/React-18.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-4.18-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![JWT](https://img.shields.io/badge/Auth-Native%20JWT%20%2B%20Bcrypt-FFB300?style=for-the-badge&logo=jsonwebtokens&logoColor=black)](https://jwt.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-[Overview](#-overview) • [Key Features](#-key-features) • [Tech Stack](#-tech-stack) • [Quick Start](#-quick-start) • [Environment Setup](#-environment-setup) • [API Reference](#-api-reference) • [Database Schema](#-database-schema) • [Deployment](#-deployment)
+<br/>
+
+**[🌐 Live Demo](https://bookmytable.me)** • **[📖 Documentation](#-table-of-contents)** • **[🚀 Quick Start](#-quick-start)** • **[📡 API Reference](#-api-specification)** • **[🔒 Security Architecture](#-security--resilience)**
 
 </div>
 
 ---
 
-## 📋 Table of Contents
+## 📌 Executive Summary
 
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-- [Tech Stack](#-tech-stack)
-- [Project Architecture](#-project-architecture)
-- [Quick Start](#-quick-start)
-- [Environment Setup](#-environment-setup)
-- [User Roles & Security](#-user-roles--security)
-- [Database Schemas](#-database-schemas)
-- [API Reference](#-api-reference)
-- [Deployment Guide](#-deployment-guide)
-- [Troubleshooting & FAQs](#-troubleshooting--faqs)
-- [License & Contributing](#-license--contributing)
+**BookMyTable** is a production-grade restaurant discovery, table reservation, and venue management ecosystem designed to eliminate reservation friction for customers, streamline seating logistics for restaurant operators, and provide comprehensive governance tools for platform administrators.
+
+Built strictly on the **MERN (MongoDB, Express, React, Node.js)** stack, the platform prioritizes **data integrity, security, and visual elegance**, adhering to standard software engineering best practices.
+
+### 🌟 Core Value Propositions
+- **For Diners**: Instant multi-zone table discovery, real-time availability checks, token deposit protection against no-shows, personal wishlists, and real-time reservation notifications.
+- **For Restaurant Operators**: Full control over venue capacity, table layouts by dining zones (VIP, Rooftop, Terrace, Main Hall), booking management with instant status updates, and CSV reporting.
+- **For Administrators**: Centralized control panel for vetting and approving restaurant applications, auditing registered user accounts, adjusting roles, and monitoring platform metrics.
 
 ---
 
-## 🎯 Overview
+## 📋 Table of Contents
 
-**BookMyTable** bridges the gap between hungry diners, restaurant managers, and platform administrators. Built with performance, security, and visual elegance in mind, it provides an end-to-end booking experience backed by real-time notification capabilities and automated transactional emails.
+- [System Architecture](#-system-architecture)
+- [Key Features](#-key-features)
+- [Role-Based Access Control (RBAC)](#-role-based-access-control-rbac)
+- [Technology Stack](#-technology-stack)
+- [Project Directory Structure](#-project-directory-structure)
+- [Quick Start Guide](#-quick-start-guide)
+- [Environment Configuration](#-environment-configuration)
+- [Data Models & Schema](#-data-models--schema)
+- [API Specification](#-api-specification)
+- [Security & Resilience Engineering](#-security--resilience-engineering)
+- [Deployment Guidelines](#-deployment-guidelines)
+- [Troubleshooting & FAQs](#-troubleshooting--faqs)
+- [Contributing & License](#-contributing--license)
 
-### Targeted Workflows
+---
 
-- 👤 **Customers**: Discover top-rated dining experiences, filter by cuisine/location/price, reserve tables in specific dining zones, save favorites to personal wishlists, and manage reservations.
-- 🏪 **Restaurant Partners**: Manage dining capacity and layout across custom zones (VIP, Rooftop, Main Hall, Outdoor), process reservations in real time, review guest metrics, and export analytics.
-- 👨‍💼 **Platform Admins**: Monitor platform metrics, audit users and partner restaurants, approve or reject new restaurant onboardings, and enforce platform standards.
+## 🏗️ System Architecture
+
+The following diagram illustrates the request lifecycle, security barriers, authentication layer, and service distribution across the BookMyTable ecosystem:
+
+```mermaid
+flowchart TD
+    subgraph ClientLayer["🖥️ Frontend Client (React 18 + Vite + Tailwind CSS)"]
+        UI_Customer["Customer UI<br/>(Discovery, Booking, Wishlist, Profile)"]
+        UI_Partner["Restaurant Partner Console<br/>(/restaurant - Zones, Tables, Bookings)"]
+        UI_Admin["Admin Governance Portal<br/>(/admin - Approvals, Users, Metrics)"]
+    end
+
+    subgraph GatewayLayer["🛡️ Express.js API Gateway (Port 5000)"]
+        Sec_CORS["CORS Guard & Helmet HTTP Headers"]
+        Sec_Rate["Tiered Rate Limiters<br/>(Auth, OTP, Upload, Admin)"]
+        Sec_CSRF["CSRF Protection<br/>(Double-Submit Cookie)"]
+        Sec_Sanitize["Input Sanitizer<br/>(XSS & NoSQL Injection Strip)"]
+        Sec_Auth["authMiddleware<br/>(JWT Verification & MongoDB User Hydration)"]
+    end
+
+    subgraph ServiceLayer["⚙️ Domain Services & Business Logic"]
+        Ctrl_Auth["Auth & OTP Service"]
+        Ctrl_Booking["Reservation Engine"]
+        Ctrl_Rest["Restaurant & Table Manager"]
+        Ctrl_Admin["Admin Governance Engine"]
+        Ctrl_SSE["SSE Real-Time Push Broker"]
+    end
+
+    subgraph StorageLayer["🗄️ Database & Cloud Infrastructure"]
+        DB_Mongo[("MongoDB Atlas<br/>Users, Restaurants, Tables, Bookings, Wishlists")]
+        Cloud_Media["Cloudinary CDN<br/>High-Res Image Storage"]
+        Service_Email["SMTP Email Service<br/>Transactional Confirmations & OTPs"]
+    end
+
+    ClientLayer --> Sec_CORS
+    Sec_CORS --> Sec_Rate
+    Sec_Rate --> Sec_CSRF
+    Sec_CSRF --> Sec_Sanitize
+    Sec_Sanitize --> Sec_Auth
+
+    Sec_Auth --> Ctrl_Auth
+    Sec_Auth --> Ctrl_Booking
+    Sec_Auth --> Ctrl_Rest
+    Sec_Auth --> Ctrl_Admin
+    Sec_Auth --> Ctrl_SSE
+
+    Ctrl_Auth --> DB_Mongo
+    Ctrl_Booking --> DB_Mongo
+    Ctrl_Rest --> DB_Mongo
+    Ctrl_Admin --> DB_Mongo
+    Ctrl_Booking --> Ctrl_SSE
+    Ctrl_Auth --> Service_Email
+    Ctrl_Booking --> Service_Email
+    Ctrl_Rest --> Cloud_Media
+```
 
 ---
 
 ## ✨ Key Features
 
 ### 👤 Customer Experience
-- 🔍 **Advanced Search & Discovery**: Multi-faceted filtering by cuisine category, city location, price range (₹ to ₹₹₹₹), and minimum star ratings.
-- 📅 **Dynamic Booking Flow**: Interactive date selection, time slot pickers, and seat capacity controls with instant fee calculation.
-- ❤️ **Personal Wishlist**: Save favorite venues for quick access with real-time toggle states and counts.
-- 💰 **Refundable Token Deposit**: Deposit guarantee system (₹150 default) to reduce no-shows and streamline table holds.
-- 🔔 **Real-Time SSE Notifications**: Instant push notifications via Server-Sent Events for booking status changes and reminders.
-- 📧 **Automated Email Confirmations**: Seamless transactional emails via Nodemailer with Gmail/Resend integration.
+- 🔍 **Faceted Search & Filter Engine**: Filter dining spots by cuisine category, location, price level (₹ to ₹₹₹₹), and minimum star rating with debounced live search queries.
+- 🪑 **Zone-Specific Seating Reservations**: Choose custom dining atmospheres (*Main Hall, Outdoor Terrace, VIP Private Dining, Rooftop, Bar Counter*) with customized token deposits.
+- 💳 **Token Fee Guarantee System**: Per-seat deposit calculation (default ₹150) that secures reservations and reduces no-show rates.
+- ❤️ **Real-Time Wishlist Management**: Bookmark venues instantly with optimistic UI updates and live bookmark counts.
+- 🔔 **Real-Time SSE Status Stream**: Long-lived Server-Sent Events connection pushing instant reservation approvals, completions, or cancellations directly to the user's browser.
+- 📧 **Automated Transactional Emails**: Instant HTML booking confirmation receipts, status alerts, and one-time verification passcodes (OTPs).
 
-### 🏪 Restaurant Partner Management
-- 📊 **Partner Dashboard & Analytics**: Visual metrics for occupancy rates, booking throughput, and token revenue.
-- 🪑 **Zone-Based Table Management**: Configure seating capacities across custom dining areas (*VIP Private Dining, Rooftop, Outdoor Terrace, Main Hall, Bar Counter*).
-- 📋 **Live Booking Management**: Approve, complete, or cancel bookings with automated customer notification triggers.
-- 📤 **Report Data Export**: Export booking history and guest details directly to CSV format.
-- ⚙️ **Restaurant Customization**: Update opening hours, seating capacity, high-resolution media, and descriptions.
+### 🏪 Restaurant Partner Operations
+- 📊 **Operational Partner Dashboard (`/restaurant`)**: Real-time KPI summaries covering today's bookings, occupancy rates, table turnaround, and revenue generation.
+- 📐 **Interactive Table Inventory Manager**: Create, configure, update, and toggle table statuses (`Available`, `Reserved`, `Maintenance`) grouped by seating zone.
+- 📋 **Reservation Lifecycle Management**: Review guest requests, confirm bookings, mark dining sessions completed, or process cancellations with automated triggers.
+- 📤 **One-Click CSV Export**: Download complete guest sheets and reservation histories formatted for operational review and auditing.
+- 🖼️ **Venue Customization & Cloudinary Uploads**: Manage business hours, capacity constraints, description details, and upload high-resolution venue photos directly to Cloudinary CDN.
 
-### 👨‍💼 Platform Administration
-- 🎛️ **Central Command Panel**: Comprehensive metrics covering total revenue, active users, total restaurants, and booking totals.
-- 🏢 **Restaurant Verification Pipeline**: Review pending restaurant applications with one-click Approval/Rejection workflows.
-- 👥 **User & Partner Audit**: Manage account privileges, user roles (`customer`, `restaurant`, `admin`), and handle account deletions safely.
-- 📑 **Global Booking Oversight**: Search and monitor reservations across all registered partner locations.
-
-### 🔒 Enterprise Security & Resilience
-- 🛡️ **Multi-Layered Security**: CSRF Double-Submit Cookie protection, helmet HTTP security headers, and input sanitization to prevent XSS/SQLi attacks.
-- ⚡ **Rate Limiting Engine**: IP and email-based rate limiters protecting auth, OTP verification, and image upload endpoints against brute-force attacks.
-- 🔑 **Flexible Authentication**: Native JWT support with AWS Cognito / Supabase token validation and environment-locked local development auth bypass modes.
-- 🖼️ **Cloudinary Image CDN**: Secure multipart image uploads with format validation and instant CDN delivery.
+### 👨‍💼 Platform Administration & Governance
+- 🎛️ **Central Command Center (`/admin`)**: Bird's-eye metrics on platform GMV, total active users, registered dining locations, and system throughput.
+- 🏢 **Restaurant Verification Pipeline**: Review pending onboarding submissions with one-click **Approve** and **Reject** mechanisms.
+- 👥 **User Role Management**: Inspect all registered user accounts with administrative capability to promote customers to `restaurant` partners or demote accounts safely.
+- 📑 **Global Booking Oversight**: Search, inspect, and monitor reservations across all partner venues platform-wide.
 
 ---
 
-## 🛠️ Tech Stack
+## 👥 Role-Based Access Control (RBAC)
 
-### Frontend Architecture
-| Technology | Purpose |
-|---|---|
-| **React 18** | High-performance declarative component UI library |
-| **Vite 5** | Lightning-fast module bundler and dev server |
-| **Tailwind CSS 3.4** | Utility-first styling with modern dark-gold obsidian design tokens |
-| **Framer Motion** | Fluid page transitions, modal animations, and micro-interactions |
-| **Axios** | HTTP client with centralized error interceptors & CSRF token injection |
-| **Lucide React** | Clean, consistent vector icons |
+BookMyTable enforces a robust, multi-tier authorization hierarchy:
 
-### Backend Architecture
-| Technology | Purpose |
-|---|---|
-| **Node.js 18+** | Asynchronous event-driven runtime environment |
-| **Express.js 4** | Modular RESTful API routing framework |
-| **MongoDB Atlas + Mongoose** | Cloud document database with strict schema validation |
-| **JSONWebToken (JWT)** | Secure stateful / stateless user session management |
-| **AWS Cognito / Supabase** | External identity provider integration |
-| **Server-Sent Events (SSE)** | Low-latency server-to-client real-time push streaming |
-| **Cloudinary & Multer** | Cloud media storage, file parsing, and image optimization |
-| **Nodemailer** | HTML transactional email generation & dispatch |
+```
+                      ┌──────────────────────────────┐
+                      │        Platform Admin        │
+                      │           ("admin")          │
+                      │  - Platform-wide governance  │
+                      │  - Venue approvals/rejections│
+                      │  - User promotion/demotion   │
+                      └──────────────▲───────────────┘
+                                     │
+                        Promoted by Admin via /admin
+                                     │
+                      ┌──────────────┴───────────────┐
+                      │      Restaurant Partner      │
+                      │        ("restaurant")        │
+                      │  - Venue dashboard access    │
+                      │  - Table layout & zones      │
+                      │  - Guest booking processing  │
+                      └──────────────▲───────────────┘
+                                     │
+                         Default Role on Registration
+                                     │
+                      ┌──────────────┴───────────────┐
+                      │       Standard Customer      │
+                      │         ("customer")         │
+                      │  - Search, browse & filter   │
+                      │  - Table booking flow        │
+                      │  - Wishlists & Profile       │
+                      └──────────────────────────────┘
+```
+
+### Authorization Rules & Logic
+1. **Default Registration**: Any user registering via `/api/auth/register` is assigned `role: "customer"` by default.
+2. **Super Admin Assignment**: Designated admin accounts configured in the server's `ADMIN_EMAILS` environment variable (e.g. `aaryanpatel9784@gmail.com`) automatically inherit `admin` privileges upon authentication.
+3. **Partner Elevation**: Only an authenticated `admin` has the authority to promote a `customer` to `restaurant` (or demote back to `customer`) through the Admin Users panel (`/admin/users`).
+4. **Defense in Depth**:
+   - Backend routes are protected via [`authMiddleware.js`](file:///d:/Projects/BookMyTable/server/middleware/authMiddleware.js), [`requireAdmin.js`](file:///d:/Projects/BookMyTable/server/middleware/requireAdmin.js), and [`requireRole.js`](file:///d:/Projects/BookMyTable/server/middleware/requireRole.js).
+   - Frontend routes are shielded with `<UserProtectedRoute>`, `<RestaurantProtectedRoute>`, and `<AdminProtectedRoute>` route wrappers to prevent unauthorized access or UI flashes.
 
 ---
 
-## 📁 Project Architecture
+## 🛠️ Technology Stack
+
+### Frontend Application
+| Package / Library | Version | Purpose |
+|---|:---:|---|
+| **React** | `18.2.0` | Declarative UI framework |
+| **Vite** | `6.0.0` | High-speed ESM development server & production bundler |
+| **Tailwind CSS** | `3.4.1` | Curated luxury obsidian design system |
+| **React Router DOM** | `6.22.0` | Client-side routing with guarded route wrappers |
+| **Axios** | `1.6.7` | HTTP client with automatic Bearer token & CSRF injection |
+| **Lucide React** | `0.344.0` | Vector iconography |
+| **React Hot Toast** | `2.4.1` | Lightweight, non-intrusive micro-animations |
+
+### Backend API Server
+| Package / Library | Version | Purpose |
+|---|:---:|---|
+| **Node.js** | `18.x / 20.x` | Asynchronous server runtime |
+| **Express.js** | `4.18.2` | RESTful routing and middleware pipeline |
+| **Mongoose** | `8.2.0` | Object Data Modeling (ODM) for MongoDB Atlas |
+| **JSONWebToken** | `9.0.2` | Stateless signed authentication tokens |
+| **BcryptJS** | `2.4.3` | Salted password hashing (10 computation rounds) |
+| **Multer** | `1.4.5` | In-memory multipart buffer processing |
+| **Cloudinary SDK** | `2.0.1` | Media asset hosting, optimization, and transformation |
+| **Nodemailer** | `6.9.9` | SMTP transactional email transport engine |
+| **Express Rate Limit** | `7.1.5` | Distributed IP rate limiting algorithms |
+
+---
+
+## 📁 Project Directory Structure
 
 ```
 BookMyTable/
-├── client/                      # Front-End (React + Vite + Tailwind CSS)
-│   ├── public/                  # Static web assets & favicons
+├── client/                               # Frontend Single Page Application
+│   ├── public/                           # Favicons and static web assets
 │   ├── src/
-│   │   ├── admin/               # Admin Management Portal (Role-Gated)
-│   │   │   ├── components/      # Admin tables, stats, and audit cards
-│   │   │   └── pages/           # Platform metrics & partner approval pages
-│   │   ├── restaurant/          # Partner Dashboard (Role-Gated)
-│   │   │   ├── components/      # Table zone controls, booking lists
-│   │   │   └── pages/           # Partner analytics & table management
-│   │   ├── components/          # Shared components (Navbar, Footer, Modals, Cards)
-│   │   ├── config/              # Environment & API client configurations
-│   │   ├── context/             # React Contexts (AuthContext, NotificationContext)
-│   │   ├── hooks/               # Custom hooks (useAuth, useNotification, useWishlist)
-│   │   ├── pages/               # Public pages (Home, RestaurantDetail, Booking, Wishlist, Profile)
-│   │   ├── services/            # Axios API wrappers (auth, booking, restaurant, admin)
-│   │   ├── utils/               # Formatters, date handlers, helpers
-│   │   ├── App.jsx              # Main App layout & route definitions
-│   │   ├── index.css            # Custom design tokens & global CSS styles
-│   │   └── main.jsx             # App initialization entrypoint
-│   ├── index.html               # Main HTML host
-│   ├── package.json             # Front-end dependencies
-│   ├── tailwind.config.js       # Tailwind theme extensions & custom color palette
-│   └── vite.config.js           # Vite development server & proxy settings
+│   │   ├── admin/                        # Admin Portal (Role: admin)
+│   │   │   ├── components/               # AdminNavbar, AdminSidebar, ConfirmModal
+│   │   │   ├── pages/                    # Dashboard, RestaurantsAdmin, UsersAdmin, Add/Edit
+│   │   │   ├── services/                 # adminApi.js
+│   │   │   └── utils/                    # exportCSV.js
+│   │   ├── restaurant/                   # Partner Console (Role: restaurant)
+│   │   │   ├── components/               # RestaurantHeader, RestaurantSidebar, TimeSpentModal
+│   │   │   ├── pages/                    # RestaurantDashboard, TablesManagement, Bookings, Settings
+│   │   │   ├── services/                 # restaurantApi.js
+│   │   │   └── utils/                    # exportCSV.js
+│   │   ├── components/                   # Shared UI (Navbar, Footer, BookingForm, RestaurantCard)
+│   │   ├── context/                      # State Contexts (AuthContext, NotificationContext, WishlistContext)
+│   │   ├── hooks/                        # Custom React Hooks (useDebounce)
+│   │   ├── pages/                        # Public Pages (Home, Restaurants, Details, Booking, Profile)
+│   │   ├── services/                     # Central Axios client (api.js)
+│   │   ├── utils/                        # Toast helpers, date formatting, zone calculations
+│   │   ├── App.jsx                       # Route layout and route guards
+│   │   ├── index.css                     # Global design tokens and obsidian theme
+│   │   └── main.jsx                      # React DOM root entrypoint
+│   ├── .env.example                      # Frontend environment template
+│   ├── .gitignore                        # Frontend Git ignore rules
+│   ├── package.json                      # Frontend dependencies and build scripts
+│   ├── tailwind.config.js                # Tailwind styling extensions
+│   └── vite.config.js                    # Vite bundler and dev server configuration
 │
-├── server/                      # Back-End REST API (Node.js + Express + Mongoose)
-│   ├── config/                  # DB connection, Cloudinary, AWS Cognito configs
-│   ├── controllers/             # Business logic handlers
-│   │   ├── adminController.js   # Admin platform statistics & management
-│   │   ├── authController.js    # OTP email verification & authentication
-│   │   ├── bookingController.js # Reservation lifecycle management
-│   │   ├── devAuthController.js # Development mode auth bypass logic
-│   │   ├── restaurantController.js # Public restaurant search & detail handlers
-│   │   ├── restaurantDashboardController.js # Partner table & booking handlers
-│   │   ├── uploadController.js  # Image uploads to Cloudinary
-│   │   ├── userController.js    # Profile & wishlist handlers
-│   │   └── wishlistController.js# Wishlist CRUD handlers
-│   ├── middleware/              # Express middlewares
-│   │   ├── asyncHandler.js      # Async error wrapper
-│   │   ├── csrfProtection.js    # Double-submit CSRF cookie guard
-│   │   ├── errorHandler.js      # Centralized HTTP exception handler
-│   │   ├── imageValidator.js    # File MIME type & size verification
-│   │   ├── inputSanitizer.js    # XSS & injection sanitizer
-│   │   ├── passwordValidator.js # Password complexity validator
-│   │   ├── rateLimiter.js       # IP/Email express rate limiters
-│   │   ├── requireAdmin.js      # Admin privilege assertion
-│   │   ├── requireRole.js       # Dynamic role validator middleware
-│   │   ├── uploadImage.js       # Multer storage configuration
-│   │   └── verifyCognitoToken.js# AWS Cognito / JWT token verifier
-│   ├── models/                  # Mongoose MongoDB schemas
-│   │   ├── Booking.js           # Booking schema & seat allocation
-│   │   ├── Restaurant.js        # Restaurant details & approval state
-│   │   ├── Table.js             # Table seating schema by zone
-│   │   ├── User.js              # User account & role schema
-│   │   └── Wishlist.js          # Customer saved restaurant mapping
-│   ├── routes/                  # Express route declarations
-│   ├── scripts/                 # Database seed & utility scripts
-│   ├── services/                # External services (Email, SSE Stream)
-│   ├── utils/                   # Helper functions
-│   ├── app.js                   # Express application setup
-│   ├── server.js                # Server entrypoint & port listener
-│   └── package.json             # Back-end dependencies
+├── server/                               # Backend REST API Application
+│   ├── config/                           # Database and caching connections (db.js, redis.js)
+│   ├── controllers/                      # Route business logic handlers
+│   │   ├── adminController.js            # Admin analytics, approvals, and user management
+│   │   ├── authController.js             # Native signup, login, OTP verification, password reset
+│   │   ├── bookingController.js          # Table bookings, cancellations, and status management
+│   │   ├── restaurantController.js       # Restaurant searching, detail retrieval, and reviews
+│   │   ├── restaurantDashboardController.js # Partner table inventory and booking processing
+│   │   ├── uploadController.js           # Cloudinary media uploads
+│   │   ├── userController.js             # User profiles and password changes
+│   │   └── wishlistController.js         # Wishlist bookmarking operations
+│   ├── middleware/                       # Request processing middleware
+│   │   ├── asyncHandler.js               # Async exception forwarding
+│   │   ├── authMiddleware.js             # Native JWT authentication and Mongo user hydration
+│   │   ├── csrfProtection.js             # Double-Submit Cookie CSRF defense
+│   │   ├── errorHandler.js               # Global error handler with formatted JSON responses
+│   │   ├── inputSanitizer.js             # Input sanitization against XSS and NoSQL injection
+│   │   ├── passwordValidator.js          # Password complexity enforcement
+│   │   ├── rateLimiter.js                # Rate limiters (Auth, OTP, API, Upload)
+│   │   ├── requireAdmin.js               # Admin authorization assertion
+│   │   ├── requireRole.js                # Multi-role access control
+│   │   └── uploadImage.js                # Multer memory storage and file type validation
+│   ├── models/                           # Mongoose data schemas (User, Restaurant, Table, Booking, Wishlist)
+│   ├── routes/                           # Modular Express route declarations
+│   ├── services/                         # External services (otpService.js)
+│   ├── utils/                            # Core utilities (emailService, AppError, logger, sseManager)
+│   ├── app.js                            # Express application setup and middleware pipeline
+│   ├── server.js                         # Server listener and startup diagnostics
+│   ├── .env.example                      # Backend environment template
+│   ├── .gitignore                        # Backend Git ignore rules
+│   └── package.json                      # Backend dependencies and scripts
 │
-├── .gitignore                   # Master repository git ignore configuration
-├── README.md                    # Platform documentation
-└── amplify.yml                  # AWS Amplify deployment pipeline manifest
+├── .gitignore                            # Enterprise repository Git ignore rules
+└── README.md                             # Comprehensive project documentation
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start Guide
 
 ### Prerequisites
-
-Ensure you have the following installed on your local development system:
+Make sure you have the following installed on your machine:
 - **Node.js**: `v18.0.0` or higher
 - **npm**: `v9.0.0` or higher
-- **Git**: Latest version
+- A **MongoDB Atlas** cluster connection string (or local MongoDB daemon)
 
-### 1. Clone Repository
-
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/BookMyTable.git
+git clone https://github.com/Aaryan-9784/BookMyTable.git
 cd BookMyTable
 ```
 
 ### 2. Install Dependencies
-
-Install packages for both back-end and front-end workspaces:
-
 ```bash
-# Install Server Dependencies
+# Install Server dependencies
 cd server
 npm install
 
-# Install Client Dependencies
+# Install Client dependencies
 cd ../client
 npm install
 ```
 
-### 3. Environment Configuration
+### 3. Setup Environment Variables
+Copy `.env.example` to `.env` in both folders:
 
-Create `.env` files in both the `server` and `client` directories by copying their `.env.example` templates:
-
-```bash
-# Server Environment
-cd ../server
-cp .env.example .env
-
-# Client Environment
-cd ../client
-cp .env.example .env
+**On Windows (PowerShell):**
+```powershell
+Copy-Item server\.env.example server\.env
+Copy-Item client\.env.example client\.env
 ```
 
-*(Refer to the [Environment Setup](#-environment-setup) section below for parameter descriptions).*
+**On macOS / Linux (Bash):**
+```bash
+cp server/.env.example server/.env
+cp client/.env.example client/.env
+```
+
+*(Configure your `MONGODB_URI`, `JWT_SECRET`, and email credentials as detailed below).*
 
 ### 4. Run Development Servers
-
-**Option A: Separate Terminal Windows (Recommended)**
+Open two terminal windows:
 
 ```bash
-# Terminal 1 — Backend (http://localhost:5000)
+# Terminal 1: Backend Server (http://localhost:5000)
 cd server
 npm run dev
+```
 
-# Terminal 2 — Frontend (http://localhost:5173)
+```bash
+# Terminal 2: Frontend Client (http://localhost:5173)
 cd client
 npm run dev
 ```
 
-**Option B: Access the Web App**
-
-Navigate to `http://localhost:5173` in your browser.
+Navigate to **`http://localhost:5173`** in your browser.
 
 ---
 
-## 🔐 Environment Setup
+## 🔐 Environment Configuration
 
-### Server Configuration (`server/.env`)
+### Backend Environment (`server/.env`)
 
 ```env
 # Server Runtime
@@ -257,284 +352,250 @@ PORT=5000
 NODE_ENV=development
 CLIENT_URL=http://localhost:5173
 
-# Database Connection
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/bookmytable?retryWrites=true&w=majority
+# Database Connection (MongoDB Atlas)
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/bookmytable?retryWrites=true&w=majority
 
-# Security & Authentication
-JWT_SECRET=your-secure-64-character-random-secret-key
-ADMIN_EMAILS=admin@bookmytable.me,leadadmin@example.com
-RESTAURANT_EMAILS=partner@restaurant.com
+# Native JWT Authentication
+JWT_SECRET=your-secure-random-64-character-hex-string
+JWT_EXPIRES_IN=7d
 
-# Development Authentication Bypass (Only set true for local testing)
-DEV_AUTH_ENABLED=true
+# Role-Based Access Control
+ADMIN_EMAILS=aaryanpatel9784@gmail.com
 
-# AWS Cognito / External Identity Provider (Optional)
-COGNITO_USER_POOL_ID=us-east-1_xxxxxxxxx
-COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
-COGNITO_REGION=us-east-1
+# SMTP Email Dispatch (Nodemailer with Gmail App Password)
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx
 
-# Cloudinary CDN Configuration
+# Cloudinary CDN (Image Storage)
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
-# Transactional Email (Gmail App Password)
-GMAIL_USER=your-email@gmail.com
-GMAIL_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx
+# Razorpay Payment Gateway (Optional / Staging)
+RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxx
+RAZORPAY_KEY_SECRET=your_razorpay_secret
 ```
 
-### Client Configuration (`client/.env`)
+### Frontend Environment (`client/.env`)
 
 ```env
 # Backend API Base URL
 VITE_API_URL=http://localhost:5000
 
-# Supabase / External Auth (Public Key)
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+# Razorpay Public Key (Client Checkout)
+VITE_RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxx
 ```
 
 ---
 
-## 👥 User Roles & Security
+## 🗄️ Data Models & Schema
 
-| Role | Access Permissions | Primary UI Interfaces |
-|---|---|---|
-| **customer** | Browse restaurants, book tables, manage personal bookings, manage wishlist, receive SSE alerts | Customer Home, Detail Page, Booking Flow, Wishlist, Profile |
-| **restaurant** | All customer privileges + managing venue seating capacity, table zones, partner bookings, revenue stats | Restaurant Partner Dashboard (`/restaurant`) |
-| **admin** | Full platform access + user management, restaurant approval/rejection, global booking monitoring | Admin Control Panel (`/admin`) |
+```mermaid
+erDiagram
+    USER ||--o{ BOOKING : places
+    USER ||--o{ WISHLIST : saves
+    RESTAURANT ||--o{ TABLE : contains
+    RESTAURANT ||--o{ BOOKING : receives
+    RESTAURANT ||--o{ WISHLIST : bookmarked_by
 
-### Role Assignment Logic
-1. Accounts registering with emails matched inside `ADMIN_EMAILS` in `server/.env` automatically gain the **admin** role.
-2. Accounts matching `RESTAURANT_EMAILS` gain the **restaurant** partner role.
-3. All other sign-ups default to the **customer** role.
+    USER {
+        ObjectId _id PK
+        string email UK
+        string password "Hashed with bcrypt"
+        string name
+        string phone
+        string role "customer | restaurant | admin"
+        ObjectId restaurantId FK
+        date createdAt
+    }
 
----
+    RESTAURANT {
+        ObjectId _id PK
+        string name
+        string location
+        string description
+        string category
+        number priceRange "1 to 4"
+        number rating "1.0 to 5.0"
+        number tokenFee
+        number totalSeatingCapacity
+        string openingHours
+        string approvalStatus "pending | approved | rejected"
+        ObjectId ownerId FK
+    }
 
-## 🗄️ Database Schemas
+    TABLE {
+        ObjectId _id PK
+        ObjectId restaurantId FK
+        string tableNumber
+        number capacity
+        string zone "Main Hall | Outdoor Terrace | VIP Private Dining | Rooftop | Bar Counter"
+        string status "Available | Reserved | Maintenance"
+        number tokenFee
+    }
 
-### User Schema (`server/models/User.js`)
-```javascript
-{
-  email: { type: String, required: true, unique: true, index: true },
-  password: { type: String }, // Hashed with bcrypt
-  name: { type: String, required: true },
-  phone: { type: String },
-  role: { type: String, enum: ['customer', 'restaurant', 'admin'], default: 'customer' },
-  restaurantId: { type: Schema.Types.ObjectId, ref: 'Restaurant' }
-}
-```
+    BOOKING {
+        ObjectId _id PK
+        ObjectId userId FK
+        ObjectId restaurantId FK
+        string date "YYYY-MM-DD"
+        string time "07:00 PM"
+        number guests
+        string diningZone
+        number tokenFeePaid
+        string status "confirmed | cancelled | completed"
+        date createdAt
+    }
 
-### Restaurant Schema (`server/models/Restaurant.js`)
-```javascript
-{
-  name: { type: String, required: true },
-  location: { type: String, required: true },
-  description: String,
-  imageUrl: String,
-  imageUrls: [String],
-  category: String,
-  priceRange: { type: Number, min: 1, max: 4, default: 2 },
-  rating: { type: Number, default: 4.5 },
-  tokenFee: { type: Number, default: 150 },
-  totalSeatingCapacity: { type: Number, default: 50 },
-  openingHours: String,
-  ownerId: { type: Schema.Types.ObjectId, ref: 'User' },
-  approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' }
-}
-```
-
-### Table Schema (`server/models/Table.js`)
-```javascript
-{
-  restaurantId: { type: Schema.Types.ObjectId, ref: 'Restaurant', required: true },
-  tableNumber: { type: String, required: true },
-  capacity: { type: Number, default: 4 },
-  zone: { 
-    type: String, 
-    enum: ['Main Hall', 'Outdoor Terrace', 'VIP Private Dining', 'Rooftop', 'Bar Counter'],
-    default: 'Main Hall'
-  },
-  status: { type: String, enum: ['Available', 'Reserved', 'Maintenance'], default: 'Available' },
-  tokenFee: { type: Number, default: 150 }
-}
-```
-
-### Booking Schema (`server/models/Booking.js`)
-```javascript
-{
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  restaurantId: { type: Schema.Types.ObjectId, ref: 'Restaurant', required: true },
-  date: { type: String, required: true }, // "YYYY-MM-DD"
-  time: { type: String, required: true }, // "07:00 PM"
-  guests: { type: Number, required: true, min: 1, max: 50 },
-  status: { type: String, enum: ['confirmed', 'cancelled', 'completed'], default: 'confirmed' }
-}
-```
-
-### Wishlist Schema (`server/models/Wishlist.js`)
-```javascript
-{
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  restaurantId: { type: Schema.Types.ObjectId, ref: 'Restaurant', required: true, index: true }
-} // Compound unique index on (userId, restaurantId)
+    WISHLIST {
+        ObjectId _id PK
+        ObjectId userId FK
+        ObjectId restaurantId FK
+        date createdAt
+    }
 ```
 
 ---
 
-## 📡 API Reference
+## 📡 API Specification
 
-### System & Auth Endpoints
+### Authentication & Session (`/api/auth`)
+| Method | Route | Access | Description |
+|---|---|:---:|---|
+| `POST` | `/api/auth/register` | Public | Register new user account (defaults to `role: "customer"`) |
+| `POST` | `/api/auth/login` | Public | Authenticate with email/password; returns JWT |
+| `POST` | `/api/auth/send-otp` | Public | Dispatch email OTP code for verification |
+| `POST` | `/api/auth/verify-otp` | Public | Verify OTP code validity |
+| `POST` | `/api/auth/reset-password` | Public | Set new password using verified OTP |
+| `GET` | `/api/auth/me` | Authenticated | Retrieve authenticated user profile |
+| `POST` | `/api/auth/logout` | Authenticated | Clear authentication cookies and session |
+| `GET` | `/api/auth/csrf-token` | Public | Fetch CSRF protection token |
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/health` | None | System health check endpoint |
-| `GET` | `/api/auth/csrf-token` | None | Fetch CSRF protection token |
-| `POST` | `/api/auth/send-login-otp` | Rate Limited | Send 2FA login OTP email |
-| `POST` | `/api/auth/verify-login-otp` | Rate Limited | Verify OTP code and issue token |
-| `POST` | `/api/dev-auth/login` | Dev Mode Only | Instant developer login token generation |
-| `POST` | `/api/dev-auth/signup` | Dev Mode Only | Instant developer account creation |
+### Public Restaurant Discovery (`/api/restaurants`)
+| Method | Route | Access | Description |
+|---|---|:---:|---|
+| `GET` | `/api/restaurants` | Public | Query restaurants with filtering (`q`, `category`, `location`, `rating`) |
+| `GET` | `/api/restaurants/:id` | Public | Fetch single restaurant details and photos |
+| `GET` | `/api/restaurants/:id/tables`| Public | Fetch real-time table availability by zone |
+| `POST` | `/api/restaurants/:id/reviews`| Authenticated | Submit guest rating and dining review |
 
-### Public Restaurant Endpoints
+### Customer Reservations & Wishlists
+| Method | Route | Access | Description |
+|---|---|:---:|---|
+| `POST` | `/api/bookings` | Authenticated | Create a table reservation |
+| `GET` | `/api/bookings/my` | Authenticated | Fetch reservations for logged-in user |
+| `GET` | `/api/bookings/:id` | Authenticated | Fetch single reservation details |
+| `PATCH` | `/api/bookings/:id/cancel` | Authenticated | Cancel an active booking |
+| `GET` | `/api/wishlist` | Authenticated | List all saved wishlist venues |
+| `POST` | `/api/wishlist/toggle/:restaurantId` | Authenticated | Toggle venue in wishlist |
+| `GET` | `/api/wishlist/check/:restaurantId` | Authenticated | Check if restaurant is bookmarked |
+| `GET` | `/api/notifications/stream` | Authenticated | Long-lived SSE real-time notification connection |
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/restaurants` | None | List restaurants with search (`q`), category, location, min/max price, rating, sorting & pagination |
-| `GET` | `/api/restaurants/:id` | None | Fetch complete details for a single restaurant |
+### Restaurant Partner Management (`/api/restaurant-dashboard`)
+| Method | Route | Access | Description |
+|---|---|:---:|---|
+| `GET` | `/api/restaurant-dashboard/stats` | Partner / Admin | KPI dashboard metrics and occupancy |
+| `GET` | `/api/restaurant-dashboard/tables` | Partner / Admin | List all tables grouped by zone |
+| `POST` | `/api/restaurant-dashboard/tables` | Partner / Admin | Add table seating inventory |
+| `PUT` | `/api/restaurant-dashboard/tables/:id` | Partner / Admin | Update table capacity, zone, or status |
+| `DELETE`| `/api/restaurant-dashboard/tables/:id` | Partner / Admin | Remove table from inventory |
+| `GET` | `/api/restaurant-dashboard/bookings` | Partner / Admin | View venue guest booking list |
+| `PUT` | `/api/restaurant-dashboard/bookings/:id/status`| Partner / Admin | Update booking state (`confirmed`, `cancelled`, `completed`) |
+| `GET` | `/api/restaurant-dashboard/settings` | Partner / Admin | Fetch venue configuration and hours |
+| `PUT` | `/api/restaurant-dashboard/settings` | Partner / Admin | Update venue profile, fees, and photo gallery |
 
-### Customer Endpoints
+### Platform Administration (`/api/admin`)
+| Method | Route | Access | Description |
+|---|---|:---:|---|
+| `GET` | `/api/admin/dashboard/stats` | Admin Only | Platform-wide volume, GMV, and analytics |
+| `GET` | `/api/admin/restaurants` | Admin Only | List all venues including pending approvals |
+| `POST` | `/api/admin/restaurants` | Admin Only | Create verified restaurant directly |
+| `PUT` | `/api/admin/restaurants/:id/approve` | Admin Only | Approve pending restaurant application |
+| `PUT` | `/api/admin/restaurants/:id/reject` | Admin Only | Reject pending restaurant application |
+| `DELETE`| `/api/admin/restaurants/:id` | Admin Only | Permanently remove venue listing |
+| `GET` | `/api/admin/users` | Admin Only | Audit registered user accounts |
+| `PUT` | `/api/admin/users/:id/role` | Admin Only | Promote / demote user role (`customer` ↔ `restaurant`) |
+| `DELETE`| `/api/admin/users/:id` | Admin Only | Delete user account |
 
-| Method | Endpoint | Auth Required | Description |
-|---|---|---|---|
-| `GET` | `/api/users/profile` | User Token | Retrieve active user profile |
-| `PATCH` | `/api/users/profile` | User Token | Update profile details / password |
-| `POST` | `/api/bookings` | User Token | Reserve a table at a restaurant |
-| `GET` | `/api/bookings/my` | User Token | Fetch all bookings for logged-in user |
-| `PATCH` | `/api/bookings/:id/cancel` | User Token | Cancel an active reservation |
-| `GET` | `/api/wishlist` | User Token | Get list of user's saved wishlist restaurants |
-| `POST` | `/api/wishlist/toggle/:restaurantId` | User Token | Toggle saved state for a restaurant |
-| `GET` | `/api/wishlist/check/:restaurantId` | User Token | Check if restaurant is saved in wishlist |
-| `GET` | `/api/notifications/stream` | Token Query | Real-Time SSE stream (`?token=<jwt>`) |
-
-### Restaurant Partner Dashboard Endpoints
-
-| Method | Endpoint | Auth Required | Description |
-|---|---|---|---|
-| `GET` | `/api/restaurant-dashboard/stats` | Partner Token | Retrieve KPI summary & occupancy rates |
-| `GET` | `/api/restaurant-dashboard/tables` | Partner Token | Get table list categorized by zone |
-| `POST` | `/api/restaurant-dashboard/tables` | Partner Token | Create new table seating option |
-| `PUT` | `/api/restaurant-dashboard/tables/:id` | Partner Token | Update table capacity or status |
-| `DELETE` | `/api/restaurant-dashboard/tables/:id` | Partner Token | Remove table from inventory |
-| `GET` | `/api/restaurant-dashboard/bookings` | Partner Token | List all guest bookings for venue |
-| `PUT` | `/api/restaurant-dashboard/bookings/:id/status` | Partner Token | Update booking state (confirmed/cancelled/completed) |
-
-### Admin Endpoints
-
-| Method | Endpoint | Auth Required | Description |
-|---|---|---|---|
-| `GET` | `/api/admin/dashboard/stats` | Admin Token | Get system-wide metrics and growth stats |
-| `GET` | `/api/admin/restaurants` | Admin Token | List all restaurants including pending approvals |
-| `POST` | `/api/admin/restaurants` | Admin Token | Create new restaurant listing |
-| `PUT` | `/api/admin/restaurants/:id/approve` | Admin Token | Approve pending restaurant application |
-| `PUT` | `/api/admin/restaurants/:id/reject` | Admin Token | Reject pending restaurant application |
-| `DELETE` | `/api/admin/restaurants/:id` | Admin Token | Remove restaurant from platform |
-| `GET` | `/api/admin/users` | Admin Token | Fetch list of all registered platform accounts |
-| `PUT` | `/api/admin/users/:id/role` | Admin Token | Update user authorization role |
-| `DELETE` | `/api/admin/users/:id` | Admin Token | Delete user account |
-
-### Image Upload Endpoint
-
-| Method | Endpoint | Auth Required | Description |
-|---|---|---|---|
-| `POST` | `/api/upload` | Partner / Admin | Upload single image to Cloudinary (multipart/form-data) |
+### Media Upload (`/api/upload`)
+| Method | Route | Access | Description |
+|---|---|:---:|---|
+| `POST` | `/api/upload` | Partner / Admin | Upload single image to Cloudinary (multipart/form-data, max 5MB) |
 
 ---
 
-## 🚢 Deployment Guide
+## 🔒 Security & Resilience Engineering
 
-### Front-End: AWS Amplify
+1. **CSRF Defense (Double-Submit Cookie)**:
+   - State-changing HTTP methods (`POST`, `PUT`, `PATCH`, `DELETE`) require a valid CSRF token in request headers.
+2. **Tiered Rate Limiting**:
+   - `authLimiter`: 10 requests / 15 mins (Mitigates credential stuffing).
+   - `otpLimiter`: 5 attempts / 15 mins (Prevents OTP brute force).
+   - `uploadLimiter`: 20 requests / hour (Prevents image storage abuse).
+   - `adminLimiter`: 100 requests / 15 mins.
+3. **Input Sanitization (XSS / Injection Defense)**:
+   - Middleware automatically strips malicious script tags and neutralizes NoSQL operator injection across all payloads.
+4. **Password Policy & Cryptography**:
+   - Enforces a minimum of 8 characters with lowercase, uppercase, numeric, and special character requirements.
+   - Passwords hashed with Bcrypt (10 salt rounds).
+5. **Resilient In-Memory Caching Fallback**:
+   - In development, the system detects if Redis is absent and falls back to an in-memory cache without connection retry spam.
 
-1. **Connect Repository**: Open AWS Amplify Console -> **New App** -> **Host web app** -> Connect GitHub repository `BookMyTable` on branch `main`.
-2. **Build Settings**: Amplify will automatically detect the root `amplify.yml` manifest:
-   ```yaml
-   version: 1
-   frontend:
-     phases:
-       preBuild:
-         commands:
-           - cd client
-           - npm ci
-       build:
-         commands:
-           - npm run build
-     artifacts:
-       baseDirectory: client/dist
-       files:
-         - '**/*'
-     cache:
-       paths:
-         - client/node_modules/**/*
-   ```
-3. **Environment Variables**: Add front-end environment variables under Amplify **Environment Variables** settings (`VITE_API_URL`, etc.).
+---
 
-### Back-End: AWS Elastic Beanstalk
+## 🚢 Deployment Guidelines
 
-1. **Prepare ZIP Bundle**:
-   ```powershell
-   cd server
-   # Create production deployment zip excluding node_modules and .env
-   Compress-Archive -Path * -Exclusion "*.env*", "node_modules*" -DestinationPath ../server-deploy.zip
-   ```
-2. **Deploy Application**:
-   - Platform: **Node.js 18 or 20 on Amazon Linux 2023**
-   - Upload `server-deploy.zip`
-   - Set environment configuration variables in Elastic Beanstalk Software settings.
+### Frontend Deployment (Vercel / Netlify)
+1. Link your GitHub repository.
+2. Configure Root Directory: `client`
+3. Build Command: `npm run build`
+4. Output Directory: `dist`
+5. Set Environment Variable: `VITE_API_URL=https://your-backend-api.com`
+
+### Backend Deployment (Render / Railway / AWS / VPS)
+1. Configure Root Directory: `server`
+2. Start Command: `node server.js`
+3. Add Environment Variables from `server/.env.example`.
+4. Whitelist the deployment server's IP address in **MongoDB Atlas Network Access** (`0.0.0.0/0` for cloud providers).
 
 ---
 
 ## 🐛 Troubleshooting & FAQs
 
 <details>
-<summary><b>1. MongoDB Connection Failed / Timeout</b></summary>
+<summary><b>1. MongoDB Authentication Failed (bad auth : authentication failed)</b></summary>
 
-- Check that your `MONGODB_URI` string in `server/.env` contains valid cluster credentials.
-- Navigate to MongoDB Atlas **Network Access** settings and whitelist IP `0.0.0.0/0` or your host server IP address.
+- Check that the username and password in `MONGODB_URI` match the database user in MongoDB Atlas.
+- If your password contains special characters, ensure they are URL-encoded.
+- Go to **cloud.mongodb.com** → **Security** → **Database Access** → verify the username or click "Edit" to reset the password.
 </details>
 
 <details>
 <summary><b>2. CSRF Validation Error</b></summary>
 
-- Ensure `CLIENT_URL` in `server/.env` matches your front-end domain URL (e.g. `http://localhost:5173`).
-- Confirm Axios sends credentials with requests (`withCredentials: true`).
+- Verify that `CLIENT_URL` in `server/.env` exactly matches the URL of your frontend application (e.g. `http://localhost:5173`).
 </details>
 
 <details>
-<summary><b>3. Image Upload Fails (Cloudinary Error)</b></summary>
+<summary><b>3. Email OTP Not Received</b></summary>
 
-- Verify `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` credentials in `server/.env`.
-- Ensure uploaded files are valid image extensions (`.png`, `.jpg`, `.jpeg`, `.webp`) under 5MB.
-</details>
-
-<details>
-<summary><b>4. Dev Auth Not Working</b></summary>
-
-- Confirm `DEV_AUTH_ENABLED=true` is present in `server/.env`. (Note: dev auth endpoints are disabled automatically in production mode).
+- Confirm `GMAIL_USER` and `GMAIL_APP_PASSWORD` are correctly configured.
+- Note that standard Gmail account passwords cannot be used for SMTP; you must generate a 16-character **App Password** via your Google Account Security settings.
 </details>
 
 ---
 
-## 📝 License & Contributing
+## 📄 Contributing & License
 
-This project is open-source and released under the MIT License.
+Contributions are welcome! Please follow standard GitHub flow:
 
-### Contributing
-1. Fork the project repository.
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your changes (`git commit -m 'Add AmazingFeature'`).
-4. Push to your branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request for review.
+1. Fork the Project repository
+2. Create your Feature Branch (`git checkout -b feature/NewFeature`)
+3. Commit your Changes (`git commit -m 'Add NewFeature'`)
+4. Push to the Branch (`git push origin feature/NewFeature`)
+5. Open a Pull Request
 
----
+This project is licensed under the **MIT License**.
 
 <div align="center">
 

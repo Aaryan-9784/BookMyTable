@@ -5,7 +5,7 @@
  */
 import { Router } from 'express';
 import { uploadRestaurantImage } from '../controllers/uploadController.js';
-import { verifyCognitoToken } from '../middleware/verifyCognitoToken.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 import { requireRole } from '../middleware/requireRole.js';
 import { uploadSingleImage } from '../middleware/uploadImage.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
@@ -19,7 +19,7 @@ router.post(
   '/',
   uploadLimiter,
   conditionalCsrfProtection,
-  verifyCognitoToken,
+  authMiddleware,
   requireRole(['admin', 'restaurant']),
   uploadSingleImage,
   asyncHandler(uploadRestaurantImage)

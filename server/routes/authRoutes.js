@@ -1,10 +1,17 @@
 /**
- * /api/auth — Public authentication helpers (Login 2FA OTP).
+ * /api/auth — MongoDB Authentication & Verification Routes.
  * Protected with strict rate limiting to prevent brute force attacks.
  * Input sanitization applied to email addresses and user data.
  */
 import { Router } from 'express';
-import { sendLoginOtp, verifyLoginOtp, sendWelcome } from '../controllers/authController.js';
+import {
+  register,
+  login,
+  resetPassword,
+  sendLoginOtp,
+  verifyLoginOtp,
+  sendWelcome,
+} from '../controllers/authController.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { authLimiter, otpLimiter } from '../middleware/rateLimiter.js';
 import { sendCsrfToken } from '../middleware/csrfProtection.js';
@@ -18,13 +25,15 @@ const sanitizeUser = createSanitizationMiddleware('user');
 // Get CSRF token for authenticated operations
 router.get('/csrf-token', sendCsrfToken);
 
-// Strict rate limiting: 3 OTP requests per 15 minutes per IP+email
+// Core Authentication
+router.post('/register', authLimiter, sanitizeUser, asyncHandler(register));
+router.post('/signup', authLimiter, sanitizeUser, asyncHandler(register));
+router.post('/login', authLimiter, sanitizeUser, asyncHandler(login));
+router.post('/reset-password', authLimiter, sanitizeUser, asyncHandler(resetPassword));
+
+// OTP Verification & Welcome Email
 router.post('/send-login-otp', otpLimiter, sanitizeUser, asyncHandler(sendLoginOtp));
-
-// Strict rate limiting: 5 verification attempts per 15 minutes per IP
 router.post('/verify-login-otp', authLimiter, sanitizeUser, asyncHandler(verifyLoginOtp));
-
-// Welcome email rate limiting
 router.post('/send-welcome-email', otpLimiter, sanitizeUser, asyncHandler(sendWelcome));
 
 export default router;

@@ -1,41 +1,32 @@
-# ════════════════════════════════════════════════════════════════════════════
-# 🍽️ BookMyTable - Repository Git Ignore Configuration
-# ════════════════════════════════════════════════════════════════════════════
-# Specifies untracked files that Git should ignore across client, server, and root.
-# Keep sensitive data, local credentials, build outputs, and dependencies out of version control.
-# ════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
+# 🍽️ BookMyTable - Enterprise Git Ignore Configuration
+# ==============================================================================
+# Comprehensive, industry-standard gitignore covering monorepo/multi-package
+# architecture (Root, React/Vite Client, Express/Node Server).
+# ==============================================================================
 
-# ─── Dependencies ────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
+# 1. Dependency Directories & Package Managers
+# ------------------------------------------------------------------------------
 node_modules/
 **/node_modules/
-bower_components/
-jspm_packages/
-.pnp
+.pnp/
 .pnp.js
-.yarn/install-state.gz
-.yarn/cache
-.yarn/unplugged
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.yarn/cache/
+.yarn/unplugged/
 .yarn/build-state.yml
-package-lock.json.lock
-yarn.lock.lock
-pnpm-lock.yaml.lock
+.yarn/install-state.gz
 
-# ─── Build & Bundler Outputs ────────────────────────────────────────────────
-dist/
-**/dist/
-build/
-**/build/
-out/
-.vite/
-**/.vite/
-.next/
-.nuxt/
-.docusaurus/
-.vercel/
-.output/
-*.tsbuildinfo
-
-# ─── Environment Variables (⚠️ NEVER COMMIT SENSITIVE KEYS!) ────────────────
+# ------------------------------------------------------------------------------
+# 2. Environment Variables & Secret Credentials (NEVER COMMIT SENSITIVE SECRETS)
+# ------------------------------------------------------------------------------
 .env
 .env.*
 !.env.example
@@ -46,28 +37,11 @@ server/.env
 server/.env.*
 !server/.env.example
 .env.local
-.env.development
 .env.development.local
-.env.test
 .env.test.local
-.env.production
 .env.production.local
 
-# ─── Logs & Runtime Diagnostics ─────────────────────────────────────────────
-logs/
-**/logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-.pnpm-debug.log*
-combined.log
-error.log
-access.log
-
-# ─── Private Keys & Certificates (⚠️ NEVER COMMIT THESE!) ───────────────────
+# Private Keys, Certificates & Tokens
 *.pem
 *.key
 *.p12
@@ -76,67 +50,53 @@ access.log
 *.crt
 *.csr
 *.der
-*.cer
-*.jks
-*.keystore
 id_rsa
 id_rsa.pub
 id_ed25519
 id_ed25519.pub
 
-# ─── Deployment & Bundle Archives ────────────────────────────────────────────
-*.zip
-*.tar
-*.tar.gz
-*.tgz
-*.rar
-*.7z
-*.war
-*.ear
+# ------------------------------------------------------------------------------
+# 3. Build Outputs, Bundlers & Distribution Artifacts
+# ------------------------------------------------------------------------------
+dist/
+**/dist/
+build/
+**/build/
+out/
+**/out/
+.output/
+**/.output/
+.vite/
+**/.vite/
+*.tsbuildinfo
+.turbo/
+**/.turbo/
+.parcel-cache/
+**/.parcel-cache/
+.next/
+**/.next/
+storybook-static/
 
-# ─── OS Generated & System Files ────────────────────────────────────────────
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-ehthumbs_vista.db
-Thumbs.db
-Thumbs.db:encryptable
-desktop.ini
-$RECYCLE.BIN/
-*.lnk
+# ------------------------------------------------------------------------------
+# 4. Logs, Diagnostics & Process Dumps
+# ------------------------------------------------------------------------------
+logs/
+**/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+combined.log
+error.log
+access.log
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+core.[0-9]*
 
-# ─── IDE & Editor Configurations ───────────────────────────────────────────
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-.idea/
-*.sublime-project
-*.sublime-workspace
-*.swp
-*.swo
-*.swn
-*.bak
-*.tmp
-*.temp
-*~
-.project
-.classpath
-.settings/
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# ─── Test & Coverage Outputs ────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
+# 5. Testing, Code Coverage & Profiling
+# ------------------------------------------------------------------------------
 coverage/
 **/coverage/
 .nyc_output/
@@ -144,34 +104,14 @@ coverage/
 .jest/
 test-results/
 junit.xml
-.coverage
-htmlcov/
-.pytest_cache/
-.hypothesis/
+cypress/videos/
+cypress/screenshots/
+playwright-report/
+test-results/
 
-# ─── Local Database Files ───────────────────────────────────────────────────
-*.sqlite
-*.sqlite3
-*.db
-*.sql
-*.dump
-*.mongo
-
-# ─── Cloud Infrastructure & Serverless ──────────────────────────────────────
-.elasticbeanstalk/*
-!.elasticbeanstalk/config.yml
-!.elasticbeanstalk/*.cfg.yml
-.aws-sam/
-.amplify/
-.chalice/
-*.tfstate
-*.tfstate.*
-.terraform/
-.terraform.lock.hcl
-docker-compose.override.yml
-.serverless/
-
-# ─── Temporary Storage & File Uploads ───────────────────────────────────────
+# ------------------------------------------------------------------------------
+# 6. Temporary Files, Caches & File Uploads
+# ------------------------------------------------------------------------------
 uploads/
 **/uploads/
 tmp/
@@ -179,8 +119,71 @@ tmp/
 temp/
 **/temp/
 .cache/
-.parcel-cache/
-.turbo/
+**/.cache/
 .sass-cache/
 .eslintcache
 .stylelintcache
+*.tmp
+*.bak
+
+# ------------------------------------------------------------------------------
+# 7. Operating System Artifacts
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.directory
+
+# ------------------------------------------------------------------------------
+# 8. IDEs, Text Editors & Development Tools
+# ------------------------------------------------------------------------------
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Visual Studio Code (Keep team configuration templates, ignore workspace state)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.vscode/*.log
+
+# ------------------------------------------------------------------------------
+# 9. AI Assistants, Scratch & Internal Agent Workspaces
+# ------------------------------------------------------------------------------
+.agents/
+.gemini/
+scratch/
+**/scratch/
+
+# ------------------------------------------------------------------------------
+# 10. Local Databases, Snapshots & Dumps
+# ------------------------------------------------------------------------------
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.sql
+*.seed.json
