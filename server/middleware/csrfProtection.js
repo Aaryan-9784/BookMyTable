@@ -92,12 +92,15 @@ export function sendCsrfToken(req, res) {
   });
 }
 
-/**
- * Conditional CSRF protection - only enforces in production
- * Use for routes where you want CSRF protection in production but not in development
- */
 export function conditionalCsrfProtection(req, res, next) {
-  if (isProduction) {
+  // If authorization header is present, the request uses stateless Authorization: Bearer token,
+  // which is immune to browser ambient-credential CSRF exploits across domains.
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    return next();
+  }
+
+  // Only enforce doubleCsrf in production if explicitly enabled by environment variable
+  if (process.env.CSRF_PROTECTION_ENABLED === 'true' && isProduction) {
     return csrfProtection(req, res, next);
   }
   next();

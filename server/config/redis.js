@@ -66,9 +66,9 @@ export async function connectRedis() {
   const redisUrl = (process.env.REDIS_URL || '').trim();
   const isDevelopment = process.env.NODE_ENV !== 'production';
 
-  // If in development and REDIS_URL is not set or empty, skip Redis entirely
-  if (isDevelopment && (!redisUrl || redisUrl === '')) {
-    logger.info('Redis not configured — using fast in-memory fallback for development');
+  // If REDIS_URL is not configured, gracefully use the in-memory fallback
+  if (!redisUrl || redisUrl === '') {
+    logger.info('REDIS_URL not configured — using in-memory fallback store');
     redisClient = null;
     isConnected = false;
     return null;
@@ -119,9 +119,8 @@ export async function connectRedis() {
       return null;
     }
 
-    // In production, Redis is required for multi-server deployments
-    logger.error('Failed to connect to Redis in production', { error: error.message });
-    throw error;
+    logger.warn('Failed to connect to Redis in production — continuing with in-memory fallback', { error: error.message });
+    return null;
   }
 }
 

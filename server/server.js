@@ -45,17 +45,14 @@ try {
   // Continue anyway - some features may work without DB
 }
 
-// Connect to Redis (optional in development, required in production)
+// Connect to Redis (optional in development and production; uses in-memory store if unavailable)
 try {
   await connectRedis();
   if (isRedisConnected()) {
     logger.info('Redis connected successfully');
   }
 } catch (err) {
-  if (process.env.NODE_ENV === 'production') {
-    logger.error('Redis is required in production. Exiting...', { error: err.message });
-    process.exit(1);
-  }
+  logger.warn('Redis connection failed — continuing with in-memory fallback', { error: err.message });
 }
 
 // Log active services

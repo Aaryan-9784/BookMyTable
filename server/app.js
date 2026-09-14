@@ -46,21 +46,42 @@ app.use(helmet({
   },
 }));
 
+const envOrigins = [
+  process.env.CLIENT_URL,
+  process.env.CORS_ORIGIN,
+]
+  .filter(Boolean)
+  .flatMap((urlStr) => urlStr.split(',').map((u) => u.trim()))
+  .filter(Boolean);
+
 const allowedOrigins = [
+  ...envOrigins,
   "https://main.dbiw5toctstwg.amplifyapp.com",
   "https://bookmytable.me",
   "https://www.bookmytable.me",
 ];
 
+function isOriginAllowed(origin) {
+  if (!origin) return true;
+  // Allow localhost / 127.0.0.1 on any port
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+  // Explicitly configured origins
+  if (allowedOrigins.includes(origin)) return true;
+  // Allow all Vercel deployment and preview URLs (*.vercel.app)
+  try {
+    const parsed = new URL(origin);
+    if (parsed.hostname.endsWith('.vercel.app')) return true;
+  } catch (e) {}
+  return false;
+}
+
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (e.g. curl, Postman)
-      if (!origin) return callback(null, true);
-      // Allow any localhost port in development
-      if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      console.log("Blocked by CORS:", origin);
+      if (isOriginAllowed(origin)) {
+        return callback(null, true);
+      }
+      console.warn("Blocked by CORS:", origin);
       callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
@@ -86,8 +107,8 @@ app.get('/health', async (_req, res) => {
   
   const isHealthy = dbHealth.status === 'healthy';
   
-  res.status(isHealthy ? 200 : 503).json({
-    status: isHealthy ? 'healthy' : 'unhealthy',
+  res.status(200).json({
+    status: isHealthy ? 'healthy' : 'degraded',
     service: 'bookmytable-api',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),

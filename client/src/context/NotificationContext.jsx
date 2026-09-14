@@ -11,7 +11,7 @@ import { useAuth } from './AuthContext.jsx';
 
 const NotificationContext = createContext(null);
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
 
 export function NotificationProvider({ children }) {
   const { isAuthenticated, idToken } = useAuth();

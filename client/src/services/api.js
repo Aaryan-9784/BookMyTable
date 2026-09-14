@@ -6,7 +6,7 @@ import axios from 'axios';
 import { STORAGE_ID_TOKEN } from '../utils/constants.js';
 import { clearStoredAuthTokens, SESSION_INVALID_EVENT } from '../utils/authSession.js';
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const baseURL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
 
 export const api = axios.create({
   baseURL,
