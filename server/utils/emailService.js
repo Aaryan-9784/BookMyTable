@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import {
   generateBookingEmailTemplate,
   generateCancellationEmailTemplate,
@@ -15,8 +16,7 @@ const ADMIN_EMAIL = process.env.GMAIL_USER || 'aaryanpatel9784@gmail.com';
  * Check if email service is properly configured
  */
 function isEmailConfigured() {
-  const pass = process.env.GMAIL_APP_PASSWORD;
-  return Boolean(pass && pass.length > 0);
+  return Boolean(process.env.RESEND_API_KEY || process.env.GMAIL_APP_PASSWORD);
 }
 
 const getTransporter = () => {
@@ -29,34 +29,62 @@ const getTransporter = () => {
   return nodemailer.createTransport({
     service: 'gmail',
     auth: { user: ADMIN_EMAIL, pass },
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 8000,
   });
 };
 
 /**
- * Send email helper — always sends from the admin email
+ * Send email helper — uses Resend API (HTTP) first, then falls back to Gmail SMTP
  */
 async function sendMail({ to, subject, html, text }) {
-  const from = `BookMyTable <${ADMIN_EMAIL}>`;
+  // 1. Try Resend API first (fastest and 100% reliable on cloud platforms like Render)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      let fromAddress = (process.env.RESEND_FROM_EMAIL || '').trim();
+      if (!fromAddress || fromAddress.includes('yourdomain.com')) {
+        fromAddress = 'BookMyTable <onboarding@resend.dev>';
+      }
+      
+      const { data, error } = await resend.emails.send({
+        from: fromAddress,
+        to: [to],
+        subject,
+        html,
+        text,
+      });
 
+      if (!error && data?.id) {
+        logger.info('Email delivered successfully via Resend', { to, subject, messageId: data.id });
+        return { ok: true, messageId: data.id, provider: 'resend' };
+      }
+
+      logger.warn('Resend delivery returned error, attempting Gmail SMTP fallback', { error: error?.message });
+    } catch (resendErr) {
+      logger.warn('Resend delivery exception, attempting Gmail SMTP fallback', { error: resendErr.message });
+    }
+  }
+
+  // 2. Fallback to Gmail SMTP via Nodemailer
+  const from = `BookMyTable <${ADMIN_EMAIL}>`;
   const transporter = getTransporter();
 
   if (!transporter) {
-    const error = 'Email service not configured - GMAIL_APP_PASSWORD not set';
+    const error = 'Email service not configured - neither RESEND_API_KEY nor GMAIL_APP_PASSWORD is set';
     logger.error(error, { to, subject });
     
-    // In development, log but don't fail
     if (process.env.NODE_ENV !== 'production') {
       logger.warn('Development mode: Email not sent but operation continues', { to, subject });
       return { 
         ok: false, 
         devMode: true, 
         reason: error,
-        message: 'Email service not configured - set GMAIL_APP_PASSWORD or RESEND_API_KEY in .env'
       };
     }
     
-    // In production, this is a critical failure
-    throw new Error(error);
+    return { ok: false, reason: error };
   }
 
   try {
@@ -67,16 +95,10 @@ async function sendMail({ to, subject, html, text }) {
       text,
       html,
     });
-    logger.info('Email delivered successfully', { to, subject, messageId: info.messageId });
-    return { ok: true, messageId: info.messageId };
+    logger.info('Email delivered successfully via Gmail SMTP', { to, subject, messageId: info.messageId });
+    return { ok: true, messageId: info.messageId, provider: 'gmail' };
   } catch (err) {
-    logger.error('Email delivery failed', { to, subject, error: err.message });
-    
-    // In production, throw the error so it can be handled appropriately
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error(`Email delivery failed: ${err.message}`);
-    }
-    
+    logger.error('Gmail SMTP delivery failed', { to, subject, error: err.message });
     return { ok: false, reason: err.message };
   }
 }
