@@ -97,6 +97,21 @@ app.use(cookieParser()); // Required for CSRF protection
 // Apply general rate limiting to all routes (100 requests per 15 minutes per IP)
 app.use(generalLimiter);
 
+// Root welcome endpoint (prevents 404 warnings when visiting base URL)
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    service: 'BookMyTable API',
+    status: 'online',
+    version: '1.0.0',
+    health: '/health',
+    endpoints: {
+      restaurants: '/api/restaurants',
+      auth: '/api/auth',
+      bookings: '/api/bookings',
+    },
+  });
+});
+
 // Enhanced health check endpoint
 app.get('/health', async (_req, res) => {
   const { isDatabaseConnected, checkDatabaseHealth } = await import('./config/db.js');
