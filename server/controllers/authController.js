@@ -209,11 +209,25 @@ export async function resetPassword(req, res, next) {
  */
 export async function sendLoginOtp(req, res, next) {
   try {
-    const { email } = req.body || {};
+    const { email, password } = req.body || {};
     const normalizedEmail = (email || '').trim().toLowerCase();
 
     if (!normalizedEmail) {
       return res.status(400).json({ message: 'Email address is required' });
+    }
+
+    // If password was provided (login flow), verify credentials before generating OTP
+    if (password) {
+      const existingUser = await User.findOne({ email: normalizedEmail }).select('+password');
+      if (!existingUser) {
+        return res.status(401).json({ message: 'Invalid email or password' });
+      }
+      if (existingUser.password) {
+        const isMatch = await existingUser.comparePassword(password);
+        if (!isMatch) {
+          return res.status(401).json({ message: 'Invalid email or password' });
+        }
+      }
     }
 
     // Generate OTP code
@@ -304,10 +318,17 @@ export async function verifyLoginOtp(req, res, next) {
       });
       await user.save();
     } else {
-      // If a password was provided (e.g. from login form), update password so future logins succeed
-      if (password && password.length >= 6) {
+      // If user has a password and a password was provided, verify it
+      if (password && user.password) {
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+          return res.status(401).json({ message: 'Invalid email or password' });
+        }
+      } else if (password && !user.password && password.length >= 6) {
+        // Set password only if user doesn't have one configured yet
         user.password = password;
       }
+
       // Ensure admin email has admin role
       const adminEmails = (process.env.ADMIN_EMAILS || '')
         .split(',')

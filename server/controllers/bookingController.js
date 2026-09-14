@@ -205,17 +205,24 @@ export async function getBookingById(req, res, next) {
       });
     }
 
-    const query = { _id: req.params.id };
-    if (req.user.role !== 'admin') {
-      query.userId = req.user._id;
-    }
-
-    const booking = await Booking.findOne(query).populate('restaurantId');
+    const booking = await Booking.findById(req.params.id).populate('restaurantId');
 
     if (!booking) {
       return res.status(404).json({
         success: false,
         message: 'Booking not found',
+      });
+    }
+
+    // Access control: Allow if customer who booked, admin, or restaurant owner of the booked venue
+    const isCustomerOwner = String(booking.userId) === String(req.user._id);
+    const isAdmin = req.user.role === 'admin';
+    const isRestaurantOwner = String(booking.restaurantId?.ownerId) === String(req.user._id);
+
+    if (!isCustomerOwner && !isAdmin && !isRestaurantOwner) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied to this reservation',
       });
     }
 
@@ -265,15 +272,25 @@ export async function cancelBooking(req, res, next) {
     const bookingId = req.params.id;
     const userId = req.user._id;
 
-    logger.info('Cancelling booking', { bookingId, userId: String(userId) });
+    if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid booking ID',
+      });
+    }
+
+    const isAdmin = req.user.role === 'admin';
+    logger.info('Cancelling booking', { bookingId, userId: String(userId), isAdmin });
 
     // Validate cancellation
-    const { booking } = await validateCancellation(bookingId, userId, false);
+    const { booking } = await validateCancellation(bookingId, userId, isAdmin);
 
-    // Populate restaurant for email
-    await booking.populate('restaurantId');
+    // Populate restaurant and customer details for notification
+    await booking.populate(['restaurantId', 'userId']);
 
     const restName = booking.restaurantId?.name || 'Restaurant';
+    const customerEmail = booking.userId?.email || req.user.email;
+    const customerUserId = String(booking.userId?._id || booking.userId);
 
     // Update booking status
     booking.status = 'cancelled';
@@ -282,14 +299,15 @@ export async function cancelBooking(req, res, next) {
     logger.info('Booking cancelled successfully', {
       bookingId,
       restaurant: restName,
+      customerEmail,
     });
 
-    // Send cancellation email
+    // Send cancellation email to the customer who made the reservation
     logger.info('Sending cancellation notification email');
     let emailDelivery;
     try {
       emailDelivery = await sendCancellationEmail({
-        toEmail: req.user.email,
+        toEmail: customerEmail,
         restaurantName: restName,
         date: booking.date,
         time: booking.time,
@@ -313,7 +331,7 @@ export async function cancelBooking(req, res, next) {
     }
 
     // Send real-time notification to customer
-    pushToUser(String(userId), {
+    pushToUser(customerUserId, {
       id: Date.now(),
       type: 'booking_cancelled',
       title: 'Booking Cancelled',
@@ -328,7 +346,7 @@ export async function cancelBooking(req, res, next) {
         id: Date.now() + 1,
         type: 'booking_cancelled_partner',
         title: 'Reservation Cancelled ⚠️',
-        desc: `Reservation at ${restName} on ${booking.date} at ${booking.time} for ${booking.guests} guest(s) was cancelled by customer.`,
+        desc: `Reservation at ${restName} on ${booking.date} at ${booking.time} for ${booking.guests} guest(s) was cancelled.`,
         time: 'Just now',
         unread: true,
       });

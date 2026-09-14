@@ -57,7 +57,7 @@ export default function MyBookings() {
         localStorage.setItem('bmt_cached_my_bookings', JSON.stringify(list));
       } catch {}
     } catch (e) {
-      toast.error(e.message);
+      toast.error(e.response?.data?.message || e.message || 'Failed to load bookings');
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export default function MyBookings() {
       await load();
     } catch (e) {
       setRows(prev);
-      toast.error(e.message);
+      toast.error(e.response?.data?.message || e.message || 'Failed to cancel booking');
     } finally {
       setCancelling(false);
     }

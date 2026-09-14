@@ -9,6 +9,7 @@
  * - Guest count validation
  */
 
+import mongoose from 'mongoose';
 import { ValidationError } from './AppError.js';
 import Restaurant from '../models/Restaurant.js';
 import Booking from '../models/Booking.js';
@@ -135,6 +136,10 @@ export async function validateRestaurantOperatingHours(restaurant, date, time) {
  * Check restaurant capacity and table assignment for the given time slot
  */
 export async function validateRestaurantCapacity(restaurantId, date, time, guests, preferredTableId = null) {
+  if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+    throw new ValidationError('Invalid restaurant ID');
+  }
+
   const restaurant = await Restaurant.findById(restaurantId);
   
   if (!restaurant) {
@@ -417,6 +422,10 @@ export async function validateBooking(bookingData, userId) {
  * Validate booking cancellation
  */
 export async function validateCancellation(bookingId, userId, isAdmin = false) {
+  if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+    throw new ValidationError('Invalid booking ID');
+  }
+
   const booking = await Booking.findById(bookingId);
 
   if (!booking) {

@@ -54,8 +54,8 @@ export const restaurantApi = {
     return res;
   },
 
-  updateBookingStatus: async (id, status) => {
-    return api.put(`${base}/bookings/${id}/status`, { status });
+  updateBookingStatus: async (id, status, extraData = {}) => {
+    return api.put(`${base}/bookings/${id}/status`, { status, ...extraData });
   },
 
   getAnalytics: async (restaurantId) => {

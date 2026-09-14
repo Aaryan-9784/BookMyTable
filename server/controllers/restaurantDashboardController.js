@@ -2,6 +2,7 @@
  * Restaurant Partner / Vendor Dashboard Controller.
  * Handles table & seating capacity management, booking administration, token fee analysis, and restaurant settings.
  */
+import mongoose from 'mongoose';
 import Restaurant from '../models/Restaurant.js';
 import Table from '../models/Table.js';
 import Booking from '../models/Booking.js';
@@ -90,7 +91,12 @@ function formatRestaurantResponse(r, calculatedCapacity) {
     totalSeatingCapacity: cap,
     priceRange: r.priceRange || 2,
     experiences: Array.isArray(r.experiences) && r.experiences.length ? r.experiences : ['Fine Dining', 'Outdoor Terrace', 'Private Dining', 'Live Music'],
-    approvalStatus: 'approved',
+    approvalStatus: r.approvalStatus || 'approved',
+    razorpayKeyId: r.razorpayKeyId || '',
+    upiId: r.upiId || '',
+    bankAccountNumber: r.bankAccountNumber || '',
+    bankIfsc: r.bankIfsc || '',
+    bankBeneficiaryName: r.bankBeneficiaryName || '',
   };
 }
 
@@ -111,7 +117,7 @@ async function syncRestaurantCapacity(restaurantId) {
 export async function getDashboardStats(req, res) {
   const restaurant = await getTargetRestaurant(req);
   if (!restaurant) {
-    return res.status(444).json({ ok: false, error: 'No restaurant found in system.' });
+    return res.status(404).json({ ok: false, error: 'No restaurant found in system.' });
   }
 
   await ensureDefaultTables(restaurant._id, restaurant.tokenFee || 150);
@@ -218,12 +224,32 @@ export async function createTable(req, res) {
  */
 export async function updateTable(req, res) {
   const { id } = req.params;
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({ ok: false, error: 'Invalid table ID' });
+  }
+
   const { tableNumber, capacity, zone, status, tokenFee } = req.body;
 
   const table = await Table.findById(id);
   if (!table) return res.status(404).json({ ok: false, error: 'Table not found' });
 
-  if (tableNumber) table.tableNumber = tableNumber.trim();
+  const targetRestaurant = await getTargetRestaurant(req);
+  if (req.user?.role !== 'admin' && String(table.restaurantId) !== String(targetRestaurant._id)) {
+    return res.status(403).json({ ok: false, error: 'Not authorized to modify tables for this restaurant' });
+  }
+
+  if (tableNumber && tableNumber.trim() !== table.tableNumber) {
+    const existing = await Table.findOne({
+      restaurantId: table.restaurantId,
+      tableNumber: tableNumber.trim(),
+      _id: { $ne: table._id },
+    });
+    if (existing) {
+      return res.status(400).json({ ok: false, error: `Table "${tableNumber.trim()}" already exists.` });
+    }
+    table.tableNumber = tableNumber.trim();
+  }
+
   if (capacity !== undefined) table.capacity = Number(capacity);
   if (zone) table.zone = zone;
   if (status) table.status = status;
@@ -240,8 +266,25 @@ export async function updateTable(req, res) {
  */
 export async function deleteTable(req, res) {
   const { id } = req.params;
-  const table = await Table.findByIdAndDelete(id);
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({ ok: false, error: 'Invalid table ID' });
+  }
+
+  const table = await Table.findById(id);
   if (!table) return res.status(404).json({ ok: false, error: 'Table not found' });
+
+  const targetRestaurant = await getTargetRestaurant(req);
+  if (req.user?.role !== 'admin' && String(table.restaurantId) !== String(targetRestaurant._id)) {
+    return res.status(403).json({ ok: false, error: 'Not authorized to delete tables for this restaurant' });
+  }
+
+  await Table.findByIdAndDelete(id);
+
+  // Clean up table reference in any existing bookings
+  await Booking.updateMany(
+    { tableId: id, status: { $in: ['confirmed', 'checked-in'] } },
+    { $unset: { tableId: 1 } }
+  );
 
   await syncRestaurantCapacity(table.restaurantId);
 
@@ -283,6 +326,10 @@ function formatMinutes(mins) {
  */
 export async function updateBookingStatus(req, res) {
   const { id } = req.params;
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({ ok: false, error: 'Invalid booking ID' });
+  }
+
   const { status, checkInTime, checkOutTime, timeSpentMinutes, timeSpentFormatted } = req.body;
 
   if (!['confirmed', 'checked-in', 'completed', 'cancelled'].includes(status)) {
@@ -291,6 +338,12 @@ export async function updateBookingStatus(req, res) {
 
   const booking = await Booking.findById(id).populate('restaurantId');
   if (!booking) return res.status(404).json({ ok: false, error: 'Booking not found' });
+
+  const targetRestaurant = await getTargetRestaurant(req);
+  const bookingRestId = String(booking.restaurantId?._id || booking.restaurantId);
+  if (req.user?.role !== 'admin' && bookingRestId !== String(targetRestaurant._id)) {
+    return res.status(403).json({ ok: false, error: 'Not authorized to update bookings for this restaurant' });
+  }
 
   booking.status = status;
 
@@ -330,7 +383,7 @@ export async function updateBookingStatus(req, res) {
         ? `Your visit at ${restName} is completed. Total time spent: ${booking.timeSpentFormatted}. Thank you for dining with us!`
         : `Your reservation at ${restName} on ${booking.date} at ${booking.time} was updated to "${status.toUpperCase()}".`;
 
-    pushToUser(String(booking.userId), {
+    pushToUser(String(booking.userId?._id || booking.userId), {
       id: Date.now(),
       type: `booking_${status}`,
       title: statusTitle,
@@ -598,5 +651,5 @@ export async function updateSettings(req, res) {
 
   await restaurant.save();
 
-  res.json({ ok: true, restaurant });
+  res.json({ ok: true, restaurant: formatRestaurantResponse(restaurant) });
 }

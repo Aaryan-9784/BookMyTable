@@ -95,12 +95,17 @@ export default function BookingConfirmation() {
   const tokenFeePerGuest = Math.round(grossDeposit / numGuests);
   const amountInWords = numberToWords(finalPaid);
 
-  const formattedDate = new Date(booking.date).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
+  const formattedDate = (() => {
+    if (!booking.date) return '—';
+    const d = new Date(booking.date.length === 10 ? `${booking.date}T12:00:00` : booking.date);
+    if (isNaN(d.getTime())) return booking.date;
+    return d.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  })();
 
   const issueDate = new Date(booking.createdAt || Date.now()).toLocaleString('en-US', {
     year: 'numeric',

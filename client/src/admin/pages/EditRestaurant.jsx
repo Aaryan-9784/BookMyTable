@@ -325,7 +325,7 @@ export default function EditRestaurant() {
       toast.success('Restaurant updated successfully!');
       navigate('/admin/restaurants');
     } catch (e) {
-      toast.error(e.message);
+      toast.error(e.response?.data?.errors?.[0]?.msg || e.response?.data?.error || e.response?.data?.message || e.message || 'Failed to update restaurant');
     } finally {
       setSaving(false);
     }

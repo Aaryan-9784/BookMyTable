@@ -4,6 +4,7 @@
 import mongoose from 'mongoose';
 import { validationResult, body, param, query } from 'express-validator';
 import Restaurant from '../models/Restaurant.js';
+import Table from '../models/Table.js';
 import Booking from '../models/Booking.js';
 import User from '../models/User.js';
 import Wishlist from '../models/Wishlist.js';
@@ -205,11 +206,10 @@ export async function createRestaurantAdmin(req, res, next) {
       let partnerUser = await User.findOne({ email: emailNorm });
       if (!partnerUser) {
         partnerUser = await User.create({
-          fullName: ownerName || emailNorm.split('@')[0],
+          name: ownerName || emailNorm.split('@')[0],
           email: emailNorm,
           password: 'Partner@' + Math.random().toString(36).slice(-6),
           role: 'restaurant',
-          isEmailVerified: true,
         });
       } else if (partnerUser.role !== 'restaurant' && partnerUser.role !== 'admin') {
         partnerUser.role = 'restaurant';
@@ -283,6 +283,23 @@ export async function updateRestaurantAdmin(req, res, next) {
       if (req.body[k] !== undefined) patch[k] = req.body[k];
     }
 
+    if (req.body.ownerEmail && typeof req.body.ownerEmail === 'string' && req.body.ownerEmail.trim()) {
+      const emailNorm = req.body.ownerEmail.trim().toLowerCase();
+      let partnerUser = await User.findOne({ email: emailNorm });
+      if (!partnerUser) {
+        partnerUser = await User.create({
+          name: req.body.ownerName || emailNorm.split('@')[0],
+          email: emailNorm,
+          password: 'Partner@' + Math.random().toString(36).slice(-6),
+          role: 'restaurant',
+        });
+      } else if (partnerUser.role !== 'restaurant' && partnerUser.role !== 'admin') {
+        partnerUser.role = 'restaurant';
+        await partnerUser.save();
+      }
+      patch.ownerId = partnerUser._id;
+    }
+
     const doc = await Restaurant.findByIdAndUpdate(req.params.id, { $set: patch }, { new: true });
     if (!doc) {
       return res.status(404).json({ message: 'Restaurant not found' });
@@ -301,7 +318,11 @@ export async function deleteRestaurantAdmin(req, res, next) {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: 'Invalid id' });
     }
-    await Booking.deleteMany({ restaurantId: req.params.id });
+    await Promise.all([
+      Booking.deleteMany({ restaurantId: req.params.id }),
+      Table.deleteMany({ restaurantId: req.params.id }),
+      Wishlist.deleteMany({ restaurantId: req.params.id }),
+    ]);
     const r = await Restaurant.findByIdAndDelete(req.params.id);
     if (!r) {
       return res.status(404).json({ message: 'Restaurant not found' });

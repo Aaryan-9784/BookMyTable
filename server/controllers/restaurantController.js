@@ -1,6 +1,7 @@
 /**
  * Restaurant CRUD — public reads with optional filters; create restricted to admins (legacy route).
  */
+import mongoose from 'mongoose';
 import { validationResult, body } from 'express-validator';
 import Restaurant from '../models/Restaurant.js';
 import Table from '../models/Table.js';
@@ -95,6 +96,9 @@ export async function listRestaurants(req, res, next) {
  */
 export async function getRestaurantById(req, res, next) {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid restaurant ID' });
+    }
     const doc = await Restaurant.findById(req.params.id).lean();
     if (!doc) {
       return res.status(404).json({ message: 'Restaurant not found' });
@@ -143,6 +147,9 @@ export async function createRestaurant(req, res, next) {
 export async function getRestaurantTables(req, res, next) {
   try {
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid restaurant ID' });
+    }
     const { date, time, guests } = req.query;
 
     const tables = await Table.find({ restaurantId: id }).lean();
@@ -197,6 +204,9 @@ export async function getRestaurantTables(req, res, next) {
 export async function addRestaurantReview(req, res, next) {
   try {
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid restaurant ID' });
+    }
     const { rating, text, author } = req.body;
 
     const numRating = Number(parseFloat(rating).toFixed(1));

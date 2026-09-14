@@ -527,7 +527,7 @@ export default function TablesManagement() {
       setShowRestModal(false);
       fetchData(true);
     } catch (err) {
-      toast.error(err.message || 'Failed to update restaurant profile');
+      toast.error(err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to update restaurant profile');
     } finally {
       setSavingRest(false);
     }
@@ -542,7 +542,7 @@ export default function TablesManagement() {
       setDeleteTableId(null);
       fetchData(true);
     } catch (err) {
-      toast.error(err.message || 'Failed to delete table');
+      toast.error(err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to delete table');
     }
   };
 

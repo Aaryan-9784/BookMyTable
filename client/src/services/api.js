@@ -35,8 +35,15 @@ api.interceptors.response.use(
     const data = err.response?.data;
 
     if (status === 401) {
-      clearStoredAuthTokens();
-      window.dispatchEvent(new CustomEvent(SESSION_INVALID_EVENT));
+      const url = err.config?.url || '';
+      const isAuthAttempt =
+        url.includes('/api/auth/login') ||
+        url.includes('/api/auth/send-login-otp') ||
+        url.includes('/api/auth/verify-login-otp');
+      if (!isAuthAttempt) {
+        clearStoredAuthTokens();
+        window.dispatchEvent(new CustomEvent(SESSION_INVALID_EVENT));
+      }
     }
 
     let msg =
@@ -49,7 +56,10 @@ api.interceptors.response.use(
     if (data?.detail) {
       msg = `${msg} (${data.detail})`;
     }
-    return Promise.reject(new Error(msg));
+    const error = new Error(msg);
+    error.response = err.response;
+    error.status = status;
+    return Promise.reject(error);
   }
 );
 

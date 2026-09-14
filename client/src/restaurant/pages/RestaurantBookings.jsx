@@ -194,7 +194,7 @@ export default function RestaurantBookings() {
       toast.success(`Booking marked as ${status.toUpperCase()}`);
       setBookings((prev) => prev.map((b) => b._id === id ? { ...b, status, ...(updated || {}) } : b));
     } catch (err) {
-      toast.error(err.message || 'Failed to update status');
+      toast.error(err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to update status');
     } finally {
       setUpdatingId(null);
     }

@@ -2,7 +2,7 @@
  * App shell: public layout + admin area + protected user routes.
  * Wrapped with Error Boundaries for graceful error handling.
  */
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import RouteErrorBoundary from './components/RouteErrorBoundary.jsx';
 import Navbar from './components/Navbar.jsx';
@@ -36,6 +36,11 @@ import Profile from './pages/Profile.jsx';
 import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
+
+function BookRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/restaurants/${id}/book`} replace />;
+}
 
 function PublicLayout({ children }) {
   return (
@@ -90,6 +95,11 @@ export default function App() {
           <Route path="analytics" element={<RouteErrorBoundary routeName="Analytics"><TokenFeeAnalytics /></RouteErrorBoundary>} />
           <Route path="settings" element={<RouteErrorBoundary routeName="Settings"><RestaurantSettings /></RouteErrorBoundary>} />
         </Route>
+
+        {/* Route Aliases & Redirects */}
+        <Route path="/restaurant" element={<Navigate to="/restaurant-dashboard" replace />} />
+        <Route path="/restaurant/*" element={<Navigate to="/restaurant-dashboard" replace />} />
+        <Route path="/book/:id" element={<BookRedirect />} />
 
         <Route
           path="/"

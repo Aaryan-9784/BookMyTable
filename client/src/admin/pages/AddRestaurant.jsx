@@ -276,7 +276,7 @@ export default function AddRestaurant() {
       toast.success('Restaurant created successfully!');
       navigate('/admin/restaurants');
     } catch (err) {
-      toast.error(err.message || 'Failed to create restaurant');
+      toast.error(err.response?.data?.errors?.[0]?.msg || err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to create restaurant');
     } finally {
       setSaving(false);
     }

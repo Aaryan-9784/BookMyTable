@@ -273,7 +273,7 @@ export default function RestaurantSettings() {
       toast.success('Restaurant profile updated successfully!');
       fetchSettings(true);
     } catch (err) {
-      toast.error(err.message || 'Failed to update settings');
+      toast.error(err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to update settings');
     } finally {
       setSaving(false);
     }

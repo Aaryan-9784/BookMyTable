@@ -8,7 +8,8 @@ export default function Login() {
   const { login, setAuthSession, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const destination = '/';
+  const from = location.state?.from;
+  const destination = from ? (from.pathname + (from.search || '')) : '/';
 
   const [step, setStep] = useState(1); // 1: Email & Password, 2: OTP Verification
   const [email, setEmail] = useState('');

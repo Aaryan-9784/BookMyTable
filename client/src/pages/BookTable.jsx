@@ -115,7 +115,12 @@ export default function BookTable() {
         navigate('/my-bookings');
       }
     } catch (e) {
-      const errMsg = e.response?.data?.error?.message || e.response?.data?.message || e.message || 'Failed to create booking';
+      const errMsg =
+        e.response?.data?.errors?.[0]?.msg ||
+        e.response?.data?.error?.message ||
+        e.response?.data?.message ||
+        e.message ||
+        'Failed to create booking';
       toast.error(errMsg);
     } finally {
       setSubmitting(false);

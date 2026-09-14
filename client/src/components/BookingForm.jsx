@@ -420,7 +420,7 @@ export default function BookingForm({
       onSubmit({
         date,
         time: selectedTime,
-        guests,
+        guests: Number(guests) || 1,
         tableId: selectedTableId || null,
         paymentId: mockPaymentId,
         couponCode: appliedCoupon?.code || null,
@@ -437,7 +437,7 @@ export default function BookingForm({
       onSubmit({
         date,
         time: selectedTime,
-        guests,
+        guests: Number(guests) || 1,
         tableId: selectedTableId || null,
         paymentId: `pay_sdk_fail_${Date.now()}`,
         couponCode: appliedCoupon?.code || null,
@@ -484,7 +484,7 @@ export default function BookingForm({
         onSubmit({
           date,
           time: selectedTime,
-          guests,
+          guests: Number(guests) || 1,
           tableId: selectedTableId || null,
           paymentId: response.razorpay_payment_id,
           couponCode: appliedCoupon?.code || null,
@@ -519,7 +519,7 @@ export default function BookingForm({
       onSubmit({
         date,
         time: selectedTime,
-        guests,
+        guests: Number(guests) || 1,
         tableId: selectedTableId || null,
         paymentId: `pay_err_${Date.now()}`,
         couponCode: appliedCoupon?.code || null,
