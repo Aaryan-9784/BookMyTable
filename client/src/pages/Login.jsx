@@ -28,7 +28,7 @@ export default function Login() {
   }, [cooldown]);
 
   /**
-   * Step 1: Send Login OTP to email
+   * Step 1: Direct Instant Login with Email & Password
    */
   const handleCredentialsSubmit = async (e) => {
     e.preventDefault();
@@ -38,7 +38,33 @@ export default function Login() {
     }
     setLoading(true);
     try {
-      // Send 6-digit Login OTP via backend API
+      const authRes = await login(email.trim(), password);
+      const userRole = (authRes?.profile?.role || '').toLowerCase();
+      toast.success('Welcome back');
+      if (userRole === 'admin') {
+        navigate('/admin', { replace: true });
+      } else if (userRole === 'restaurant') {
+        navigate('/restaurant-dashboard', { replace: true });
+      } else {
+        navigate(destination, { replace: true });
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Request OTP verification code (Optional OTP mode)
+   */
+  const handleSendOtpMode = async () => {
+    if (!email.trim()) {
+      toast.error('Please enter your email address first');
+      return;
+    }
+    setLoading(true);
+    try {
       await api.post('/api/auth/send-login-otp', { email: email.trim(), password });
       toast.success('Verification code sent to your email');
       setStep(2);
@@ -259,10 +285,21 @@ export default function Login() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                     </svg>
-                    Sending OTP…
+                    Signing in…
                   </span>
                 ) : 'Sign in'}
               </button>
+
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={handleSendOtpMode}
+                  disabled={isBusy}
+                  className="font-sans text-xs text-white/50 hover:text-[#d4af37] transition underline-offset-4 hover:underline"
+                >
+                  Or sign in with 6-digit Email OTP →
+                </button>
+              </div>
             </form>
           ) : (
             /* ── STEP 2: OTP Verification Form ── */
