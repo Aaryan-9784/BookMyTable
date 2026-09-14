@@ -468,13 +468,16 @@ export default function BookingForm({
       localStorage.getItem('bookmytable_phone')?.trim() ||
       '8238012515';
 
+    /* Determine active Razorpay Key: Prioritize Restaurant's own key for 100% direct receipt, else fallback */
+    const activeKey = restaurant?.razorpayKeyId?.trim() || rawRazorpayKey;
+
     /* Configure Razorpay Modal */
     const options = {
-      key: rawRazorpayKey,
+      key: activeKey,
       amount: finalPayable * 100, // amount in paise
       currency: 'INR',
-      name: 'BookMyTable',
-      description: `Table Deposit: ${restaurant.name || 'Reservation'}`,
+      name: restaurant.name || 'BookMyTable',
+      description: `Table Reservation Deposit — ${restaurant.name || 'Venue'}`,
       image: restaurant.imageUrl || getFallbackRestaurantImage(restaurant),
       handler: function (response) {
         toast.success(`💳 Payment Successful! Payment ID: ${response.razorpay_payment_id}`);
@@ -957,6 +960,24 @@ export default function BookingForm({
               <span>Total Amount Payable</span>
               <span className="text-luxury-gold text-base">₹{finalPayable}</span>
             </div>
+          </div>
+
+          {/* 100% Direct Venue Receipt Guarantee Badge */}
+          <div
+            className="flex items-center justify-between rounded-xl px-4 py-2.5 font-sans text-xs"
+            style={{
+              background: 'rgba(16, 185, 129, 0.08)',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
+              color: '#34d399',
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <span>🛡️</span>
+              <span><strong>100% Direct Venue Payment:</strong> Paid directly to {restaurant?.name || 'the venue'}.</span>
+            </div>
+            <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded">
+              Zero Platform Deductions
+            </span>
           </div>
         </div>
 

@@ -272,6 +272,11 @@ export async function updateRestaurantAdmin(req, res, next) {
       'openingHours',
       'ownerId',
       'experiences',
+      'razorpayKeyId',
+      'upiId',
+      'bankAccountNumber',
+      'bankIfsc',
+      'bankBeneficiaryName',
     ];
     const patch = {};
     for (const k of allowed) {

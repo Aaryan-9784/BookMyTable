@@ -572,6 +572,11 @@ export async function updateSettings(req, res) {
     experiences,
     imageUrl,
     imageUrls,
+    razorpayKeyId,
+    upiId,
+    bankAccountNumber,
+    bankIfsc,
+    bankBeneficiaryName,
   } = req.body;
 
   if (name) restaurant.name = name.trim();
@@ -585,6 +590,11 @@ export async function updateSettings(req, res) {
   if (Array.isArray(experiences)) restaurant.experiences = experiences;
   if (imageUrl !== undefined) restaurant.imageUrl = imageUrl;
   if (Array.isArray(imageUrls)) restaurant.imageUrls = imageUrls;
+  if (razorpayKeyId !== undefined) restaurant.razorpayKeyId = razorpayKeyId.trim();
+  if (upiId !== undefined) restaurant.upiId = upiId.trim();
+  if (bankAccountNumber !== undefined) restaurant.bankAccountNumber = bankAccountNumber.trim();
+  if (bankIfsc !== undefined) restaurant.bankIfsc = bankIfsc.trim();
+  if (bankBeneficiaryName !== undefined) restaurant.bankBeneficiaryName = bankBeneficiaryName.trim();
 
   await restaurant.save();
 

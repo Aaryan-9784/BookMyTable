@@ -199,6 +199,11 @@ const sanitizationRules = {
     priceRange: { maxLength: 50 },
     openingHours: { maxLength: 500 },
     amenities: { maxLength: 1000 },
+    razorpayKeyId: { maxLength: 100 },
+    upiId: { maxLength: 100 },
+    bankAccountNumber: { maxLength: 50 },
+    bankIfsc: { maxLength: 30 },
+    bankBeneficiaryName: { maxLength: 150 },
   },
 
   // User data

@@ -143,6 +143,13 @@ export default function RestaurantSettings() {
   const [imageUrls, setImageUrls] = useState(Array.isArray(initialRest?.imageUrls) && initialRest.imageUrls.length ? initialRest.imageUrls : initialRest?.imageUrl ? [initialRest.imageUrl] : []);
   const [imageUrlInput, setImageUrlInput] = useState('');
 
+  // Payment Credentials for 100% Direct Venue Receipt
+  const [razorpayKeyId, setRazorpayKeyId] = useState(initialRest?.razorpayKeyId || '');
+  const [upiId, setUpiId] = useState(initialRest?.upiId || '');
+  const [bankAccountNumber, setBankAccountNumber] = useState(initialRest?.bankAccountNumber || '');
+  const [bankIfsc, setBankIfsc] = useState(initialRest?.bankIfsc || '');
+  const [bankBeneficiaryName, setBankBeneficiaryName] = useState(initialRest?.bankBeneficiaryName || '');
+
   const fetchSettings = useCallback(async (silent = false) => {
     if (!silent && !restaurantApi.getCache('settings_default')) setLoading(true);
     else setRefreshing(true);
@@ -160,6 +167,11 @@ export default function RestaurantSettings() {
       setPriceRange(r.priceRange || 2);
       setExperiences(Array.isArray(r.experiences) && r.experiences.length ? r.experiences : ['Fine Dining', 'Outdoor Terrace', 'Private Dining', 'Live Music']);
       setImageUrls(Array.isArray(r.imageUrls) && r.imageUrls.length ? r.imageUrls : r.imageUrl ? [r.imageUrl] : []);
+      setRazorpayKeyId(r.razorpayKeyId || '');
+      setUpiId(r.upiId || '');
+      setBankAccountNumber(r.bankAccountNumber || '');
+      setBankIfsc(r.bankIfsc || '');
+      setBankBeneficiaryName(r.bankBeneficiaryName || '');
     } catch (err) {
       toast.error(err.message || 'Failed to load restaurant settings');
     } finally {
@@ -252,6 +264,11 @@ export default function RestaurantSettings() {
         experiences,
         imageUrl: imageUrls[0] || '',
         imageUrls,
+        razorpayKeyId: razorpayKeyId.trim(),
+        upiId: upiId.trim(),
+        bankAccountNumber: bankAccountNumber.trim(),
+        bankIfsc: bankIfsc.trim(),
+        bankBeneficiaryName: bankBeneficiaryName.trim(),
       });
       toast.success('Restaurant profile updated successfully!');
       fetchSettings(true);
@@ -752,6 +769,120 @@ export default function RestaurantSettings() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Card 5: Direct Customer Payment Gateway (100% Direct Receipt) */}
+          <div
+            className="rounded-2xl p-6 space-y-5"
+            style={{
+              background: 'linear-gradient(160deg, #181818 0%, #121212 100%)',
+              border: '1px solid rgba(212,175,55,0.22)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            }}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/[0.07] pb-3 gap-2">
+              <div className="flex items-center gap-2.5">
+                <span className="text-luxury-gold text-lg">🛡️</span>
+                <div>
+                  <h2 className="font-display text-base font-semibold text-white">
+                    Direct Payment & Payout Credentials
+                  </h2>
+                  <p className="font-sans text-[11px] text-luxury-muted">
+                    100% of customer booking token fees go directly to your merchant account with zero platform cut.
+                  </p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1.5 self-start sm:self-auto rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/30">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                100% Direct Receipt
+              </span>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {/* Razorpay Key ID */}
+              <div className="sm:col-span-2">
+                <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-1.5">
+                  Restaurant Razorpay Key ID (For Direct Online Customer Checkout)
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={razorpayKeyId}
+                    onChange={(e) => setRazorpayKeyId(e.target.value)}
+                    placeholder="e.g. rzp_live_xxxxxxxxxxxx or rzp_test_xxxxxxxxxxxx"
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-mono text-sm text-white placeholder-white/20 outline-none transition-colors duration-200 focus:border-luxury-gold/60"
+                  />
+                  {razorpayKeyId ? (
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-emerald-400 font-sans font-semibold flex items-center gap-1">
+                      ✓ Direct Active
+                    </span>
+                  ) : (
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11px] text-amber-300/60 font-sans">
+                      Default Platform Key Active
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1.5 text-[11px] font-sans text-white/40">
+                  Enter your Razorpay Key ID from your Razorpay Dashboard. When diners pay their reservation token deposit, 100% of the funds land directly into your own bank account.
+                </p>
+              </div>
+
+              {/* Direct UPI ID */}
+              <div>
+                <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-1.5">
+                  Restaurant UPI ID (Google Pay / PhonePe / Paytm)
+                </label>
+                <input
+                  type="text"
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                  placeholder="e.g. restaurant@okhdfcbank"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-sans text-sm text-white placeholder-white/20 outline-none transition-colors duration-200 focus:border-luxury-gold/60"
+                />
+              </div>
+
+              {/* Beneficiary Name */}
+              <div>
+                <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-1.5">
+                  Bank Account Beneficiary Name
+                </label>
+                <input
+                  type="text"
+                  value={bankBeneficiaryName}
+                  onChange={(e) => setBankBeneficiaryName(e.target.value)}
+                  placeholder="e.g. The Grand Palace Ltd"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-sans text-sm text-white placeholder-white/20 outline-none transition-colors duration-200 focus:border-luxury-gold/60"
+                />
+              </div>
+
+              {/* Bank Account Number */}
+              <div>
+                <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-1.5">
+                  Bank Account Number
+                </label>
+                <input
+                  type="text"
+                  value={bankAccountNumber}
+                  onChange={(e) => setBankAccountNumber(e.target.value)}
+                  placeholder="e.g. 5010023456789"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-mono text-sm text-white placeholder-white/20 outline-none transition-colors duration-200 focus:border-luxury-gold/60"
+                />
+              </div>
+
+              {/* IFSC Code */}
+              <div>
+                <label className="block font-sans text-[11px] font-bold uppercase tracking-wider text-luxury-muted mb-1.5">
+                  Bank IFSC Code
+                </label>
+                <input
+                  type="text"
+                  value={bankIfsc}
+                  onChange={(e) => setBankIfsc(e.target.value.toUpperCase())}
+                  placeholder="e.g. HDFC0001234"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-mono text-sm text-white placeholder-white/20 outline-none transition-colors duration-200 focus:border-luxury-gold/60"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Submit Action Button */}

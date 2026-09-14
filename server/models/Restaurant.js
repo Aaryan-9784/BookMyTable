@@ -95,6 +95,32 @@ const restaurantSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    /** Direct Restaurant Payment & Payout Gateway Credentials */
+    razorpayKeyId: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    upiId: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    bankAccountNumber: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    bankIfsc: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    bankBeneficiaryName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
   },
   { timestamps: true }
 );
