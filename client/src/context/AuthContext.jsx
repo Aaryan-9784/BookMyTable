@@ -119,6 +119,27 @@ export function AuthProvider({ children }) {
     setIdTokenState(token || null);
   }, []);
 
+  const setAuthSession = useCallback((token, user) => {
+    if (token) {
+      localStorage.setItem(STORAGE_ID_TOKEN, token);
+      setIdTokenState(token);
+    }
+    if (user?.email) {
+      localStorage.setItem(STORAGE_EMAIL, user.email);
+      setEmailState(user.email);
+    }
+    if (user?.name) {
+      localStorage.setItem('bookmytable_full_name', user.name);
+    }
+    if (user?.role) {
+      setRole(user.role);
+    }
+    if (user) {
+      setProfile(user);
+      writeCachedProfile(user);
+    }
+  }, []);
+
   /**
    * MongoDB Login
    */
@@ -298,6 +319,7 @@ export function AuthProvider({ children }) {
       resendConfirmationCode,
       logout,
       setIdToken,
+      setAuthSession,
       refreshProfile,
       patchProfile,
     }),
@@ -321,6 +343,7 @@ export function AuthProvider({ children }) {
       resendConfirmationCode,
       logout,
       setIdToken,
+      setAuthSession,
       refreshProfile,
       patchProfile,
     ]

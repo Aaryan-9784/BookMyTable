@@ -167,13 +167,33 @@ export default function MyBookings() {
               const name        = typeof rest === 'object' && rest?.name ? rest.name : 'Restaurant';
               const rid         = typeof rest === 'object' && rest?._id  ? rest._id  : null;
               const status      = b.status || 'confirmed';
-              const isCancelled = String(status).toLowerCase() === 'cancelled';
-              const canCancel   = !isCancelled;
+              const statusLower = String(status).toLowerCase();
+              const isCancelled = statusLower === 'cancelled';
+              const isCompleted = statusLower === 'completed';
+              const isCheckedIn = statusLower === 'checked-in';
+              const canCancel   = !isCancelled && !isCompleted;
 
-              const badgeBg = isCancelled ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.10)';
-              const badgeBorder = isCancelled ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.22)';
-              const badgeColor = isCancelled ? '#f87171' : '#4ade80';
-              const badgeLabel = isCancelled ? 'Cancelled' : 'Confirmed';
+              let badgeBg = 'rgba(34,197,94,0.10)';
+              let badgeBorder = 'rgba(34,197,94,0.22)';
+              let badgeColor = '#4ade80';
+              let badgeLabel = 'Confirmed';
+
+              if (isCancelled) {
+                badgeBg = 'rgba(239,68,68,0.08)';
+                badgeBorder = 'rgba(239,68,68,0.2)';
+                badgeColor = '#f87171';
+                badgeLabel = 'Cancelled';
+              } else if (isCompleted) {
+                badgeBg = 'rgba(99,102,241,0.12)';
+                badgeBorder = 'rgba(99,102,241,0.28)';
+                badgeColor = '#a5b4fc';
+                badgeLabel = 'Completed';
+              } else if (isCheckedIn) {
+                badgeBg = 'rgba(59,130,246,0.12)';
+                badgeBorder = 'rgba(59,130,246,0.28)';
+                badgeColor = '#60a5fa';
+                badgeLabel = 'Checked In';
+              }
 
               return (
                 <li

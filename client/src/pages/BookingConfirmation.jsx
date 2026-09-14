@@ -41,17 +41,26 @@ export default function BookingConfirmation() {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await api.get(`/api/bookings/my-bookings`);
-        const list = Array.isArray(data) ? data : data?.bookings || [];
-        const found = list.find((b) => String(b._id) === String(id));
-        if (cancelled) return;
-        if (found) {
-          setBooking(found);
-        } else {
-          setError('Reservation receipt not found or expired.');
+        // Attempt 1: Fetch single booking directly by ID
+        const res = await api.get(`/api/bookings/${id}`);
+        const single = res.data?.data || res.data;
+        if (!cancelled && single && (single._id || single.restaurantId)) {
+          setBooking(single);
+          return;
         }
-      } catch (e) {
-        if (!cancelled) setError(e.message || 'Failed to load booking receipt');
+      } catch (err) {
+        // Attempt 2: Fallback to querying user's bookings list
+        try {
+          const listRes = await api.get('/api/bookings/my');
+          const payload = listRes.data;
+          const list = Array.isArray(payload?.data) ? payload.data : (Array.isArray(payload) ? payload : []);
+          const found = list.find((b) => String(b._id) === String(id));
+          if (!cancelled && found) {
+            setBooking(found);
+            return;
+          }
+        } catch {}
+        if (!cancelled) setError('Reservation receipt not found or expired.');
       } finally {
         if (!cancelled) setLoading(false);
       }

@@ -401,14 +401,44 @@ export default function BookingForm({
       timeSpentMinutes: durationInfo.mins,
     };
 
-    const isLoaded = await loadRazorpaySDK();
-    if (!isLoaded) {
-      toast.error('Razorpay SDK failed to load. Proceeding with instant reservation...');
+    const rawRazorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+    const isValidRazorpayKey = Boolean(
+      rawRazorpayKey &&
+      rawRazorpayKey.trim() !== '' &&
+      !rawRazorpayKey.includes('xxxx') &&
+      rawRazorpayKey !== 'rzp_test_bookmytable'
+    );
+
+    /* Development / Demo Mode: If no valid live/test key is set, simulate deposit payment instantly */
+    if (!isValidRazorpayKey) {
+      const mockPaymentId = `pay_sim_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      toast.success(`💳 [Dev Mode] Deposit of ₹${finalPayable} simulated successfully!`, {
+        icon: '💳',
+        duration: 4000,
+      });
       onSubmit({
         date,
         time: selectedTime,
         guests,
         tableId: selectedTableId || null,
+        paymentId: mockPaymentId,
+        couponCode: appliedCoupon?.code || null,
+        discountAmount,
+        finalPayable,
+        ...payloadTimes,
+      });
+      return;
+    }
+
+    const isLoaded = await loadRazorpaySDK();
+    if (!isLoaded) {
+      toast.error('Razorpay SDK failed to load. Proceeding with instant reservation fallback...');
+      onSubmit({
+        date,
+        time: selectedTime,
+        guests,
+        tableId: selectedTableId || null,
+        paymentId: `pay_sdk_fail_${Date.now()}`,
         couponCode: appliedCoupon?.code || null,
         discountAmount,
         finalPayable,
@@ -439,7 +469,7 @@ export default function BookingForm({
 
     /* Configure Razorpay Modal */
     const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_bookmytable',
+      key: rawRazorpayKey,
       amount: finalPayable * 100, // amount in paise
       currency: 'INR',
       name: 'BookMyTable',
@@ -476,13 +506,18 @@ export default function BookingForm({
 
     try {
       const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        toast.error(`Payment failed: ${response.error?.description || 'Transaction declined'}`);
+      });
       rzp.open();
     } catch (err) {
+      toast.error('Payment gateway unavailable. Proceeding with instant reservation...');
       onSubmit({
         date,
         time: selectedTime,
         guests,
         tableId: selectedTableId || null,
+        paymentId: `pay_err_${Date.now()}`,
         couponCode: appliedCoupon?.code || null,
         discountAmount,
         finalPayable,

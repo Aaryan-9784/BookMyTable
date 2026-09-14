@@ -28,6 +28,7 @@ router.use(authMiddleware);
 
 // Safe methods - no CSRF needed
 router.get('/my', asyncHandler(listMyBookings));
+router.get('/my-bookings', asyncHandler(listMyBookings));
 router.get('/:id', asyncHandler(getBookingById));
 
 // State-changing operations - CSRF protection in production

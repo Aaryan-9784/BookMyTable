@@ -19,15 +19,16 @@ if (!CSRF_SECRET) {
  * Initialize CSRF protection with double submit cookie pattern
  */
 const {
-  generateToken, // Generates a CSRF token to send to client
+  generateCsrfToken: generateToken, // Generates a CSRF token to send to client
   doubleCsrfProtection, // Middleware to validate CSRF token
 } = doubleCsrf({
   getSecret: () => CSRF_SECRET,
-  cookieName: '__Host-bmtt.csrf', // Prefix __Host- requires secure, same-site cookies
+  getSessionIdentifier: (req) => req.ip || req.headers['x-forwarded-for'] || 'anonymous',
+  cookieName: isProduction ? '__Host-bmtt.csrf' : 'bmtt.csrf',
   cookieOptions: {
     httpOnly: true,
     secure: isProduction, // HTTPS only in production
-    sameSite: 'strict', // Strict same-site policy
+    sameSite: isProduction ? 'strict' : 'lax', // Lax in dev to support cross-port localhost
     path: '/',
     maxAge: 3600000, // 1 hour
   },

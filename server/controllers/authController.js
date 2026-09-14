@@ -252,7 +252,7 @@ export async function sendLoginOtp(req, res, next) {
  */
 export async function verifyLoginOtp(req, res, next) {
   try {
-    const { email, code } = req.body || {};
+    const { email, code, password } = req.body || {};
     const normalizedEmail = (email || '').trim().toLowerCase();
     const inputCode = (code || '').trim();
 
@@ -266,43 +266,75 @@ export async function verifyLoginOtp(req, res, next) {
     const bypassCode = process.env.DEV_OTP_BYPASS_CODE || '123456';
     const isDevBypass = isDevelopment && bypassEnabled && inputCode === bypassCode;
 
-    if (isDevBypass) {
-      logger.warn('OTP verification bypassed (development mode)', { email: normalizedEmail });
-      return res.json({
-        ok: true,
-        message: 'OTP verified successfully (development bypass)',
-        bypass: true,
-      });
-    }
+    if (!isDevBypass) {
+      // Verify OTP using Redis-backed service
+      const verification = await verifyOTP(normalizedEmail, inputCode);
 
-    // Verify OTP using Redis-backed service
-    const verification = await verifyOTP(normalizedEmail, inputCode);
+      if (!verification.valid) {
+        logger.warn('OTP verification failed', { 
+          email: normalizedEmail, 
+          reason: verification.reason 
+        });
 
-    if (!verification.valid) {
-      logger.warn('OTP verification failed', { 
-        email: normalizedEmail, 
-        reason: verification.reason 
-      });
+        if (verification.attemptsExceeded) {
+          return res.status(429).json({ 
+            message: 'Maximum verification attempts exceeded. Please request a new code.',
+            code: 'MAX_ATTEMPTS_EXCEEDED'
+          });
+        }
 
-      if (verification.attemptsExceeded) {
-        return res.status(429).json({ 
-          message: 'Maximum verification attempts exceeded. Please request a new code.',
-          code: 'MAX_ATTEMPTS_EXCEEDED'
+        return res.status(400).json({ 
+          message: verification.reason || 'Invalid or expired verification code',
+          attemptsRemaining: verification.attemptsRemaining 
         });
       }
-
-      return res.status(400).json({ 
-        message: verification.reason || 'Invalid or expired verification code',
-        attemptsRemaining: verification.attemptsRemaining 
-      });
+    } else {
+      logger.warn('OTP verification bypassed (development mode)', { email: normalizedEmail });
     }
 
-    logger.info('OTP verified successfully', { email: normalizedEmail });
+    // Once OTP is confirmed, fetch or create user in MongoDB
+    let user = await User.findOne({ email: normalizedEmail }).select('+password');
+    if (!user) {
+      const assignedRole = determineRole(normalizedEmail);
+      user = new User({
+        email: normalizedEmail,
+        name: normalizedEmail.split('@')[0],
+        role: assignedRole,
+        password: password || '',
+      });
+      await user.save();
+    } else {
+      // If a password was provided (e.g. from login form), update password so future logins succeed
+      if (password && password.length >= 6) {
+        user.password = password;
+      }
+      // Ensure admin email has admin role
+      const adminEmails = (process.env.ADMIN_EMAILS || '')
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean);
+
+      if (adminEmails.includes(normalizedEmail) && user.role !== 'admin') {
+        user.role = 'admin';
+      }
+      await user.save();
+    }
+
+    const token = generateToken(user);
+    logger.info('User verified and authenticated via OTP successfully', { email: normalizedEmail, role: user.role });
 
     res.json({
       ok: true,
-      message: 'OTP verified successfully',
-      email: verification.email,
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        phone: user.phone,
+      },
+      message: 'Login successful',
+      email: normalizedEmail,
     });
   } catch (err) {
     next(err);

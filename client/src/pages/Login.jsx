@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
 
 export default function Login() {
-  const { login, loading: authLoading } = useAuth();
+  const { login, setAuthSession, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const destination = '/';
@@ -38,7 +38,7 @@ export default function Login() {
     setLoading(true);
     try {
       // Send 6-digit Login OTP via backend API
-      await api.post('/api/auth/send-login-otp', { email: email.trim() });
+      await api.post('/api/auth/send-login-otp', { email: email.trim(), password });
       toast.success('Verification code sent to your email');
       setStep(2);
       setCooldown(30);
@@ -56,7 +56,7 @@ export default function Login() {
     if (cooldown > 0 || loading) return;
     setLoading(true);
     try {
-      await api.post('/api/auth/send-login-otp', { email: email.trim() });
+      await api.post('/api/auth/send-login-otp', { email: email.trim(), password });
       toast.success(`Fresh verification code sent to ${email.trim()}`);
       setCooldown(30);
     } catch (err) {
@@ -77,13 +77,28 @@ export default function Login() {
     }
     setLoading(true);
     try {
-      // 1. Verify 6-digit OTP code against server
-      await api.post('/api/auth/verify-login-otp', {
+      // 1. Verify 6-digit OTP code & retrieve authenticated session
+      const { data } = await api.post('/api/auth/verify-login-otp', {
         email: email.trim(),
         code: otpCode.trim(),
+        password,
       });
 
-      // 2. Complete session login & navigate to role-based dashboard
+      if (data?.token && data?.user) {
+        setAuthSession(data.token, data.user);
+        toast.success('Welcome back');
+        const userRole = (data.user.role || '').toLowerCase();
+        if (userRole === 'admin') {
+          navigate('/admin', { replace: true });
+        } else if (userRole === 'restaurant') {
+          navigate('/restaurant-dashboard', { replace: true });
+        } else {
+          navigate(destination, { replace: true });
+        }
+        return;
+      }
+
+      // 2. Fallback to direct password login if token wasn't returned
       const authRes = await login(email.trim(), password);
       const userRole = (authRes?.profile?.role || '').toLowerCase();
 
