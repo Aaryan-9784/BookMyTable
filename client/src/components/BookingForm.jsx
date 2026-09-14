@@ -9,6 +9,7 @@ import { getFallbackRestaurantImage } from '../utils/imageUtils.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
 import { getZoneTokenFee, DINING_ZONES_META } from '../utils/zoneFeeUtils.js';
+import { formatTime12 } from '../utils/timeSlots.js';
 
 const fieldBase = [
   'w-full rounded-xl border bg-white/[0.04] px-4 py-3.5 font-sans text-sm text-white',
@@ -113,7 +114,7 @@ function TimeSelect({ value, onChange, options }) {
             onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.background = 'rgba(212,175,55,0.08)'; e.currentTarget.style.color = '#fff'; } }}
             onMouseLeave={(e) => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.75)'; } }}
           >
-            <span className="font-semibold">{t}</span>
+            <span className="font-semibold">{formatTime12(t)}</span>
             {isActive && (
               <svg className="h-4 w-4" style={{ color: '#d4af37' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -139,7 +140,7 @@ function TimeSelect({ value, onChange, options }) {
           boxShadow: open ? '0 0 0 3px rgba(212,175,55,0.08)' : 'none',
         }}
       >
-        <span className="font-semibold">{value || 'Select time'}</span>
+        <span className="font-semibold">{value ? formatTime12(value) : 'Select time'}</span>
         <svg className="h-4 w-4 shrink-0 transition-transform duration-200" style={{ color: 'rgba(212,175,55,0.7)', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -237,7 +238,7 @@ export default function BookingForm({
         const availableTables = allTables.filter((t) => t.isAvailable);
 
         if (availableTables.length === 0) {
-          setTableError(`No tables available at ${selectedTime} on ${date}. All tables are reserved.`);
+          setTableError(`No tables available at ${formatTime12(selectedTime)} on ${date}. All tables are reserved.`);
           setSelectedTableId('');
         } else {
           // Find available tables that fit party size
@@ -606,7 +607,7 @@ export default function BookingForm({
               <span>⏱️</span> Expected Dining Duration:
             </span>
             <span className="font-sans text-xs font-bold text-white">
-              {durationInfo.formatted} ({selectedTime} to {checkOutTime})
+              {durationInfo.formatted} ({formatTime12(selectedTime)} to {formatTime12(checkOutTime)})
             </span>
           </div>
           {/* ── DINING ZONE SELECTOR (MATCHES IMAGE 2 MOCKUP) ── */}

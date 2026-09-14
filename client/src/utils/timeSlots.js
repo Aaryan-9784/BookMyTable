@@ -55,3 +55,20 @@ export function defaultTimeSlots() {
 export function restaurantTimeSlots(openingHoursStr) {
   return generateSlotsFromOpeningHours(openingHoursStr);
 }
+
+/**
+ * Format 24-hour time string ("11:00", "13:30") to 12-hour format with AM/PM ("11:00 AM", "1:30 PM")
+ */
+export function formatTime12(time24) {
+  if (!time24 || typeof time24 !== 'string') return time24 || '';
+  if (/am|pm/i.test(time24)) return time24;
+  const parts = time24.split(':');
+  if (parts.length < 2) return time24;
+  let h = parseInt(parts[0], 10);
+  const m = parts[1].padStart(2, '0');
+  if (isNaN(h)) return time24;
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${m} ${ampm}`;
+}

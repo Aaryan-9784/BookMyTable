@@ -8,6 +8,7 @@ import api from '../services/api.js';
 import Loader from '../components/Loader.jsx';
 import ConfirmModal from '../admin/components/ConfirmModal.jsx';
 import { formatISODate } from '../utils/formatDate.js';
+import { formatTime12 } from '../utils/timeSlots.js';
 
 /* ── tiny icon helpers ── */
 function IconCalendar() {
@@ -292,7 +293,7 @@ export default function MyBookings() {
                         </span>
                         <span className="flex items-center gap-2 font-sans text-sm text-white/60">
                           <span className="text-luxury-gold/60"><IconClock /></span>
-                          {b.time}
+                          {formatTime12(b.time)}
                         </span>
                         <span className="flex items-center gap-2 font-sans text-sm text-white/60">
                           <span className="text-luxury-gold/60"><IconGuests /></span>

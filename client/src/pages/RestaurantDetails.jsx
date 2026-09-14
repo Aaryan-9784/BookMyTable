@@ -194,33 +194,44 @@ export default function RestaurantDetails() {
           <div className="flex flex-col space-y-6">
             <div>
               {/* Location Eyebrow */}
-              <div className="mb-3.5 flex items-center gap-2">
-                <svg className="h-4 w-4 text-luxury-gold shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <div className="mb-3.5 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <svg className="h-3.5 w-3.5 text-luxury-gold shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                 </svg>
-                <p className="font-sans text-xs font-bold uppercase tracking-[0.25em] text-luxury-gold">
+                <span className="font-sans text-[11px] font-bold uppercase tracking-[0.22em] text-luxury-gold/90">
                   {r.location}
-                </p>
+                </span>
               </div>
 
-              {/* Title */}
-              <h1 className="font-display text-4xl font-light leading-tight text-white md:text-5xl lg:text-[3.25rem]">
+              {/* Title with Luminous Depth */}
+              <h1
+                className="font-display text-4xl font-normal leading-[1.15] md:text-5xl lg:text-[3.35rem] tracking-tight"
+                style={{
+                  background: 'linear-gradient(180deg, #FFFFFF 25%, #E6DEC9 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
                 {r.name}
               </h1>
 
-              {/* Gold Divider */}
+              {/* Gold Divider with Soft Taper */}
               <div
-                className="mt-4 h-px w-20"
-                style={{ background: 'linear-gradient(90deg, #d4af37, rgba(212,175,55,0.2), transparent)' }}
+                className="mt-4 h-[1.5px] w-24"
+                style={{ background: 'linear-gradient(90deg, #d4af37 0%, rgba(212,175,55,0.3) 70%, transparent 100%)' }}
               />
 
-              {/* Rating Row */}
+              {/* Rating Row with Luxury Distinction */}
               {r.rating != null && (
-                <div className="mt-5 flex items-center gap-2.5">
+                <div className="mt-5 flex items-center gap-3">
                   <div
-                    className="flex items-center gap-2 rounded-full px-3.5 py-1"
-                    style={{ background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.3)' }}
+                    className="inline-flex items-center gap-2.5 rounded-full px-4 py-1.5 backdrop-blur-md"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(212,175,55,0.14) 0%, rgba(212,175,55,0.04) 100%)',
+                      border: '1px solid rgba(212,175,55,0.32)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+                    }}
                   >
                     <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="#d4af37">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -228,7 +239,9 @@ export default function RestaurantDetails() {
                     <span className="font-sans text-xs font-bold text-luxury-gold">
                       {Number(r.rating).toFixed(1)}
                     </span>
-                    <span className="font-sans text-[10px] text-white/40">/ 5.0</span>
+                    <span className="font-sans text-[11px] text-white/40">/ 5.0</span>
+                    <span className="h-1 w-1 rounded-full bg-white/20" />
+                    <span className="font-sans text-[11px] font-medium text-white/70">Verified Dining</span>
                   </div>
                 </div>
               )}
@@ -236,45 +249,54 @@ export default function RestaurantDetails() {
 
             {/* ── LUXURY RESERVATION CONCIERGE CARD ── */}
             <div
-              className="rounded-2xl p-5 space-y-4"
+              className="rounded-3xl p-6 space-y-5"
               style={{
-                background: 'linear-gradient(160deg, rgba(24,24,28,0.94) 0%, rgba(12,12,14,0.98) 100%)',
+                background: 'linear-gradient(160deg, rgba(24,24,30,0.92) 0%, rgba(12,12,15,0.98) 100%)',
                 border: '1px solid rgba(212,175,55,0.3)',
-                boxShadow: '0 16px 48px rgba(0,0,0,0.65), 0 0 24px rgba(212,175,55,0.06)',
+                boxShadow: '0 24px 64px rgba(0,0,0,0.85), 0 0 30px rgba(212,175,55,0.06), inset 0 1px 0 rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
               }}
             >
               {/* Module Header */}
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div>
-                  <p className="font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-luxury-gold">
-                    TABLE RESERVATION
-                  </p>
-                  <p className="font-sans text-xs text-white/50 mt-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-luxury-gold text-xs">✦</span>
+                    <p className="font-sans text-[10px] font-bold uppercase tracking-[0.22em] text-luxury-gold">
+                      TABLE RESERVATION
+                    </p>
+                  </div>
+                  <p className="font-sans text-xs text-white/50 mt-1">
                     Guaranteed seating with zero wait-time
                   </p>
                 </div>
 
                 <div className="text-right">
-                  <span className="font-sans text-xs font-bold text-white">₹{r.tokenFee || 200}</span>
-                  <span className="font-sans text-[10px] text-white/40"> / seat deposit</span>
-                  <p className="font-sans text-[10px] text-emerald-400 font-medium">100% Adjusted on Food Bill</p>
+                  <div className="flex items-baseline justify-end gap-1">
+                    <span className="font-sans text-base font-extrabold text-white">₹{r.tokenFee || 200}</span>
+                    <span className="font-sans text-[11px] text-white/45">/ seat deposit</span>
+                  </div>
+                  <span className="mt-1 inline-block rounded-full bg-luxury-gold/10 px-2.5 py-0.5 font-sans text-[10px] font-semibold text-luxury-gold border border-luxury-gold/25">
+                    100% Credited to Bill
+                  </span>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 pt-1">
                 {isAuthenticated ? (
                   <Link
                     to={`/restaurants/${id}/book`}
-                    className="group relative flex flex-1 items-center justify-center gap-2.5 rounded-xl py-3.5 px-6 font-sans text-sm font-bold tracking-wide text-[#0a0a0c] transition-all duration-300 hover:brightness-110 active:scale-[0.98]"
+                    className="group relative flex flex-1 h-[52px] items-center justify-center gap-3 rounded-2xl px-6 font-sans text-sm font-bold tracking-wide text-[#08080a] transition-all duration-300 hover:brightness-110 hover:scale-[1.01] active:scale-[0.98]"
                     style={{
-                      background: 'linear-gradient(135deg, #d4af37 0%, #fae69e 50%, #c9a84c 100%)',
-                      boxShadow: '0 4px 20px rgba(212,175,55,0.3)',
+                      background: 'linear-gradient(135deg, #e4c264 0%, #fff3ba 48%, #c19629 100%)',
+                      boxShadow: '0 8px 30px rgba(212,175,55,0.35), inset 0 1px 1px rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.4)',
                     }}
                   >
                     <span>Reserve a Table Now</span>
                     <svg
-                      className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
+                      className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -287,16 +309,16 @@ export default function RestaurantDetails() {
                   <Link
                     to="/login"
                     state={{ from: { pathname: `/restaurants/${id}/book` } }}
-                    className="group relative flex flex-1 items-center justify-center gap-2.5 rounded-xl py-3.5 px-6 font-sans text-sm font-bold tracking-wide text-luxury-gold transition-all duration-300 hover:bg-luxury-gold/10 hover:border-luxury-gold active:scale-[0.98]"
+                    className="group relative flex flex-1 h-[52px] items-center justify-center gap-3 rounded-2xl px-6 font-sans text-sm font-bold tracking-wide text-luxury-gold transition-all duration-300 hover:bg-luxury-gold/10 hover:border-luxury-gold active:scale-[0.98]"
                     style={{
-                      border: '1px solid rgba(212,175,55,0.4)',
+                      border: '1.5px solid rgba(212,175,55,0.45)',
                       background: 'rgba(212,175,55,0.06)',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
                     }}
                   >
                     <span>Log in to Reserve</span>
                     <svg
-                      className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
+                      className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -310,11 +332,26 @@ export default function RestaurantDetails() {
                 <button
                   type="button"
                   onClick={() => toggleWishlist(r)}
-                  className="flex h-[48px] shrink-0 items-center justify-center gap-2 rounded-xl px-4 font-sans text-xs font-semibold tracking-wider transition-all duration-300 active:scale-95"
+                  className="flex h-[52px] shrink-0 items-center justify-center gap-2 rounded-2xl px-5 font-sans text-xs font-semibold tracking-wider transition-all duration-300 active:scale-95"
                   style={{
-                    background: wishlisted ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                    background: wishlisted ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.04)',
                     border: wishlisted ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255, 255, 255, 0.12)',
                     color: wishlisted ? '#f87171' : 'rgba(255, 255, 255, 0.85)',
+                    boxShadow: wishlisted ? '0 0 20px rgba(239,68,68,0.25)' : '0 4px 16px rgba(0,0,0,0.3)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!wishlisted) {
+                      e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.4)';
+                      e.currentTarget.style.color = '#d4af37';
+                      e.currentTarget.style.background = 'rgba(212, 175, 55, 0.08)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!wishlisted) {
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.85)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                    }
                   }}
                   title={wishlisted ? 'Remove from Wishlist' : 'Save to Wishlist'}
                 >
@@ -334,7 +371,7 @@ export default function RestaurantDetails() {
               </div>
 
               {/* Micro-Trust Footer */}
-              <div className="pt-2 flex items-center justify-between text-white/45 text-[11px] font-sans border-t border-white/[0.06] flex-wrap gap-2">
+              <div className="pt-3 flex items-center justify-between text-white/45 text-[11px] font-sans border-t border-white/[0.07] flex-wrap gap-2">
                 <span className="flex items-center gap-1.5">
                   <span className="text-luxury-gold text-xs">✓</span> Instant Confirmation
                 </span>

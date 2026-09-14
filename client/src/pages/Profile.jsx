@@ -11,6 +11,7 @@ import ChangePasswordModal from '../components/ChangePasswordModal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { formatISODate } from '../utils/formatDate.js';
+import { formatTime12 } from '../utils/timeSlots.js';
 
 /* ── tiny icon helpers ── */
 function IconKey() {
@@ -437,7 +438,7 @@ export default function Profile() {
                           )}
                           <div className="mt-1.5 flex items-center gap-1.5 font-sans text-xs text-white/35">
                             <span className="text-luxury-gold/40"><IconCalendar /></span>
-                            {formatISODate(b.date)} · {b.time}
+                            {formatISODate(b.date)} · {formatTime12(b.time)}
                           </div>
                         </div>
                         <span

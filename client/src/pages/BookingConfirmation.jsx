@@ -12,6 +12,7 @@ import Loader from '../components/Loader.jsx';
 import { getFallbackRestaurantImage } from '../utils/imageUtils.js';
 
 import { getZoneTokenFee } from '../utils/zoneFeeUtils.js';
+import { formatTime12 } from '../utils/timeSlots.js';
 
 /** Convert numbers to words for authentic receipt formatting */
 function numberToWords(num) {
@@ -283,7 +284,7 @@ export default function BookingConfirmation() {
             </div>
             <div>
               <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-white/40">Time</p>
-              <p className="mt-1 font-sans text-sm font-bold text-white">{booking.time}</p>
+              <p className="mt-1 font-sans text-sm font-bold text-white">{formatTime12(booking.time)}</p>
             </div>
             <div>
               <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-white/40">Guests</p>
@@ -409,7 +410,7 @@ export default function BookingConfirmation() {
                   Reservation Date: <strong>{formattedDate}</strong>
                 </p>
                 <p className="text-xs font-semibold text-slate-900 mt-0.5">
-                  Time Slot: <strong>{booking.time}</strong>
+                  Time Slot: <strong>{formatTime12(booking.time)}</strong>
                 </p>
                 <p className="text-xs font-semibold text-slate-900 mt-0.5">
                   Party Size: <strong>{numGuests} {numGuests === 1 ? 'Guest' : 'Guests'} (Guaranteed Seating)</strong>
