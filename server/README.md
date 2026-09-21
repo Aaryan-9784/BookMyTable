@@ -1,22 +1,31 @@
-# 🍽️ BookMyTable — Backend API
+<div align="center">
 
-[![Render Backend](https://img.shields.io/badge/Render-Live-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://bookmytable-dbmn.onrender.com)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express-4.18-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
-[![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
-[![Cron Keep-Alive](https://img.shields.io/badge/Cron--Job.org-Active-blue)](https://cron-job.org)
+# 🍽️ BookMyTable — Backend API Gateway
 
-High-performance, secure REST API server powering the BookMyTable platform. Built with Node.js, Express (ES Modules), MongoDB Atlas, Mongoose, and Redis with an in-memory caching fallback.
+[![Status](https://img.shields.io/badge/STATUS-PRODUCTION%20READY-00C853?style=for-the-badge&logo=rocket&logoColor=white)](#)
+[![Release](https://img.shields.io/badge/RELEASE-V1.0.0-536DFE?style=for-the-badge&logo=github&logoColor=white)](#)
+[![Node.js](https://img.shields.io/badge/NODE.JS-%3E%3D18.0.0-2E7D32?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Backend](https://img.shields.io/badge/BACKEND-EXPRESS.JS-1A1A1A?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![Database](https://img.shields.io/badge/DATABASE-MONGODB%20ATLAS-4CAF50?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+[![Cron Keep-Alive](https://img.shields.io/badge/CRON--JOB.ORG-ACTIVE-536DFE?style=for-the-badge&logo=clockify&logoColor=white)](https://cron-job.org)
+[![Render Backend](https://img.shields.io/badge/LIVE%20API-RENDER%20ACTIVE-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://bookmytable-dbmn.onrender.com)
+
+<br/>
+
+**[🚀 Live API Gateway](https://bookmytable-dbmn.onrender.com)** • **[🩺 Health Check](https://bookmytable-dbmn.onrender.com/health)** • **[🌐 Client Application](https://book-my-table-dun.vercel.app)**
+
+</div>
 
 ---
 
-## 🌐 Live Deployment & Health
+## 🌐 Live Deployment & Health Matrix
 
-- **Production API Gateway**: [https://bookmytable-dbmn.onrender.com](https://bookmytable-dbmn.onrender.com)
-- **Health Check Endpoint**: [https://bookmytable-dbmn.onrender.com/health](https://bookmytable-dbmn.onrender.com/health)
-- **Hosting Platform**: Render (Web Service)
-- **Keep-Alive Cron**: Automated ping every 10 minutes via `cron-job.org` (`*/10 * * * *`)
-- **Connected Frontend Client**: [https://book-my-table-dun.vercel.app](https://book-my-table-dun.vercel.app)
+| Service Layer | Infrastructure | Live URL | Status |
+|---|---|---|:---:|
+| **Primary Backend API** | Render Cloud | [bookmytable-dbmn.onrender.com](https://bookmytable-dbmn.onrender.com) | ![Render](https://img.shields.io/badge/Live-Healthy-46E3B7) |
+| **Health Check Endpoint** | Render `/health` | [bookmytable-dbmn.onrender.com/health](https://bookmytable-dbmn.onrender.com/health) | ![200 OK](https://img.shields.io/badge/Status-200%20OK-00C853) |
+| **Automated Keep-Alive** | cron-job.org | Scheduled ping every 10 min (`*/10 * * * *`) | ![Active](https://img.shields.io/badge/Cron-Running-536DFE) |
+| **Connected Client** | Vercel Global Edge | [book-my-table-dun.vercel.app](https://book-my-table-dun.vercel.app) | ![Vercel](https://img.shields.io/badge/Live-Ready-00C853) |
 
 ---
 

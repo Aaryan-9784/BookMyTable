@@ -8,32 +8,38 @@
 
 <br/>
 
-[![React](https://img.shields.io/badge/React-18.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express-4.18-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
-[![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://book-my-table-dun.vercel.app)
-[![Render Backend](https://img.shields.io/badge/Render-Live-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://bookmytable-dbmn.onrender.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Status](https://img.shields.io/badge/STATUS-PRODUCTION%20READY-00C853?style=for-the-badge&logo=rocket&logoColor=white)](#)
+[![Release](https://img.shields.io/badge/RELEASE-V1.0.0-536DFE?style=for-the-badge&logo=github&logoColor=white)](#)
+[![License](https://img.shields.io/badge/LICENSE-MIT-1976D2?style=for-the-badge)](#)
+[![Node.js](https://img.shields.io/badge/NODE.JS-%3E%3D18.0.0-2E7D32?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+
+[![Frontend](https://img.shields.io/badge/FRONTEND-REACT%2018%20%7C%20VITE%206-00BCD4?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Backend](https://img.shields.io/badge/BACKEND-EXPRESS.JS-1A1A1A?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![Database](https://img.shields.io/badge/DATABASE-MONGODB%20ATLAS-4CAF50?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+
+[![Realtime](https://img.shields.io/badge/REALTIME-SERVER--SENT%20EVENTS-010101?style=for-the-badge&logo=fastapi&logoColor=white)](#)
+[![Auth](https://img.shields.io/badge/AUTH-JWT%20%2B%20BCRYPT-FF6F00?style=for-the-badge&logo=jsonwebtokens&logoColor=white)](#)
+[![Email](https://img.shields.io/badge/EMAIL-NODEMAILER%20%2B%20RESEND-0C2340?style=for-the-badge&logo=gmail&logoColor=white)](#)
+
+[![Vercel Deployment](https://img.shields.io/badge/LIVE%20APP-VERCEL%20DEPLOYED-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://book-my-table-dun.vercel.app)
+[![Render Backend](https://img.shields.io/badge/LIVE%20API-RENDER%20ACTIVE-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://bookmytable-dbmn.onrender.com)
 
 <br/>
 
-**[🌐 Live Frontend (Vercel)](https://book-my-table-dun.vercel.app)** • **[🚀 Backend API (Render)](https://bookmytable-dbmn.onrender.com)** • **[🩺 API Health Check](https://bookmytable-dbmn.onrender.com/health)** • **[⚡ Quick Start](#-quick-start-guide)** • **[🏗️ System Architecture](#-system-architecture)** • **[📡 API Specification](#-api-specification--payload-contracts)**
+**[🌐 Live Demo (Vercel)](https://book-my-table-dun.vercel.app)** • **[🚀 Backend API (Render)](https://bookmytable-dbmn.onrender.com)** • **[🩺 Health Check](https://bookmytable-dbmn.onrender.com/health)** • **[⚡ Quick Start](#-quick-start-guide)** • **[🏗️ System Architecture](#-system-architecture)** • **[📡 API Specification](#-api-specification--payload-contracts)** • **[🔒 Security Engineering](#-security--production-hardening)**
 
 </div>
 
 ---
 
-## 🌐 Live Deployments
+## 🌐 Live Deployments & Cloud Infrastructure
 
-| Component | Platform | Live URL | Status |
+| Service Layer | Infrastructure | Live URL | Health Status |
 |---|---|---|:---:|
-| **Frontend Web App** | Vercel | [book-my-table-dun.vercel.app](https://book-my-table-dun.vercel.app) | ![Vercel](https://img.shields.io/badge/Live-Ready-brightgreen) |
-| **Backend REST API** | Render | [bookmytable-dbmn.onrender.com](https://bookmytable-dbmn.onrender.com) | ![Render](https://img.shields.io/badge/Live-Healthy-brightgreen) |
-| **API Health Check** | Render | [bookmytable-dbmn.onrender.com/health](https://bookmytable-dbmn.onrender.com/health) | ![200 OK](https://img.shields.io/badge/Status-200%20OK-success) |
-| **Cron Keep-Alive** | cron-job.org | Scheduled every 10 min (`*/10 * * * *`) | ![Active](https://img.shields.io/badge/Cron-Active-blue) |
+| **Client Application (SPA)** | Vercel Global Edge | [book-my-table-dun.vercel.app](https://book-my-table-dun.vercel.app) | ![Vercel](https://img.shields.io/badge/Live-Ready-00C853) |
+| **Primary Backend API** | Render Cloud (Node.js) | [bookmytable-dbmn.onrender.com](https://bookmytable-dbmn.onrender.com) | ![Render](https://img.shields.io/badge/Live-Healthy-46E3B7) |
+| **System Health Check** | Render Health Endpoint | [bookmytable-dbmn.onrender.com/health](https://bookmytable-dbmn.onrender.com/health) | ![200 OK](https://img.shields.io/badge/Status-200%20OK-00C853) |
+| **Automated Keep-Alive** | cron-job.org | Scheduled ping every 10 min (`*/10 * * * *`) | ![Cron](https://img.shields.io/badge/Cron-Running-536DFE) |
 
 ---
 

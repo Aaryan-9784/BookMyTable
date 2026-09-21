@@ -1,19 +1,29 @@
-# 🍽️ BookMyTable — Frontend Client
+<div align="center">
 
-[![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://book-my-table-dun.vercel.app)
-[![React](https://img.shields.io/badge/React-18.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+# 🍽️ BookMyTable — Frontend Client SPA
 
-An enterprise-grade Single-Page Application (SPA) built with React 18, Vite, and Tailwind CSS. Features dynamic dining zone layouts, instant table reservations, token deposit guarantee flows, personal wishlists, real-time SSE notification stream, and dedicated Partner (`/restaurant`) and Admin (`/admin`) governance portals.
+[![Status](https://img.shields.io/badge/STATUS-PRODUCTION%20READY-00C853?style=for-the-badge&logo=rocket&logoColor=white)](#)
+[![Release](https://img.shields.io/badge/RELEASE-V1.0.0-536DFE?style=for-the-badge&logo=github&logoColor=white)](#)
+[![Frontend](https://img.shields.io/badge/FRONTEND-REACT%2018%20%7C%20VITE%206-00BCD4?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Styling](https://img.shields.io/badge/STYLING-TAILWIND%20CSS%203.4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/LICENSE-MIT-1976D2?style=for-the-badge)](#)
+[![Vercel Deployment](https://img.shields.io/badge/LIVE%20APP-VERCEL%20DEPLOYED-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://book-my-table-dun.vercel.app)
+
+<br/>
+
+**[🌐 Live Application](https://book-my-table-dun.vercel.app)** • **[🚀 Backend API](https://bookmytable-dbmn.onrender.com)** • **[🩺 Health Check](https://bookmytable-dbmn.onrender.com/health)**
+
+</div>
 
 ---
 
-## 🌐 Live Deployment
+## 🌐 Live Deployments & Edge Infrastructure
 
-- **Production URL**: [https://book-my-table-dun.vercel.app](https://book-my-table-dun.vercel.app)
-- **Deployment Platform**: Vercel
-- **Connected API Gateway**: [https://bookmytable-dbmn.onrender.com](https://bookmytable-dbmn.onrender.com)
+| Service Layer | Infrastructure | Live URL | Status |
+|---|---|---|:---:|
+| **Frontend Web App (SPA)** | Vercel Global Edge | [book-my-table-dun.vercel.app](https://book-my-table-dun.vercel.app) | ![Vercel](https://img.shields.io/badge/Live-Ready-00C853) |
+| **Connected REST API** | Render Cloud | [bookmytable-dbmn.onrender.com](https://bookmytable-dbmn.onrender.com) | ![Render](https://img.shields.io/badge/Live-Healthy-46E3B7) |
+| **API Health Check** | Render `/health` | [bookmytable-dbmn.onrender.com/health](https://bookmytable-dbmn.onrender.com/health) | ![200 OK](https://img.shields.io/badge/Status-200%20OK-00C853) |
 
 ---
 
