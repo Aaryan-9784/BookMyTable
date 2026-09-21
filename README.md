@@ -14,14 +14,26 @@
 [![Express](https://img.shields.io/badge/Express-4.18-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 [![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![JWT](https://img.shields.io/badge/Auth-Native%20JWT%20%2B%20Bcrypt-FFB300?style=for-the-badge&logo=jsonwebtokens&logoColor=black)](https://jwt.io/)
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://book-my-table-dun.vercel.app)
+[![Render Backend](https://img.shields.io/badge/Render-Live-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://bookmytable-dbmn.onrender.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 <br/>
 
-**[🌐 Live Demo](https://bookmytable.me)** • **[⚡ Quick Start](#-quick-start-guide)** • **[🏗️ System Architecture](#-system-architecture)** • **[📡 API Specification](#-api-specification--payload-contracts)** • **[🔒 Security Engineering](#-security--production-hardening)**
+**[🌐 Live Frontend (Vercel)](https://book-my-table-dun.vercel.app)** • **[🚀 Backend API (Render)](https://bookmytable-dbmn.onrender.com)** • **[🩺 API Health Check](https://bookmytable-dbmn.onrender.com/health)** • **[⚡ Quick Start](#-quick-start-guide)** • **[🏗️ System Architecture](#-system-architecture)** • **[📡 API Specification](#-api-specification--payload-contracts)**
 
 </div>
+
+---
+
+## 🌐 Live Deployments
+
+| Component | Platform | Live URL | Status |
+|---|---|---|:---:|
+| **Frontend Web App** | Vercel | [book-my-table-dun.vercel.app](https://book-my-table-dun.vercel.app) | ![Vercel](https://img.shields.io/badge/Live-Ready-brightgreen) |
+| **Backend REST API** | Render | [bookmytable-dbmn.onrender.com](https://bookmytable-dbmn.onrender.com) | ![Render](https://img.shields.io/badge/Live-Healthy-brightgreen) |
+| **API Health Check** | Render | [bookmytable-dbmn.onrender.com/health](https://bookmytable-dbmn.onrender.com/health) | ![200 OK](https://img.shields.io/badge/Status-200%20OK-success) |
+| **Cron Keep-Alive** | cron-job.org | Scheduled every 10 min (`*/10 * * * *`) | ![Active](https://img.shields.io/badge/Cron-Active-blue) |
 
 ---
 
@@ -640,18 +652,20 @@ Remove-Item -Recurse -Force "dist"
 
 ## 🚢 Production Deployment Runbook
 
-### Frontend Deployment (Vercel / Netlify)
-1. Link your GitHub repository.
-2. Set Root Directory: `client`
-3. Build Command: `npm run build`
-4. Output Directory: `dist`
-5. Set Environment Variable: `VITE_API_URL=https://your-backend-domain.com`
+### Frontend Deployment (Vercel)
+- **Live URL**: [https://book-my-table-dun.vercel.app](https://book-my-table-dun.vercel.app)
+- **Root Directory**: `client`
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
+- **Environment Variable**: `VITE_API_URL=https://bookmytable-dbmn.onrender.com`
 
-### Backend Deployment (Render / Railway / AWS / VPS)
-1. Set Root Directory: `server`
-2. Start Command: `node server.js`
-3. Add Environment Variables from `server/.env.example`.
-4. Whitelist the deployment server's IP address in **MongoDB Atlas Network Access** (`0.0.0.0/0` for cloud providers).
+### Backend Deployment (Render)
+- **Live API**: [https://bookmytable-dbmn.onrender.com](https://bookmytable-dbmn.onrender.com)
+- **Health Check**: [https://bookmytable-dbmn.onrender.com/health](https://bookmytable-dbmn.onrender.com/health)
+- **Root Directory**: `server`
+- **Build Command**: `npm install`
+- **Start Command**: `npm start`
+- **Keep-Alive**: Scheduled cron job on `cron-job.org` (`*/10 * * * *` pinging `/health`)
 
 ---
 
