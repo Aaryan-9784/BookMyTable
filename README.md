@@ -2,40 +2,40 @@
 
 # 🍽️ BookMyTable
 
-### **Enterprise Full-Stack Restaurant Reservation & Venue Management Platform**
+### **Enterprise Full-Stack MERN Restaurant Reservation & Venue Management Platform**
+
+*An enterprise-grade, high-concurrency table reservation and operations engine engineered with React 18, Node.js, Express, and MongoDB Atlas. Features native JWT authentication, multi-tier Role-Based Access Control (RBAC), dining zone seating inventory, real-time Server-Sent Events (SSE), automated transactional emails, and an obsidian luxury design system.*
 
 <br/>
 
-[![Status](https://img.shields.io/badge/STATUS-PRODUCTION%20READY-00C853?style=for-the-badge&logo=rocket&logoColor=white)](#)
-[![Live Demo](https://img.shields.io/badge/LIVE%20APP-VERCEL-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://book-my-table-dun.vercel.app)
-[![API Gateway](https://img.shields.io/badge/BACKEND%20API-RENDER-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://bookmytable-dbmn.onrender.com)
-[![Stack](https://img.shields.io/badge/STACK-MERN%20%2B%20SSE-00BCD4?style=for-the-badge&logo=react&logoColor=black)](#)
-[![License](https://img.shields.io/badge/LICENSE-MIT-1976D2?style=for-the-badge)](#)
+[![React](https://img.shields.io/badge/React-18.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-4.18-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://book-my-table-dun.vercel.app)
+[![Render Backend](https://img.shields.io/badge/Render-Live-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://bookmytable-dbmn.onrender.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 <br/>
 
-**BookMyTable** is a high-concurrency table reservation and venue operations engine engineered with React 18, Node.js, Express, and MongoDB Atlas. Features multi-tier RBAC, dining zone inventory, real-time SSE alerts, automated transactional emails, and an obsidian luxury design system.
-
-<br/>
-
-**[🌐 Launch Live App](https://book-my-table-dun.vercel.app)** &nbsp;•&nbsp; **[🚀 Backend API](https://bookmytable-dbmn.onrender.com)** &nbsp;•&nbsp; **[🩺 API Health](https://bookmytable-dbmn.onrender.com/health)** &nbsp;•&nbsp; **[⚡ Quick Start](#-quick-start-guide)** &nbsp;•&nbsp; **[🏗️ Architecture](#-system-architecture)** &nbsp;•&nbsp; **[📡 API Specs](#-api-specification--payload-contracts)**
-
-<br/>
-
----
-
-### 🌐 Live Cloud Deployments
-
-| Component | Platform | Direct Link | Status |
-|---|---|---|:---:|
-| **Frontend Web App (SPA)** | Vercel Global Edge | [book-my-table-dun.vercel.app](https://book-my-table-dun.vercel.app) | ![Ready](https://img.shields.io/badge/Live-Ready-00C853) |
-| **Primary REST API** | Render Cloud | [bookmytable-dbmn.onrender.com](https://bookmytable-dbmn.onrender.com) | ![Healthy](https://img.shields.io/badge/Live-Healthy-46E3B7) |
-| **Health Check Endpoint** | Render `/health` | [bookmytable-dbmn.onrender.com/health](https://bookmytable-dbmn.onrender.com/health) | ![200 OK](https://img.shields.io/badge/Status-200%20OK-00C853) |
-| **Keep-Alive Cron** | cron-job.org | Scheduled every 10 min (`*/10 * * * *`) | ![Active](https://img.shields.io/badge/Cron-Running-536DFE) |
-
----
+**[🌐 Live Frontend (Vercel)](https://book-my-table-dun.vercel.app)** • **[🚀 Backend API (Render)](https://bookmytable-dbmn.onrender.com)** • **[🩺 API Health Check](https://bookmytable-dbmn.onrender.com/health)** • **[⚡ Quick Start](#-quick-start-guide)** • **[🏗️ System Architecture](#-system-architecture)** • **[📡 API Specification](#-api-specification--payload-contracts)**
 
 </div>
+
+---
+
+## 🌐 Live Deployments
+
+| Component | Platform | Live URL | Status |
+|---|---|---|:---:|
+| **Frontend Web App** | Vercel | [book-my-table-dun.vercel.app](https://book-my-table-dun.vercel.app) | ![Vercel](https://img.shields.io/badge/Live-Ready-brightgreen) |
+| **Backend REST API** | Render | [bookmytable-dbmn.onrender.com](https://bookmytable-dbmn.onrender.com) | ![Render](https://img.shields.io/badge/Live-Healthy-brightgreen) |
+| **API Health Check** | Render | [bookmytable-dbmn.onrender.com/health](https://bookmytable-dbmn.onrender.com/health) | ![200 OK](https://img.shields.io/badge/Status-200%20OK-success) |
+| **Cron Keep-Alive** | cron-job.org | Scheduled every 10 min (`*/10 * * * *`) | ![Active](https://img.shields.io/badge/Cron-Active-blue) |
+
+---
 
 ## 📌 Executive Summary
 
